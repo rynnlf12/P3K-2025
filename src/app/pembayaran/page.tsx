@@ -47,11 +47,12 @@ export default function PembayaranPage() {
           lomba: Object.entries(dataPendaftaran?.lombaDipilih || {})
             .map(([id, jumlah]) => `${id} (${jumlah} tim)`)
             .join(', '),
-          peserta: Object.entries(dataPendaftaran?.peserta || {} as Record<string, string[][]>)
+            peserta: Object.entries(dataPendaftaran?.peserta || {})
             .map(([id, pesertaList]) => {
-              const flatList = pesertaList.flat();
+              const flatList = (pesertaList as string[][]).flat();
               return `${id}: ${flatList.join(', ')}`;
             }).join(' | '),
+          
           total: dataPendaftaran?.totalBayar || 0,
           bukti: bukti?.name || 'Belum Upload'
         }
