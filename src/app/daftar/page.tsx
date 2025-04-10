@@ -97,7 +97,7 @@ export default function DaftarPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 space-y-10">
-      <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran Lomba PMR</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Form Pendaftaran P3K 2025</h1>
 
       <div className="space-y-4 p-4 bg-red-50 rounded border border-red-200">
         <input type="text" placeholder="Nama Sekolah" value={formSekolah.nama} onChange={(e) => setFormSekolah({ ...formSekolah, nama: e.target.value })} className="w-full border px-2 py-1 rounded" />
