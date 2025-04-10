@@ -46,10 +46,14 @@ export default function DaftarPage() {
   };
 
   const tambahPeserta = (lombaId: string) => {
-    setPeserta((prev) => ({
-      ...prev,
-      [lombaId]: [...(prev[lombaId] || []), ''],
-    }));
+    const jumlahSekarang = peserta[lombaId]?.length || 0;
+    const max = LOMBA_LIST.find((l) => l.id === lombaId)?.maksPeserta || 100;
+    if (jumlahSekarang < max) {
+      setPeserta((prev) => ({
+        ...prev,
+        [lombaId]: [...(prev[lombaId] || []), ''],
+      }));
+    }
   };
 
   const hapusPeserta = (lombaId: string, index: number) => {
@@ -95,7 +99,6 @@ export default function DaftarPage() {
     <div className="max-w-4xl mx-auto px-4 py-10 space-y-10">
       <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran Lomba PMR</h1>
 
-      {/* Form Sekolah */}
       <div className="space-y-4 p-4 bg-red-50 rounded border border-red-200">
         <input type="text" placeholder="Nama Sekolah" value={formSekolah.nama} onChange={(e) => setFormSekolah({ ...formSekolah, nama: e.target.value })} className="w-full border px-2 py-1 rounded" />
         <input type="text" placeholder="Nama Pembina" value={formSekolah.pembina} onChange={(e) => setFormSekolah({ ...formSekolah, pembina: e.target.value })} className="w-full border px-2 py-1 rounded" />
@@ -107,44 +110,52 @@ export default function DaftarPage() {
         </select>
       </div>
 
-      {/* Pilihan Lomba */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {LOMBA_LIST.map((lomba) => (
-          <MotionCard key={lomba.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="cursor-pointer border border-red-300 hover:shadow-md">
-            <CardContent className="p-4 space-y-2">
-              <div className="flex justify-between items-center">
-                <h2 className="font-semibold text-red-800">{lomba.nama}</h2>
-                <span className="text-sm text-red-600">Rp {lomba.biaya.toLocaleString('id-ID')}</span>
-              </div>
-              <p className="text-sm text-gray-600">{lomba.keterangan}</p>
-              <label className="inline-flex items-center gap-2 mt-2">
-                <input type="checkbox" checked={!!lombaDipilih[lomba.id]} onChange={() => toggleLomba(lomba.id)} />
-                <span className="text-sm">Ikut lomba ini</span>
-              </label>
+        {LOMBA_LIST.map((lomba) => {
+          const jumlahPeserta = peserta[lomba.id]?.length || 0;
+          const maksimal = lomba.maksPeserta ?? 100;
+          const sudahMaks = jumlahPeserta >= maksimal;
 
-              {lombaDipilih[lomba.id] && (
-                <div className="mt-2 space-y-2">
-                  {(peserta[lomba.id] || []).map((nama, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <input
-                        type="text"
-                        placeholder={`Peserta ${i + 1}`}
-                        value={nama}
-                        onChange={(e) => handlePesertaChange(lomba.id, i, e.target.value)}
-                        className="w-full border px-2 py-1 text-sm rounded"
-                      />
-                      <button type="button" onClick={() => hapusPeserta(lomba.id, i)} className="text-red-500 text-sm">Hapus</button>
-                    </div>
-                  ))}
-                  <Button type="button" onClick={() => tambahPeserta(lomba.id)} size="sm" variant="outline">+ Tambah Peserta</Button>
+          return (
+            <MotionCard key={lomba.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="cursor-pointer border border-red-300 hover:shadow-md">
+              <CardContent className="p-4 space-y-2">
+                <div className="flex justify-between items-center">
+                  <h2 className="font-semibold text-red-800">{lomba.nama}</h2>
+                  <span className="text-sm text-red-600">Rp {lomba.biaya.toLocaleString('id-ID')}</span>
                 </div>
-              )}
-            </CardContent>
-          </MotionCard>
-        ))}
+                <p className="text-sm text-gray-600">{lomba.keterangan}</p>
+                <label className="inline-flex items-center gap-2 mt-2">
+                  <input type="checkbox" checked={!!lombaDipilih[lomba.id]} onChange={() => toggleLomba(lomba.id)} />
+                  <span className="text-sm">Ikut lomba ini</span>
+                </label>
+
+                {lombaDipilih[lomba.id] && (
+                  <div className="mt-2 space-y-2">
+                    {(peserta[lomba.id] || []).map((nama, i) => (
+                      <div key={i} className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          placeholder={`Peserta ${i + 1}`}
+                          value={nama}
+                          onChange={(e) => handlePesertaChange(lomba.id, i, e.target.value)}
+                          className="w-full border px-2 py-1 text-sm rounded"
+                        />
+                        <button type="button" onClick={() => hapusPeserta(lomba.id, i)} className="text-red-500 text-sm">Hapus</button>
+                      </div>
+                    ))}
+                    {!sudahMaks ? (
+                      <Button type="button" onClick={() => tambahPeserta(lomba.id)} size="sm" variant="outline">+ Tambah Peserta</Button>
+                    ) : (
+                      <p className="text-xs text-red-500">Maksimal {maksimal} peserta tercapai.</p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </MotionCard>
+          );
+        })}
       </div>
 
-      {/* Rincian Biaya */}
       <div className="bg-red-50 p-4 rounded shadow-sm">
         <h3 className="text-xl font-semibold text-red-700 mb-2">Rincian Biaya</h3>
         <ul className="text-sm text-gray-700 space-y-1">
@@ -161,7 +172,6 @@ export default function DaftarPage() {
         <p className="font-bold mt-2">Total: Rp {totalBayar.toLocaleString('id-ID')}</p>
       </div>
 
-      {/* Error Message */}
       <AnimatePresence>
         {errors.length > 0 && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
