@@ -40,19 +40,19 @@ export default function PembayaranPage() {
     const payload = {
       data: [
         {
-          nama_sekolah: dataPendaftaran?.sekolah?.nama || '',
-          pembina: dataPendaftaran?.sekolah?.pembina || '',
-          whatsapp: dataPendaftaran?.sekolah?.whatsapp || '',
-          kategori: dataPendaftaran?.sekolah?.kategori || '',
-          lomba: Object.entries(dataPendaftaran?.lombaDipilih || {})
+          nama_sekolah: dataPendaftaran?.sekolah.nama || '',
+          pembina: dataPendaftaran?.sekolah.pembina || '',
+          whatsapp: dataPendaftaran?.sekolah.whatsapp || '',
+          kategori: dataPendaftaran?.sekolah.kategori || '',
+          lomba: Object.entries(dataPendaftaran?.lombaDipilih as Record<string, number> || {})
             .map(([id, jumlah]) => `${id} (${jumlah} tim)`)
             .join(', '),
-            peserta: Object.entries(dataPendaftaran?.peserta || {})
+          peserta: Object.entries(dataPendaftaran?.peserta as Record<string, string[][]> || {})
             .map(([id, pesertaList]) => {
-              const flatList = (pesertaList as string[][]).flat();
-              return `${id}: ${flatList.join(', ')}`;
-            }).join(' | '),
-          
+              const flat = pesertaList.flat();
+              return `${id}: ${flat.join(', ')}`;
+            })
+            .join(' | '),
           total: dataPendaftaran?.totalBayar || 0,
           bukti: bukti?.name || 'Belum Upload'
         }
@@ -95,32 +95,34 @@ export default function PembayaranPage() {
           <p><strong>Kategori:</strong> {dataPendaftaran.sekolah.kategori}</p>
         </div>
 
-        {/* Info Lomba */}
+        {/* Rincian Lomba */}
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Rincian Lomba</h2>
           <ul className="list-disc pl-5">
-            {Object.entries(dataPendaftaran.lombaDipilih).map(([id, jumlah]) => (
+            {(Object.entries(dataPendaftaran.lombaDipilih as Record<string, number>)).map(([id, jumlah]) => (
               <li key={id}>{id} - {jumlah} tim</li>
             ))}
           </ul>
         </div>
 
-        {/* Info Peserta */}
+        {/* Peserta */}
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Nama Peserta</h2>
-          {Object.entries(dataPendaftaran.peserta).map(([id, timList]: [string, string[][]]) => (
-            <div key={id} className="mb-2">
+          {Object.entries(dataPendaftaran.peserta as Record<string, string[][]>).map(([id, tim], index) => (
+            <div key={index}>
               <p className="font-medium">{id}:</p>
-              {timList.map((tim, i) => (
-                <ul key={i} className="list-disc pl-5 text-sm text-gray-800 mb-1">
-                  <li><strong>Tim {i + 1}:</strong> {tim.join(', ')}</li>
+              {tim.map((anggota, i) => (
+                <ul key={i} className="pl-5 list-disc text-sm text-gray-800 mb-1">
+                  {anggota.map((nama, j) => (
+                    <li key={j}>{nama}</li>
+                  ))}
                 </ul>
               ))}
             </div>
           ))}
         </div>
 
-        {/* Info Pembayaran */}
+        {/* Info Rekening */}
         <div className="bg-yellow-50 border border-yellow-400 p-4 rounded-md">
           <p className="text-sm font-semibold text-yellow-800">Silakan transfer ke rekening berikut:</p>
           <p className="mt-1">Bank BRI</p>
@@ -135,7 +137,7 @@ export default function PembayaranPage() {
           {bukti && <p className="text-sm text-green-700 mt-1">📎 {bukti.name}</p>}
         </div>
 
-        {/* Tombol Submit */}
+        {/* Submit */}
         <MotionButton
           type="button"
           whileHover={{ scale: 1.05 }}
