@@ -1,0 +1,103 @@
+"use client";
+
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { UploadCloud } from "lucide-react";
+
+export default function PembayaranPage() {
+  const [nama, setNama] = useState("");
+  const [bukti, setBukti] = useState<File | null>(null);
+  const [sukses, setSukses] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const kirimDataKeSheet = async () => {
+    try {
+      setLoading(true);
+      const data = {
+        nama,
+        waktu: new Date().toISOString(),
+      };
+
+      const res = await fetch("https://sheetdb.io/api/v1/l7x727oogr9o3", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ data }),
+      });
+
+      if (res.ok) {
+        setSukses(true);
+        setError("");
+        setNama("");
+        setBukti(null);
+      } else {
+        setError("Gagal menyimpan ke Google Sheets");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Terjadi kesalahan saat mengirim data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-orange-100 text-orange-900 px-4 py-8">
+      <div className="max-w-3xl mx-auto bg-white/70 rounded-xl p-6 border border-orange-300 shadow">
+        <h1 className="text-3xl font-bold text-center mb-6 text-orange-600">Konfirmasi Pembayaran</h1>
+
+        <motion.div
+          className="space-y-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div>
+            <Label htmlFor="nama">Nama Sekolah</Label>
+            <Input
+              id="nama"
+              placeholder="Contoh: SMA Negeri 1 Bandung"
+              value={nama}
+              onChange={(e) => setNama(e.target.value)}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="bukti">Upload Bukti Pembayaran</Label>
+            <Input
+              id="bukti"
+              type="file"
+              onChange={(e) => setBukti(e.target.files?.[0] || null)}
+              className="mt-1"
+            />
+          </div>
+
+          <p className="text-sm text-gray-600">
+            Silakan transfer ke rekening berikut:<br />
+            <span className="font-semibold">BCA 1234567890 a.n. Panitia P3K</span>
+          </p>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {sukses && <p className="text-sm text-green-600">Data berhasil dikirim!</p>}
+
+          <Button
+            disabled={!nama || !bukti || loading}
+            onClick={kirimDataKeSheet}
+            className="w-full mt-4 bg-gradient-to-r from-orange-400 to-pink-500 hover:from-orange-500 hover:to-pink-600"
+          >
+            {loading ? "Mengirim..." : (
+              <span className="flex items-center gap-2">
+                <UploadCloud size={20} /> Konfirmasi
+              </span>
+            )}
+          </Button>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
