@@ -29,7 +29,7 @@ export default function PendaftaranPage() {
   const [lombaDipilih, setLombaDipilih] = useState({});
   const [errors, setErrors] = useState([]);
 
-  const handleLombaChange = (id, jumlah) => {
+  const handleLombaChange = (id : string, jumlah : number) => {
     setLombaDipilih((prev) => {
       const newState = { ...prev };
       if (jumlah === 0) delete newState[id];
