@@ -9,9 +9,20 @@ import { Label } from '@/components/ui/label';
 
 const MotionButton = motion(Button);
 
+// Define FormData type
+type FormData = {
+  nama: string;
+  pembina: string;
+  whatsapp: string;
+  kategori: string;
+  lomba?: string[];
+  lombaDipilih?: { [key: string]: number };
+  totalBayar: number;
+};
+
 export default function PembayaranPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState<any>(null);
+  const [formData, setFormData] = useState<FormData | null>(null);
   const [bukti, setBukti] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -33,14 +44,14 @@ export default function PembayaranPage() {
 
   const kirimDataKeBackend = async () => {
     const payload = {
-      nama_sekolah: formData.nama,
-      pembina: formData.pembina,
-      whatsapp: formData.whatsapp,
-      kategori: formData.kategori,
-      lomba: Object.entries(formData.lombaDipilih || {})
+      nama_sekolah: formData?.nama,
+      pembina: formData?.pembina,
+      whatsapp: formData?.whatsapp,
+      kategori: formData?.kategori,
+      lomba: Object.entries(formData?.lombaDipilih || {})
         .map(([id, jumlah]) => `${id} (${jumlah} tim)`) 
         .join(', '),
-      total: formData.totalBayar,
+      total: formData?.totalBayar,
       bukti: bukti?.name || 'Belum Diupload',
     };
 
@@ -61,14 +72,14 @@ export default function PembayaranPage() {
     const sheetPayload = {
       data: [
         {
-          nama_sekolah: formData.nama,
-          pembina: formData.pembina,
-          whatsapp: formData.whatsapp,
-          kategori: formData.kategori,
-          lomba: Object.entries(formData.lombaDipilih || {})
+          nama_sekolah: formData?.nama,
+          pembina: formData?.pembina,
+          whatsapp: formData?.whatsapp,
+          kategori: formData?.kategori,
+          lomba: Object.entries(formData?.lombaDipilih || {})
             .map(([id, jumlah]) => `${id} (${jumlah} tim)`) 
             .join(', '),
-          total: formData.totalBayar,
+          total: formData?.totalBayar,
           bukti: bukti?.name || 'Belum Diupload',
         },
       ],
@@ -99,7 +110,7 @@ export default function PembayaranPage() {
     await kirimDataKeSheetDB();
     setLoading(false);
 
-    alert('Data berhasil dikirim! Anda akan diarahkan...');
+    alert('Data berhasil dikirim! Anda akan diarahkan.');
     router.push('/sukses');
   };
 
