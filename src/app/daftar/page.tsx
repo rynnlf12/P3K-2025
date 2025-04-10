@@ -10,13 +10,13 @@ const MotionCard = motion(Card);
 const MotionButton = motion(Button);
 
 // Konfigurasi jumlah peserta per tim berdasarkan lomba
-const ANGGOTA_PER_TIM: Record<string, number> = {
-  'tandu-putra': 2,
-  'tandu-putri': 2,
-  'pertolongan-pertama': 4,
-  'mojang-jajaka': 2,
-  'poster': 3,
-  'senam-kreasi': 10,
+const ANGGOTA_PER_TIM: Record<string, { min: number; max?: number }> = {
+  'tandu-putra': { min: 2 },
+  'tandu-putri': { min: 2 },
+  'pertolongan-pertama': { min: 4 },
+  'mojang-jajaka': { min: 2 },
+  'poster': { min: 3 },
+  'senam-poco-poco': { min: 8, max: 10 },
 };
 
 export default function DaftarPage() {
@@ -40,22 +40,25 @@ export default function DaftarPage() {
 
     setPeserta((prev) => {
       const updated = { ...prev };
-      if (jumlah === 0) delete updated[id];
-      else {
-        const current = updated[id] || [];
-        const timBaru = Array.from({ length: jumlah }, (_, i) => {
-          return Array.from(
-            { length: ANGGOTA_PER_TIM[id] || 1 },
-            (_, j) => current[i]?.[j] || ''
-          );
+      if (jumlah === 0) {
+        delete updated[id];
+      } else {
+        const anggota = ANGGOTA_PER_TIM[id]?.min || 1;
+        updated[id] = Array.from({ length: jumlah }, (_, teamIdx) => {
+          const current = prev[id]?.[teamIdx] || [];
+          return Array.from({ length: anggota }, (_, memberIdx) => current[memberIdx] || '');
         });
-        updated[id] = timBaru;
       }
       return updated;
     });
   };
 
-  const handlePesertaChange = (lombaId: string, timIndex: number, anggotaIndex: number, value: string) => {
+  const handlePesertaChange = (
+    lombaId: string,
+    timIndex: number,
+    anggotaIndex: number,
+    value: string
+  ) => {
     setPeserta((prev) => {
       const updated = { ...prev };
       if (!updated[lombaId]) updated[lombaId] = [];
@@ -100,6 +103,7 @@ export default function DaftarPage() {
     <div className="max-w-4xl mx-auto px-4 py-10 space-y-10">
       <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran Lomba PMR</h1>
 
+      {/* Form Sekolah */}
       <div className="space-y-4 p-4 bg-red-50 rounded border border-red-200">
         <input type="text" placeholder="Nama Sekolah" value={formSekolah.nama} onChange={(e) => setFormSekolah({ ...formSekolah, nama: e.target.value })} className="w-full border px-2 py-1 rounded" />
         <input type="text" placeholder="Nama Pembina" value={formSekolah.pembina} onChange={(e) => setFormSekolah({ ...formSekolah, pembina: e.target.value })} className="w-full border px-2 py-1 rounded" />
@@ -111,6 +115,7 @@ export default function DaftarPage() {
         </select>
       </div>
 
+      {/* Pilihan Lomba */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {LOMBA_LIST.map((lomba) => (
           <MotionCard key={lomba.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="cursor-pointer border border-red-300 hover:shadow-md">
@@ -122,14 +127,29 @@ export default function DaftarPage() {
               <p className="text-sm text-gray-600">{lomba.keterangan}</p>
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-700">Jumlah Tim:</label>
-                <input type="number" className="w-16 px-2 py-1 border rounded text-sm" value={lombaDipilih[lomba.id] || 0} onChange={(e) => handleLombaChange(lomba.id, parseInt(e.target.value) || 0)} min={0} max={3} />
+                <input
+                  type="number"
+                  className="w-16 px-2 py-1 border rounded text-sm"
+                  value={lombaDipilih[lomba.id] || 0}
+                  onChange={(e) => handleLombaChange(lomba.id, parseInt(e.target.value) || 0)}
+                  min={0}
+                  max={3}
+                />
               </div>
 
+              {/* Input Peserta Per Tim */}
               {peserta[lomba.id]?.map((tim, i) => (
                 <div key={i} className="bg-red-50 p-2 rounded border border-dashed space-y-1">
                   <p className="font-medium text-sm">Tim {i + 1}</p>
                   {tim.map((nama, j) => (
-                    <input key={j} type="text" placeholder={`Anggota ${j + 1}`} className="w-full border px-2 py-1 text-sm rounded" value={nama} onChange={(e) => handlePesertaChange(lomba.id, i, j, e.target.value)} />
+                    <input
+                      key={j}
+                      type="text"
+                      placeholder={`Anggota ${j + 1}`}
+                      className="w-full border px-2 py-1 text-sm rounded"
+                      value={nama}
+                      onChange={(e) => handlePesertaChange(lomba.id, i, j, e.target.value)}
+                    />
                   ))}
                 </div>
               ))}
@@ -138,6 +158,7 @@ export default function DaftarPage() {
         ))}
       </div>
 
+      {/* Rincian Biaya */}
       <div className="bg-red-50 p-4 rounded shadow-sm">
         <h3 className="text-xl font-semibold text-red-700 mb-2">Rincian Biaya</h3>
         <ul className="text-sm text-gray-700 space-y-1">
@@ -150,6 +171,7 @@ export default function DaftarPage() {
         <p className="font-bold mt-2">Total: Rp {totalBayar.toLocaleString('id-ID')}</p>
       </div>
 
+      {/* Error */}
       <AnimatePresence>
         {errors.length > 0 && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
