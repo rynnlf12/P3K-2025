@@ -6,18 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Label } from '@/components/ui/label';
+import { LOMBA_LIST } from '@/data/lomba';
 
 const MotionButton = motion(Button);
 
-// Define FormData type
 type FormData = {
   nama: string;
   pembina: string;
   whatsapp: string;
   kategori: string;
-  lomba?: string[];
   lombaDipilih?: Record<string, number>;
   totalBayar: number;
+  peserta?: Record<string, string[]>;
 };
 
 export default function PembayaranPage() {
@@ -36,66 +36,14 @@ export default function PembayaranPage() {
     }
   }, [router]);
 
+  const getLombaNamaById = (id: string) => {
+    const lomba = LOMBA_LIST.find((l) => l.id === id);
+    return lomba ? lomba.nama : id;
+  };
+
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setBukti(e.target.files[0]);
-    }
-  };
-
-  const kirimDataKeBackend = async () => {
-    const payload = {
-      nama_sekolah: formData?.nama,
-      pembina: formData?.pembina,
-      whatsapp: formData?.whatsapp,
-      kategori: formData?.kategori,
-      lomba: Object.entries(formData?.lombaDipilih || {})
-        .map(([id, jumlah]) => `${id} (${jumlah} tim)`) 
-        .join(', '),
-      total: formData?.totalBayar,
-      bukti: bukti?.name || 'Belum Diupload',
-    };
-
-    try {
-      const res = await fetch('/api/pendaftaran', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const result = await res.json();
-      console.log('✅ Respon dari backend:', result);
-    } catch (error) {
-      console.error('❌ Gagal kirim ke backend:', error);
-    }
-  };
-
-  const kirimDataKeSheetDB = async () => {
-    const sheetPayload = {
-      data: [
-        {
-          nama_sekolah: formData?.nama,
-          pembina: formData?.pembina,
-          whatsapp: formData?.whatsapp,
-          kategori: formData?.kategori,
-          lomba: Object.entries(formData?.lombaDipilih || {})
-            .map(([id, jumlah]) => `${id} (${jumlah} tim)`) 
-            .join(', '),
-          total: formData?.totalBayar,
-          bukti: bukti?.name || 'Belum Diupload',
-        },
-      ],
-    };
-
-    try {
-      const res = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sheetPayload),
-      });
-      const result = await res.json();
-      console.log('✅ Data terkirim ke SheetDB:', result);
-    } catch (error) {
-      console.error('❌ Gagal kirim ke SheetDB:', error);
-      alert('Gagal kirim data ke Google Sheets');
     }
   };
 
@@ -106,10 +54,27 @@ export default function PembayaranPage() {
     }
 
     setLoading(true);
-    await kirimDataKeBackend();
-    await kirimDataKeSheetDB();
-    setLoading(false);
 
+    const payload = {
+      sekolah: {
+        nama: formData?.nama,
+        pembina: formData?.pembina,
+        whatsapp: formData?.whatsapp,
+        kategori: formData?.kategori,
+      },
+      lombaDipilih: formData?.lombaDipilih || {},
+      peserta: formData?.peserta || {},
+      totalBayar: formData?.totalBayar,
+      buktiNamaFile: bukti.name,
+    };
+
+    await fetch('/api/pendaftaran', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    setLoading(false);
     alert('Data berhasil dikirim! Anda akan diarahkan.');
     router.push('/sukses');
   };
@@ -123,20 +88,33 @@ export default function PembayaranPage() {
       <div className="max-w-3xl mx-auto bg-white/70 rounded-xl p-6 border border-orange-300 shadow">
         <h1 className="text-3xl font-bold text-center mb-6 text-orange-600">Konfirmasi Pembayaran</h1>
 
-        <div className="space-y-4 mb-8">
+        <div className="space-y-4 mb-8 text-sm">
           <p><strong>Nama Sekolah:</strong> {formData.nama}</p>
           <p><strong>Pembina:</strong> {formData.pembina}</p>
           <p><strong>WhatsApp:</strong> {formData.whatsapp}</p>
           <p><strong>Kategori:</strong> {formData.kategori}</p>
-          <p><strong>Lomba:</strong> {Object.entries(formData.lombaDipilih || {}).map(([id, jumlah]) => `${id} (${jumlah} tim)`).join(', ')}</p>
-          <p><strong>Total Biaya:</strong> <span className="text-green-600 font-bold">Rp {formData.totalBayar.toLocaleString('id-ID')}</span></p>
-        </div>
 
-        <div className="mb-8 bg-yellow-100 border border-yellow-400 p-4 rounded-lg">
-          <p className="text-sm text-orange-800 font-semibold">Silakan transfer pembayaran ke:</p>
-          <p className="mt-1">Bank BRI</p>
-          <p>No. Rekening: <strong>1234 5678 9012 3456</strong></p>
-          <p>Atas Nama: <strong>Panitia P3K 2025</strong></p>
+          <div>
+            <strong>Lomba & Peserta:</strong>
+            <ul className="list-disc ml-6">
+              {Object.entries(formData.lombaDipilih || {}).map(([id, jumlah]) => (
+                <li key={id}>
+                  {getLombaNamaById(id)} ({jumlah} tim)
+                  {formData.peserta?.[id] && (
+                    <ul className="ml-4 list-decimal text-gray-700">
+                      {formData.peserta[id].map((nama, idx) => (
+                        <li key={idx}>{nama}</li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <p className="text-lg font-semibold">
+            Total: Rp {formData.totalBayar.toLocaleString('id-ID')}
+          </p>
         </div>
 
         <div className="mb-6">
@@ -147,20 +125,10 @@ export default function PembayaranPage() {
             onChange={handleUpload}
             className="border border-orange-400 bg-white"
           />
+          {bukti && (
+            <p className="text-sm mt-2 text-green-700">✅ File: {bukti.name}</p>
+          )}
         </div>
-
-        {bukti && (
-          <div className="mt-4">
-            <p className="mb-2 text-sm text-green-700">File dipilih: {bukti.name}</p>
-            {bukti.type.startsWith('image/') && (
-              <img
-                src={URL.createObjectURL(bukti)}
-                alt="Preview Bukti"
-                className="w-full max-h-64 object-contain border border-orange-300"
-              />
-            )}
-          </div>
-        )}
 
         <MotionButton
           type="button"
