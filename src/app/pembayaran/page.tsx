@@ -37,6 +37,12 @@ export default function PembayaranPage() {
 
     setLoading(true);
 
+    const pesertaFormatted = Object.entries(dataPendaftaran?.peserta || {}).map(([id, list]) => {
+      const isNestedArray = Array.isArray(list[0]);
+      const flatList = isNestedArray ? (list as string[][]).flat() : (list as string[]);
+      return `${id}: ${flatList.join(', ')}`;
+    });
+
     const payload = {
       data: [
         {
@@ -44,17 +50,10 @@ export default function PembayaranPage() {
           pembina: dataPendaftaran?.sekolah.pembina || '',
           whatsapp: dataPendaftaran?.sekolah.whatsapp || '',
           kategori: dataPendaftaran?.sekolah.kategori || '',
-          lomba: Object.entries(dataPendaftaran?.lombaDipilih as Record<string, number> || {})
-            .map(([id, jumlah]) => `${id} (${jumlah} tim)`)
-            .join(', '),
-          peserta: Object.entries(dataPendaftaran?.peserta as Record<string, string[][]> || {})
-            .map(([id, pesertaList]) => {
-              const flat = pesertaList.flat();
-              return `${id}: ${flat.join(', ')}`;
-            })
-            .join(' | '),
+          lomba: Object.keys(dataPendaftaran?.lombaDipilih || {}).join(', '),
+          peserta: pesertaFormatted.join(' | '),
           total: dataPendaftaran?.totalBayar || 0,
-          bukti: bukti?.name || 'Belum Upload'
+          bukti: bukti?.name || 'Belum Upload',
         }
       ]
     };
@@ -99,8 +98,8 @@ export default function PembayaranPage() {
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Rincian Lomba</h2>
           <ul className="list-disc pl-5">
-            {(Object.entries(dataPendaftaran.lombaDipilih as Record<string, number>)).map(([id, jumlah]) => (
-              <li key={id}>{id} - {jumlah} tim</li>
+            {Object.entries(dataPendaftaran.lombaDipilih || {}).map(([id]) => (
+              <li key={id}>{id}</li>
             ))}
           </ul>
         </div>
@@ -108,18 +107,18 @@ export default function PembayaranPage() {
         {/* Peserta */}
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Nama Peserta</h2>
-          {Object.entries(dataPendaftaran.peserta as Record<string, string[][]>).map(([id, tim], index) => (
-            <div key={index}>
-              <p className="font-medium">{id}:</p>
-              {tim.map((anggota, i) => (
-                <ul key={i} className="pl-5 list-disc text-sm text-gray-800 mb-1">
-                  {anggota.map((nama, j) => (
-                    <li key={j}>{nama}</li>
-                  ))}
+          {Object.entries(dataPendaftaran.peserta || {}).map(([id, list]) => {
+            const isNested = Array.isArray(list[0]);
+            const dataList = isNested ? (list as string[][]).flat() : (list as string[]);
+            return (
+              <div key={id}>
+                <p className="font-medium">{id}:</p>
+                <ul className="list-disc pl-5 text-sm text-gray-800 mb-1">
+                  {dataList.map((nama, i) => <li key={i}>{nama}</li>)}
                 </ul>
-              ))}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
         {/* Info Rekening */}
