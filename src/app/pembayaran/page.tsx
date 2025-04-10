@@ -88,6 +88,14 @@ export default function PembayaranPage() {
       <div className="max-w-3xl mx-auto bg-white/70 rounded-xl p-6 border border-orange-300 shadow">
         <h1 className="text-3xl font-bold text-center mb-6 text-orange-600">Konfirmasi Pembayaran</h1>
 
+        {/* Info Transfer */}
+        <div className="bg-yellow-100 border border-yellow-400 p-4 rounded-lg text-sm mb-6">
+          <p className="font-semibold">Silakan lakukan pembayaran ke:</p>
+          <p>Bank BRI</p>
+          <p>No. Rekening: <strong>1234 5678 9012 3456</strong></p>
+          <p>Atas Nama: <strong>Panitia P3K 2025</strong></p>
+        </div>
+
         <div className="space-y-4 mb-8 text-sm">
           <p><strong>Nama Sekolah:</strong> {formData.nama}</p>
           <p><strong>Pembina:</strong> {formData.pembina}</p>
