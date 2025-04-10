@@ -49,9 +49,8 @@ export default function PembayaranPage() {
             .map(([id, jumlah]) => `${id} (${jumlah} tim)`)
             .join(', '),
           peserta: Object.entries(dataPendaftaran?.peserta || {})
-            .map(([id, pesertaList]) => {
-              return `${id}: ${pesertaList.join(', ')}`;
-            }).join(' | '),
+            .map(([id, pesertaList]) => `${id}: ${pesertaList.join(', ')}`)
+            .join(' | '),
           total: dataPendaftaran?.totalBayar || 0,
           bukti: bukti?.name || 'Belum Upload'
         }
@@ -66,6 +65,11 @@ export default function PembayaranPage() {
       });
 
       if (res.ok) {
+        const updatedData = {
+          ...dataPendaftaran,
+          buktiNamaFile: bukti.name,
+        };
+        localStorage.setItem('formPendaftaran', JSON.stringify(updatedData));
         setSuccess(true);
         alert('✅ Data berhasil dikirim!');
         router.push('/sukses');
@@ -87,6 +91,7 @@ export default function PembayaranPage() {
       <div className="max-w-3xl mx-auto bg-white/80 border p-6 rounded-lg shadow space-y-6">
         <h1 className="text-2xl font-bold text-orange-700 text-center">Konfirmasi Pembayaran</h1>
 
+        {/* Informasi Sekolah */}
         <div className="space-y-1 text-sm">
           <p><strong>Nama Sekolah:</strong> {dataPendaftaran.sekolah.nama}</p>
           <p><strong>Pembina:</strong> {dataPendaftaran.sekolah.pembina}</p>
@@ -94,6 +99,7 @@ export default function PembayaranPage() {
           <p><strong>Kategori:</strong> {dataPendaftaran.sekolah.kategori}</p>
         </div>
 
+        {/* Informasi Lomba */}
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Rincian Lomba</h2>
           <ul className="list-disc pl-5">
@@ -103,6 +109,7 @@ export default function PembayaranPage() {
           </ul>
         </div>
 
+        {/* Informasi Peserta */}
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Nama Peserta</h2>
           {Object.entries(dataPendaftaran.peserta).map(([id, namaList]: [string, string[]]) => (
@@ -117,6 +124,7 @@ export default function PembayaranPage() {
           ))}
         </div>
 
+        {/* Informasi Pembayaran */}
         <div className="bg-yellow-50 border border-yellow-400 p-4 rounded-md">
           <p className="text-sm font-semibold text-yellow-800">Silakan transfer ke rekening berikut:</p>
           <p className="mt-1">Bank BRI</p>
@@ -124,12 +132,14 @@ export default function PembayaranPage() {
           <p>Atas Nama: <strong>Panitia P3K 2025</strong></p>
         </div>
 
+        {/* Upload Bukti */}
         <div>
           <Label className="block mb-1 font-medium">Upload Bukti Pembayaran</Label>
           <Input type="file" accept="image/*,application/pdf" onChange={handleUpload} className="bg-white border" />
           {bukti && <p className="text-sm text-green-700 mt-1">📎 {bukti.name}</p>}
         </div>
 
+        {/* Tombol Submit */}
         <MotionButton
           type="button"
           whileHover={{ scale: 1.05 }}
