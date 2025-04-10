@@ -7,8 +7,11 @@ export default function Home() {
   return (
     <div
       className="relative font-montserrat min-h-screen bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10"
-      style={{ backgroundImage: `url('/bg-homepage.png')` }}
+      style={{ backgroundImage: `url('https://images.unsplash.com/photo-1549887534-1d47e04b90da')` }}
     >
+      {/* Overlay untuk vibes golden hour */}
+      <div className="absolute inset-0 bg-gradient-to-br from-yellow-100/60 via-orange-300/50 to-pink-300/30 backdrop-blur-sm z-0" />
+
       {/* Logo pojok kiri atas */}
       <div className="absolute top-1 left-4 md:left-20 z-50">
         <motion.div
@@ -27,7 +30,7 @@ export default function Home() {
       </div>
 
       {/* Kiri: Teks Besar */}
-      <div className="w-full md:w-1/2 text-center md:text-left mt-20 md:mt-0">
+      <div className="w-full md:w-1/2 text-center md:text-left mt-20 md:mt-0 z-10">
         <motion.h2
           className="text-xl md:text-2xl text-white font-bold drop-shadow-md mb-1"
           initial={{ opacity: 0, y: -10 }}
@@ -61,7 +64,7 @@ export default function Home() {
 
         <motion.a
           href="/daftar"
-          className="mt-10 inline-block w-full max-w-xs text-center bg-blue-600 text-white px-8 py-4 rounded-full text-lg shadow-md hover:bg-blue-700 transition"
+          className="mt-10 inline-block w-full max-w-xs text-center bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-4 rounded-full text-lg shadow-md transition"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
