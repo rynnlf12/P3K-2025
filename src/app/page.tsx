@@ -105,7 +105,7 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
         >
-          <h3 className="text-sm font-semibold text-black mb-3">Menuju Hari-H</h3>
+          <h3 className="text-sm font-semibold text-yellow-400 mb-3">Menuju Hari-H</h3>
           <div className="grid grid-cols-4 gap-3 font-digital text-yellow-400 text-2xl">
             <div className="bg-gray-900 p-2 rounded shadow-inner animate-pulse">
               {String(timeLeft.days).padStart(2, '0')}
