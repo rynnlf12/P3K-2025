@@ -50,7 +50,10 @@ export default function PembayaranPage() {
 
     const pesertaFormatted = Object.entries(dataPendaftaran?.peserta || {}).map(([id, list]) => {
       const isNestedArray = Array.isArray(list[0]);
-      const flatList = isNestedArray ? (list as string[][]).flat() : (list as string[]);
+      const flatList = isNestedArray
+      ? (list as unknown as string[][]).flat()
+      : (list as string[]);
+
       return `${id}: ${flatList.join(', ')}`;
     });
 
