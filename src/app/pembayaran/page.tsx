@@ -14,7 +14,8 @@ export default function PembayaranPage() {
   const [dataPendaftaran, setDataPendaftaran] = useState<any>(null);
   const [bukti, setBukti] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  // const [success, setSuccess] = useState(false); // dihapus karena tidak terpakai
+
 
   useEffect(() => {
     const stored = localStorage.getItem('formPendaftaran');
