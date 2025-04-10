@@ -37,11 +37,13 @@ export default function PembayaranPage() {
 
     setLoading(true);
 
-    const pesertaFormatted = Object.entries(dataPendaftaran?.peserta || {}).map(([id, list]) => {
-      const isNestedArray = Array.isArray(list[0]);
-      const flatList = isNestedArray ? (list as string[][]).flat() : (list as string[]);
+    const pesertaFormatted = Object.entries(dataPendaftaran?.peserta as Record<string, unknown> || {}).map(([id, list]) => {
+      const typedList = list as string[] | string[][];
+      const isNestedArray = Array.isArray((typedList as any)[0]);
+      const flatList = isNestedArray ? (typedList as string[][]).flat() : (typedList as string[]);
       return `${id}: ${flatList.join(', ')}`;
     });
+    
 
     const payload = {
       data: [
