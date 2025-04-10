@@ -71,7 +71,7 @@ export default function PendaftaranPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-orange-100 to-pink-100 text-orange-900">
       <div className="max-w-4xl mx-auto px-4 py-6 md:px-6 relative">
-        <image
+        <Image
           src="/desain-p3k.png"
           alt="Logo P3K"
           className="absolute top-0 right-4 w-32 md:w-48 h-auto z-10"
