@@ -100,13 +100,13 @@ export default function Home() {
 
         {/* Countdown Digital */}
         <motion.div
-          className="mt-10 p-4 bg-black rounded-xl shadow-lg text-center max-w-sm border border-yellow-500"
+          className="mt-10 p-4 bg-white rounded-xl shadow-lg text-center max-w-sm border border-yellow-500"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
         >
-          <h3 className="text-sm font-semibold text-yellow-300 mb-3">Menuju Hari-H</h3>
-          <div className="grid grid-cols-4 gap-3 font-digital text-green-400 text-2xl">
+          <h3 className="text-sm font-semibold text-black mb-3">Menuju Hari-H</h3>
+          <div className="grid grid-cols-4 gap-3 font-digital text-red-500 text-2xl">
             <div className="bg-gray-900 p-2 rounded shadow-inner animate-pulse">
               {String(timeLeft.days).padStart(2, '0')}
               <div className="text-[10px] text-yellow-400 mt-1">Hari</div>
