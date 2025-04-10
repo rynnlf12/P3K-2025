@@ -16,9 +16,12 @@ export default function DaftarPage() {
     whatsapp: '',
     kategori: '',
   });
+
   const [lombaDipilih, setLombaDipilih] = useState<Record<string, number>>({});
-  const [peserta, setPeserta] = useState<Record<string, string[]>>({});
+  const [peserta, setPeserta] = useState<Record<string, string[][]>>({});
   const [errors, setErrors] = useState<string[]>([]);
+
+  const PESERTA_PER_TIM = 2;
 
   const handleLombaChange = (id: string, jumlah: number) => {
     setLombaDipilih((prev) => {
@@ -30,20 +33,25 @@ export default function DaftarPage() {
 
     setPeserta((prev) => {
       const updated = { ...prev };
-      if (jumlah === 0) delete updated[id];
-      else {
-        const current = updated[id] || [];
-        updated[id] = Array.from({ length: jumlah }, (_, i) => current[i] || '');
+      if (jumlah === 0) {
+        delete updated[id];
+      } else {
+        updated[id] = Array.from({ length: jumlah }, (_, timIndex) => {
+          return Array.from({ length: PESERTA_PER_TIM }, (_, siswaIdx) => {
+            return prev[id]?.[timIndex]?.[siswaIdx] || '';
+          });
+        });
       }
       return updated;
     });
   };
 
-  const handlePesertaChange = (lombaId: string, index: number, value: string) => {
+  const handlePesertaChange = (lombaId: string, timIndex: number, siswaIndex: number, value: string) => {
     setPeserta((prev) => {
       const updated = { ...prev };
       if (!updated[lombaId]) updated[lombaId] = [];
-      updated[lombaId][index] = value;
+      if (!updated[lombaId][timIndex]) updated[lombaId][timIndex] = [];
+      updated[lombaId][timIndex][siswaIndex] = value;
       return updated;
     });
   };
@@ -80,38 +88,22 @@ export default function DaftarPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10 space-y-10">
+    <div className="max-w-5xl mx-auto px-4 py-10 space-y-10">
       <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran Lomba PMR</h1>
 
       {/* Form Sekolah */}
       <div className="space-y-4 p-4 bg-red-50 rounded border border-red-200">
-        <div>
-          <label className="block font-medium text-sm">Nama Sekolah</label>
-          <input
-            type="text"
-            value={formSekolah.nama}
-            onChange={(e) => setFormSekolah({ ...formSekolah, nama: e.target.value })}
-            className="w-full border px-2 py-1 rounded"
-          />
-        </div>
-        <div>
-          <label className="block font-medium text-sm">Nama Pembina</label>
-          <input
-            type="text"
-            value={formSekolah.pembina}
-            onChange={(e) => setFormSekolah({ ...formSekolah, pembina: e.target.value })}
-            className="w-full border px-2 py-1 rounded"
-          />
-        </div>
-        <div>
-          <label className="block font-medium text-sm">Nomor WhatsApp</label>
-          <input
-            type="text"
-            value={formSekolah.whatsapp}
-            onChange={(e) => setFormSekolah({ ...formSekolah, whatsapp: e.target.value })}
-            className="w-full border px-2 py-1 rounded"
-          />
-        </div>
+        {['nama', 'pembina', 'whatsapp'].map((field) => (
+          <div key={field}>
+            <label className="block font-medium text-sm capitalize">{field}</label>
+            <input
+              type="text"
+              value={(formSekolah as any)[field]}
+              onChange={(e) => setFormSekolah({ ...formSekolah, [field]: e.target.value })}
+              className="w-full border px-2 py-1 rounded"
+            />
+          </div>
+        ))}
         <div>
           <label className="block font-medium text-sm">Kategori</label>
           <select
@@ -135,7 +127,7 @@ export default function DaftarPage() {
             whileTap={{ scale: 0.98 }}
             className="cursor-pointer border border-red-300 hover:shadow-md"
           >
-            <CardContent className="p-4 space-y-2">
+            <CardContent className="p-4 space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="font-semibold text-red-800">{lomba.nama}</h2>
                 <span className="text-sm text-red-600">Rp {lomba.biaya.toLocaleString('id-ID')}</span>
@@ -153,20 +145,24 @@ export default function DaftarPage() {
                 />
               </div>
 
-              {lombaDipilih[lomba.id] > 0 && (
-                <div className="space-y-2">
-                  {Array.from({ length: lombaDipilih[lomba.id] }).map((_, i) => (
+              {/* Form Peserta */}
+              {peserta[lomba.id]?.map((tim, timIndex) => (
+                <div key={timIndex} className="bg-red-50 p-2 rounded border">
+                  <p className="font-medium text-sm mb-2">Tim {timIndex + 1}</p>
+                  {tim.map((nama, siswaIndex) => (
                     <input
-                      key={i}
+                      key={siswaIndex}
                       type="text"
-                      className="w-full border px-2 py-1 text-sm rounded"
-                      placeholder={`Nama Peserta Tim ${i + 1}`}
-                      value={peserta[lomba.id]?.[i] || ''}
-                      onChange={(e) => handlePesertaChange(lomba.id, i, e.target.value)}
+                      className="w-full mb-2 px-2 py-1 border text-sm rounded"
+                      placeholder={`Siswa ${siswaIndex + 1}`}
+                      value={nama}
+                      onChange={(e) =>
+                        handlePesertaChange(lomba.id, timIndex, siswaIndex, e.target.value)
+                      }
                     />
                   ))}
                 </div>
-              )}
+              ))}
             </CardContent>
           </MotionCard>
         ))}
@@ -189,7 +185,7 @@ export default function DaftarPage() {
         <p className="font-bold mt-2">Total: Rp {totalBayar.toLocaleString('id-ID')}</p>
       </div>
 
-      {/* Error / Validasi */}
+      {/* Error */}
       <AnimatePresence>
         {errors.length > 0 && (
           <motion.div
