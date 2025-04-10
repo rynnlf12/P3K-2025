@@ -7,6 +7,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
+    if (!body?.sekolah || !body?.lombaDipilih || !body?.totalBayar) {
+      return NextResponse.json(
+        { status: 'error', message: 'Data tidak lengkap' },
+        { status: 400 }
+      );
+    }
+
     const result = await prisma.pendaftaran.create({
       data: {
         nama: body.sekolah.nama,
@@ -23,6 +30,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: 'ok', id: result.id });
   } catch (err) {
     console.error('❌ Gagal menyimpan:', err);
-    return NextResponse.json({ status: 'error', message: 'Terjadi kesalahan saat menyimpan' }, { status: 500 });
+    return NextResponse.json(
+      { status: 'error', message: 'Terjadi kesalahan saat menyimpan' },
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
   }
 }

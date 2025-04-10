@@ -16,7 +16,7 @@ type FormData = {
   whatsapp: string;
   kategori: string;
   lomba?: string[];
-  lombaDipilih?: { [key: string]: number };
+  lombaDipilih?: Record<string, number>;
   totalBayar: number;
 };
 
@@ -129,7 +129,7 @@ export default function PembayaranPage() {
           <p><strong>WhatsApp:</strong> {formData.whatsapp}</p>
           <p><strong>Kategori:</strong> {formData.kategori}</p>
           <p><strong>Lomba:</strong> {Object.entries(formData.lombaDipilih || {}).map(([id, jumlah]) => `${id} (${jumlah} tim)`).join(', ')}</p>
-          <p><strong>Total Biaya:</strong> <span className="text-green-600 font-bold">Rp {formData.totalBayar.toLocaleString()}</span></p>
+          <p><strong>Total Biaya:</strong> <span className="text-green-600 font-bold">Rp {formData.totalBayar.toLocaleString('id-ID')}</span></p>
         </div>
 
         <div className="mb-8 bg-yellow-100 border border-yellow-400 p-4 rounded-lg">
@@ -163,6 +163,7 @@ export default function PembayaranPage() {
         )}
 
         <MotionButton
+          type="button"
           disabled={loading}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
