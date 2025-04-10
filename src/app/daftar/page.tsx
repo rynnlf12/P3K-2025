@@ -40,6 +40,7 @@ export default function PendaftaranPage() {
 
   const totalBayar = Object.entries(lombaDipilih).reduce((acc, [id, jumlah]) => {
     const lomba = LOMBA_LIST.find((l) => l.id === id);
+    if (!lomba) return acc; // skip jika tidak ditemukan
     return acc + jumlah * lomba.biaya;
   }, 0);
 
