@@ -11,7 +11,18 @@ const MotionButton = motion(Button);
 
 export default function PembayaranPage() {
   const router = useRouter();
-  const [dataPendaftaran, setDataPendaftaran] = useState<any>(null);
+  const [dataPendaftaran, setDataPendaftaran] = useState<{
+    sekolah: {
+      nama: string;
+      pembina: string;
+      whatsapp: string;
+      kategori: string;
+    };
+    lombaDipilih: Record<string, boolean>;
+    peserta: Record<string, string[]>;
+    totalBayar: number;
+  } | null>(null);
+
   const [bukti, setBukti] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -37,13 +48,11 @@ export default function PembayaranPage() {
 
     setLoading(true);
 
-    const pesertaFormatted = Object.entries(dataPendaftaran?.peserta as Record<string, unknown> || {}).map(([id, list]) => {
-      const typedList = list as string[] | string[][];
-      const isNestedArray = Array.isArray((typedList as any)[0]);
-      const flatList = isNestedArray ? (typedList as string[][]).flat() : (typedList as string[]);
+    const pesertaFormatted = Object.entries(dataPendaftaran?.peserta || {}).map(([id, list]) => {
+      const isNestedArray = Array.isArray(list[0]);
+      const flatList = isNestedArray ? (list as string[][]).flat() : (list as string[]);
       return `${id}: ${flatList.join(', ')}`;
     });
-    
 
     const payload = {
       data: [
@@ -56,15 +65,15 @@ export default function PembayaranPage() {
           peserta: pesertaFormatted.join(' | '),
           total: dataPendaftaran?.totalBayar || 0,
           bukti: bukti?.name || 'Belum Upload',
-        }
-      ]
+        },
+      ],
     };
 
     try {
       const res = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -100,7 +109,7 @@ export default function PembayaranPage() {
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Rincian Lomba</h2>
           <ul className="list-disc pl-5">
-            {Object.entries(dataPendaftaran.lombaDipilih || {}).map(([id]) => (
+            {Object.keys(dataPendaftaran.lombaDipilih).map((id) => (
               <li key={id}>{id}</li>
             ))}
           </ul>
@@ -109,18 +118,16 @@ export default function PembayaranPage() {
         {/* Peserta */}
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Nama Peserta</h2>
-          {Object.entries(dataPendaftaran.peserta || {}).map(([id, list]) => {
-            const isNested = Array.isArray(list[0]);
-            const dataList = isNested ? (list as string[][]).flat() : (list as string[]);
-            return (
-              <div key={id}>
-                <p className="font-medium">{id}:</p>
-                <ul className="list-disc pl-5 text-sm text-gray-800 mb-1">
-                  {dataList.map((nama, i) => <li key={i}>{nama}</li>)}
-                </ul>
-              </div>
-            );
-          })}
+          {Object.entries(dataPendaftaran.peserta).map(([id, list], i) => (
+            <div key={i}>
+              <p className="font-medium">{id}:</p>
+              <ul className="pl-5 list-disc text-sm text-gray-800 mb-1">
+                {list.map((nama, j) => (
+                  <li key={j}>{nama}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         {/* Info Rekening */}
