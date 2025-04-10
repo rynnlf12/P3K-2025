@@ -12,6 +12,12 @@ const MotionButton = motion(Button);
 export default function DaftarPage() {
   const [lombaDipilih, setLombaDipilih] = useState<Record<string, number>>({});
   const [errors, setErrors] = useState<string[]>([]);
+  const [sekolah, setSekolah] = useState({
+    nama: '',
+    pembina: '',
+    whatsapp: ''
+  });
+  const [peserta, setPeserta] = useState<Record<string, string[]>>({});
 
   const handleLombaChange = (id: string, jumlah: number) => {
     setLombaDipilih((prev) => {
@@ -30,6 +36,9 @@ export default function DaftarPage() {
 
   const validateForm = () => {
     const newErrors: string[] = [];
+    if (!sekolah.nama) newErrors.push('Nama sekolah wajib diisi');
+    if (!sekolah.pembina) newErrors.push('Nama pembina wajib diisi');
+    if (!sekolah.whatsapp) newErrors.push('No. WhatsApp wajib diisi');
     if (Object.keys(lombaDipilih).length === 0) {
       newErrors.push('Pilih minimal satu lomba');
     }
@@ -39,6 +48,12 @@ export default function DaftarPage() {
 
   const handleLanjut = () => {
     if (validateForm()) {
+      localStorage.setItem('pendaftaran', JSON.stringify({
+        sekolah,
+        lombaDipilih,
+        peserta,
+        totalBayar
+      }));
       window.location.href = '/pembayaran';
     }
   };
@@ -46,6 +61,43 @@ export default function DaftarPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran Lomba PMR</h1>
+
+      {/* ✅ Form Data Sekolah */}
+      <div className="bg-red-50 p-4 rounded mb-6 shadow-sm">
+        <h3 className="text-xl font-semibold text-red-700 mb-4">Data Sekolah</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-700 mb-1">Nama Sekolah</label>
+            <input
+              type="text"
+              value={sekolah.nama}
+              onChange={(e) => setSekolah({ ...sekolah, nama: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-700 mb-1">Nama Pembina</label>
+            <input
+              type="text"
+              value={sekolah.pembina}
+              onChange={(e) => setSekolah({ ...sekolah, pembina: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm text-gray-700 mb-1">No. WhatsApp Pembina</label>
+            <input
+              type="tel"
+              value={sekolah.whatsapp}
+              onChange={(e) => setSekolah({ ...sekolah, whatsapp: e.target.value })}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {LOMBA_LIST.map((lomba) => (
@@ -75,6 +127,24 @@ export default function DaftarPage() {
                   max={3}
                 />
               </div>
+
+              {/* ✅ Input Peserta */}
+              {Array.from({ length: lombaDipilih[lomba.id] || 0 }, (_, i) => (
+                <input
+                  key={i}
+                  type="text"
+                  placeholder={`Nama Peserta ${i + 1}`}
+                  className="w-full mt-1 px-3 py-1 border rounded text-sm"
+                  value={peserta[lomba.id]?.[i] || ''}
+                  onChange={(e) => {
+                    setPeserta((prev) => {
+                      const list = prev[lomba.id] ? [...prev[lomba.id]] : [];
+                      list[i] = e.target.value;
+                      return { ...prev, [lomba.id]: list };
+                    });
+                  }}
+                />
+              ))}
             </CardContent>
           </MotionCard>
         ))}
