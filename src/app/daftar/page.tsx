@@ -73,11 +73,13 @@ export default function PendaftaranPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-orange-100 to-pink-100 text-orange-900">
       <div className="max-w-4xl mx-auto px-4 py-6 md:px-6 relative">
-        <Image
-          src="/desain-p3k.png"
-          alt="Logo P3K"
-          className="absolute top-0 right-4 w-32 md:w-48 h-auto z-10"
+      <Image
+        src="/image.png"
+        alt="Logo PMI"
+        width={100}
+        height={100}
         />
+
 
         <Sun className="absolute top-4 right-4 w-10 h-10 text-yellow-400 animate-pulse" />
         <Mountain className="absolute bottom-0 left-0 w-16 h-16 text-gray-400 opacity-40" />
