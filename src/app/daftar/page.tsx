@@ -26,7 +26,7 @@ export default function PendaftaranPage() {
   const router = useRouter();
   const MotionButton = motion(Button);
   const [sekolah, setSekolah] = useState({ nama: '', pembina: '', whatsapp: '', kategori: 'wira' });
-  const [lombaDipilih, setLombaDipilih] = useState({});
+  const [lombaDipilih, setLombaDipilih] = useState<Record<string, number>>({});
   const [errors, setErrors] = useState([]);
 
   const handleLombaChange = (id : string, jumlah : number) => {
