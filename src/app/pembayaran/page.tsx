@@ -14,8 +14,6 @@ export default function PembayaranPage() {
   const [dataPendaftaran, setDataPendaftaran] = useState<any>(null);
   const [bukti, setBukti] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  // const [success, setSuccess] = useState(false); // dihapus karena tidak terpakai
-
 
   useEffect(() => {
     const stored = localStorage.getItem('formPendaftaran');
@@ -42,16 +40,18 @@ export default function PembayaranPage() {
     const payload = {
       data: [
         {
-          nama_sekolah: dataPendaftaran?.sekolah.nama || '',
-          pembina: dataPendaftaran?.sekolah.pembina || '',
-          whatsapp: dataPendaftaran?.sekolah.whatsapp || '',
-          kategori: dataPendaftaran?.sekolah.kategori || '',
+          nama_sekolah: dataPendaftaran?.sekolah?.nama || '',
+          pembina: dataPendaftaran?.sekolah?.pembina || '',
+          whatsapp: dataPendaftaran?.sekolah?.whatsapp || '',
+          kategori: dataPendaftaran?.sekolah?.kategori || '',
           lomba: Object.entries(dataPendaftaran?.lombaDipilih || {})
             .map(([id, jumlah]) => `${id} (${jumlah} tim)`)
             .join(', '),
-          peserta: Object.entries(dataPendaftaran?.peserta || {})
-            .map(([id, pesertaList]) => `${id}: ${pesertaList.join(', ')}`)
-            .join(' | '),
+          peserta: Object.entries(dataPendaftaran?.peserta || {} as Record<string, string[][]>)
+            .map(([id, pesertaList]) => {
+              const flatList = pesertaList.flat();
+              return `${id}: ${flatList.join(', ')}`;
+            }).join(' | '),
           total: dataPendaftaran?.totalBayar || 0,
           bukti: bukti?.name || 'Belum Upload'
         }
@@ -66,12 +66,6 @@ export default function PembayaranPage() {
       });
 
       if (res.ok) {
-        const updatedData = {
-          ...dataPendaftaran,
-          buktiNamaFile: bukti.name,
-        };
-        localStorage.setItem('formPendaftaran', JSON.stringify(updatedData));
-        setSuccess(true);
         alert('✅ Data berhasil dikirim!');
         router.push('/sukses');
       } else {
@@ -92,7 +86,7 @@ export default function PembayaranPage() {
       <div className="max-w-3xl mx-auto bg-white/80 border p-6 rounded-lg shadow space-y-6">
         <h1 className="text-2xl font-bold text-orange-700 text-center">Konfirmasi Pembayaran</h1>
 
-        {/* Informasi Sekolah */}
+        {/* Info Sekolah */}
         <div className="space-y-1 text-sm">
           <p><strong>Nama Sekolah:</strong> {dataPendaftaran.sekolah.nama}</p>
           <p><strong>Pembina:</strong> {dataPendaftaran.sekolah.pembina}</p>
@@ -100,7 +94,7 @@ export default function PembayaranPage() {
           <p><strong>Kategori:</strong> {dataPendaftaran.sekolah.kategori}</p>
         </div>
 
-        {/* Informasi Lomba */}
+        {/* Info Lomba */}
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Rincian Lomba</h2>
           <ul className="list-disc pl-5">
@@ -110,22 +104,22 @@ export default function PembayaranPage() {
           </ul>
         </div>
 
-        {/* Informasi Peserta */}
+        {/* Info Peserta */}
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Nama Peserta</h2>
-          {Object.entries(dataPendaftaran.peserta).map(([id, namaList]: [string, string[]]) => (
-            <div key={id}>
+          {Object.entries(dataPendaftaran.peserta).map(([id, timList]: [string, string[][]]) => (
+            <div key={id} className="mb-2">
               <p className="font-medium">{id}:</p>
-              <ul className="list-disc pl-5 text-sm text-gray-800">
-                {namaList.map((nama, idx) => (
-                  <li key={idx}>{nama}</li>
-                ))}
-              </ul>
+              {timList.map((tim, i) => (
+                <ul key={i} className="list-disc pl-5 text-sm text-gray-800 mb-1">
+                  <li><strong>Tim {i + 1}:</strong> {tim.join(', ')}</li>
+                </ul>
+              ))}
             </div>
           ))}
         </div>
 
-        {/* Informasi Pembayaran */}
+        {/* Info Pembayaran */}
         <div className="bg-yellow-50 border border-yellow-400 p-4 rounded-md">
           <p className="text-sm font-semibold text-yellow-800">Silakan transfer ke rekening berikut:</p>
           <p className="mt-1">Bank BRI</p>
