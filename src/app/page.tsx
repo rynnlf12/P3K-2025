@@ -5,37 +5,28 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [countdown, setCountdown] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  });
-
-  // Set tanggal lomba
-  const targetDate = new Date('2025-05-30T00:00:00');
+  const lombaDate = new Date('2025-06-01T08:00:00');
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  }>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date().getTime();
-      const distance = targetDate.getTime() - now;
+      const distance = lombaDate.getTime() - now;
 
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor(
-        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-      );
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-      setCountdown({
-        days: Math.max(0, days),
-        hours: Math.max(0, hours),
-        minutes: Math.max(0, minutes),
-        seconds: Math.max(0, seconds),
-      });
-
-      if (distance < 0) {
-        clearInterval(interval);
+      if (distance > 0) {
+        setTimeLeft({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((distance / (1000 * 60)) % 60),
+          seconds: Math.floor((distance / 1000) % 60),
+        });
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       }
     }, 1000);
 
@@ -44,7 +35,7 @@ export default function Home() {
 
   return (
     <div
-      className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-100 via-orange-200 to-pink-200 bg-center bg-cover flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10"
+      className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-100 via-orange-100 to-pink-200 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10"
     >
       {/* Logo pojok kiri atas */}
       <div className="absolute top-1 left-4 md:left-20 z-50">
@@ -66,7 +57,7 @@ export default function Home() {
       {/* Kiri: Teks Besar */}
       <div className="w-full md:w-1/2 text-center md:text-left mt-20 md:mt-0">
         <motion.h2
-          className="text-xl md:text-2xl text-white font-bold drop-shadow-md mb-1"
+          className="text-xl md:text-2xl text-orange-800 font-bold drop-shadow-md mb-1"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -80,14 +71,14 @@ export default function Home() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <span className="text-yellow-400">P</span>
-          <span className="text-yellow-400">3</span>
-          <span className="text-yellow-400">K</span>
-          <span className="text-orange-500 ml-3">2025</span>
+          <span className="text-yellow-500">P</span>
+          <span className="text-yellow-500">3</span>
+          <span className="text-yellow-500">K</span>
+          <span className="text-orange-600 ml-3">2025</span>
         </motion.h1>
 
         <motion.p
-          className="text-white text-md md:text-lg mt-4 max-w-xl drop-shadow-sm"
+          className="text-orange-900 text-md md:text-lg mt-4 max-w-xl drop-shadow-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
@@ -95,38 +86,30 @@ export default function Home() {
           Pekan Perlombaan PMR (P3K) KSR PMI Unit Universitas Suryakancana tingkat Wira dan Madya Se-Wilayah Provinsi Jawa Barat
         </motion.p>
 
+        <motion.div
+          className="mt-8 p-4 bg-white/60 backdrop-blur-sm rounded-xl shadow text-center max-w-xs"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+        >
+          <h3 className="text-sm font-semibold text-orange-700 mb-1">Menuju Hari-H</h3>
+          <div className="flex justify-between text-sm text-orange-900 font-bold">
+            <div><span className="text-lg">{timeLeft.days}</span> hari</div>
+            <div><span className="text-lg">{timeLeft.hours}</span> jam</div>
+            <div><span className="text-lg">{timeLeft.minutes}</span> menit</div>
+            <div><span className="text-lg">{timeLeft.seconds}</span> detik</div>
+          </div>
+        </motion.div>
+
         <motion.a
           href="/daftar"
-          className="mt-10 inline-block w-full max-w-xs text-center bg-blue-600 text-white px-8 py-4 rounded-full text-lg shadow-md hover:bg-blue-700 transition"
+          className="mt-10 inline-block w-full max-w-xs text-center bg-orange-600 text-white px-8 py-4 rounded-full text-lg shadow-md hover:bg-orange-700 transition"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
         >
           Daftar Sekarang
         </motion.a>
-
-        {/* Countdown Card Style */}
-        <motion.div
-          className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-        >
-          {[
-            { label: 'Hari', value: countdown.days },
-            { label: 'Jam', value: countdown.hours },
-            { label: 'Menit', value: countdown.minutes },
-            { label: 'Detik', value: countdown.seconds },
-          ].map((item, index) => (
-            <div
-              key={index}
-              className="bg-white/80 backdrop-blur-sm shadow-md rounded-xl px-4 py-3"
-            >
-              <p className="text-3xl font-bold text-orange-700">{item.value}</p>
-              <p className="text-sm font-medium text-gray-800">{item.label}</p>
-            </div>
-          ))}
-        </motion.div>
       </div>
     </div>
   );
