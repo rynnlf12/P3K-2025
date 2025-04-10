@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "rm -rf node_modules/lightningcss"
+    "postinstall": "prisma generate && rm -rf node_modules/lightningcss"
+  }
+
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",
@@ -33,7 +35,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
+    "eslint": "^8.56.0",
     "eslint-config-next": "15.2.5",
     "prisma": "^6.6.0",
     "tailwindcss": "^4",
