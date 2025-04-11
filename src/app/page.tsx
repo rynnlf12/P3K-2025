@@ -5,8 +5,6 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-const [sidebarOpen, setSidebarOpen] = useState(false);
-
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -14,6 +12,8 @@ export default function Home() {
     minutes: 0,
     seconds: 0,
   });
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const eventDate = new Date('2025-05-30T00:00:00');
