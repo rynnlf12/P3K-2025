@@ -27,18 +27,22 @@ export default function PembayaranPage() {
   const [dataPendaftaran, setDataPendaftaran] = useState<DataPendaftaran | null>(null);
   const [bukti, setBukti] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [kodeUnit, setKodeUnit] = useState('');
+  const [kodeUnit, setKodeUnit] = useState<string>('');
 
   useEffect(() => {
     const stored = localStorage.getItem('formPendaftaran');
     if (stored) {
-      const parsed = JSON.parse(stored);
-      setDataPendaftaran(parsed);
+      const data = JSON.parse(stored);
+      setDataPendaftaran(data);
 
+      // Generate kode unit berbasis waktu Waktu Indonesia Barat (WIB)
       const now = new Date();
-      const timestamp = now.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
-      const kode = `P3K2025/${parsed.sekolah.nama.replace(/\s+/g, '').toUpperCase()}/${timestamp}`;
-      setKodeUnit(kode);
+      const offset = 7 * 60 * 60 * 1000;
+      const wib = new Date(now.getTime() + offset);
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const timestamp = `${wib.getFullYear()}${pad(wib.getMonth() + 1)}${pad(wib.getDate())}${pad(wib.getHours())}${pad(wib.getMinutes())}`;
+      const unit = `P3K2025-${data.sekolah.nama.replace(/\s+/g, '').toUpperCase()}-${timestamp}`;
+      setKodeUnit(unit);
     } else {
       alert('Data pendaftaran tidak ditemukan.');
       router.push('/daftar');
@@ -50,12 +54,19 @@ export default function PembayaranPage() {
   };
 
   const handleSubmit = async () => {
-    if (!bukti) return alert('Harap upload bukti pembayaran!');
-    if (!dataPendaftaran) return alert('Data sekolah tidak ditemukan.');
+    if (!bukti) {
+      alert('Harap upload bukti pembayaran!');
+      return;
+    }
+
+    if (!dataPendaftaran || !dataPendaftaran.sekolah) {
+      alert('Data sekolah tidak ditemukan.');
+      return;
+    }
 
     setLoading(true);
 
-    const { sekolah, peserta, lombaDipilih, totalBayar } = dataPendaftaran;
+    const { peserta, sekolah, lombaDipilih, totalBayar } = dataPendaftaran;
     const buktiFile = bukti?.name || 'Belum Upload';
 
     const allPeserta: string[] = [];
@@ -112,9 +123,9 @@ export default function PembayaranPage() {
       <div className="max-w-3xl mx-auto bg-white/80 border p-6 rounded-lg shadow space-y-6">
         <h1 className="text-2xl font-bold text-orange-700 text-center">Konfirmasi Pembayaran</h1>
 
-        {/* Kode Unit */}
-        <div className="text-sm text-center bg-orange-50 p-2 rounded border font-mono">
-          <strong>Kode Unit:</strong> {kodeUnit}
+        {/* KODE UNIT */}
+        <div className="text-center text-sm text-gray-600 font-mono mb-4">
+          <span className="text-orange-700 font-bold">Kode Unit:</span> {kodeUnit}
         </div>
 
         {/* Info Sekolah */}
@@ -126,21 +137,20 @@ export default function PembayaranPage() {
         </div>
 
         {/* Rincian Biaya */}
-        <div className="bg-yellow-50 border border-yellow-300 p-4 rounded-md">
-          <p className="font-semibold mb-2 text-yellow-900">💰 Rincian Biaya</p>
-          <ul className="text-sm space-y-1">
+        <div className="bg-orange-50 border border-orange-300 rounded p-4 text-sm">
+          <h3 className="font-semibold text-orange-700 mb-2">Rincian Biaya:</h3>
+          <ul className="space-y-1">
             {Object.entries(dataPendaftaran.lombaDipilih).map(([id, jumlah]) => {
               const lomba = LOMBA_LIST.find((l) => l.id === id);
-              return lomba ? (
+              if (!lomba) return null;
+              return (
                 <li key={id}>
-                  {lomba.nama} x {jumlah} tim = Rp {(lomba.biaya * jumlah).toLocaleString('id-ID')}
+                  {lomba.nama} × {jumlah} tim = <strong>Rp {(jumlah * lomba.biaya).toLocaleString('id-ID')}</strong>
                 </li>
-              ) : null;
+              );
             })}
           </ul>
-          <p className="mt-2 font-bold text-yellow-900">
-            Total: Rp {dataPendaftaran.totalBayar.toLocaleString('id-ID')}
-          </p>
+          <p className="mt-2 font-bold text-orange-800">Total: Rp {dataPendaftaran.totalBayar.toLocaleString('id-ID')}</p>
         </div>
 
         {/* Info Rekening */}
