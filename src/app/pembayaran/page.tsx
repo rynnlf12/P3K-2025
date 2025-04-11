@@ -46,20 +46,20 @@ export default function PembayaranPage() {
       alert('Harap upload bukti pembayaran!');
       return;
     }
-  
+
     if (!dataPendaftaran || !dataPendaftaran.sekolah) {
       alert('Data sekolah tidak ditemukan.');
       return;
     }
-  
+
     setLoading(true);
-  
+
     const pesertaData = dataPendaftaran.peserta || {};
     const sekolah = dataPendaftaran.sekolah;
     const lombaDipilih = dataPendaftaran.lombaDipilih || {};
     const totalBayar = dataPendaftaran.totalBayar || 0;
     const buktiFile = bukti?.name || 'Belum Upload';
-  
+
     const allPeserta: string[] = [];
     Object.values(pesertaData).forEach((timList) => {
       timList.forEach((anggota) => {
@@ -68,11 +68,23 @@ export default function PembayaranPage() {
         });
       });
     });
-  
+
+    // Ambil jumlah baris saat ini dari SheetDB
+    let nomorUrut = 1;
+    try {
+      const countRes = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3/count');
+      const countJson = await countRes.json();
+      nomorUrut = (countJson?.rows || 0) + 1;
+    } catch {
+      console.warn('Tidak bisa ambil jumlah baris dari spreadsheet. Gunakan nomor 1.');
+    }
+
+    const kodeUnit = `P3K2025-${sekolah.nama.replace(/\s+/g, '').toUpperCase()}-${String(nomorUrut).padStart(3, '0')}`;
+
     const rows = allPeserta.map((nama, index) => {
       const isFirst = index === 0;
       return {
-        nomor: '',
+        kode_unit: isFirst ? kodeUnit : '',
         nama_sekolah: isFirst ? sekolah.nama : '',
         pembina: isFirst ? sekolah.pembina : '',
         whatsapp: isFirst ? sekolah.whatsapp : '',
@@ -85,14 +97,14 @@ export default function PembayaranPage() {
         bukti: isFirst ? buktiFile : '',
       };
     });
-  
+
     try {
       const res = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: rows }),
       });
-  
+
       if (res.ok) {
         alert('✅ Data berhasil dikirim!');
         router.push('/sukses');
@@ -106,7 +118,7 @@ export default function PembayaranPage() {
       setLoading(false);
     }
   };
-   
+
   if (!dataPendaftaran) return <p className="p-6">Memuat data...</p>;
 
   return (
