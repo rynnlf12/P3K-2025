@@ -54,7 +54,7 @@ export const LOMBA_LIST = [
     biaya: 50000,
     keterangan: '3 orang per tim',
     maksTim: 3,
-    maksPesertaPerTim: 3
+    maksPesertaPerTim: 3,
   }
   
 ];
