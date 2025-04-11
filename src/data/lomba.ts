@@ -39,6 +39,7 @@ export const LOMBA_LIST = [
     maksPesertaPerTim: 2,
     maksTim: 3,
   },
+  
   {
     id: "poster",
     nama: "Poster",
@@ -46,7 +47,7 @@ export const LOMBA_LIST = [
     keterangan: "3 orang per tim",
     maksPesertaPerTim: 3,
     maksTim: 3,
-  }
+  },
 
   {
     id: 'pmr-cerdas',
