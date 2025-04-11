@@ -42,7 +42,6 @@ export default function Home() {
       <div className="w-full px-4 md:px-20 py-3 flex items-center justify-between bg-white/80 backdrop-blur-sm shadow-sm border-b border-orange-200 fixed top-0 left-0 z-50">
         <div className="flex items-center gap-3">
           <Image src="/desain-p3k.png" alt="Logo P3K" width={120} height={60} className="object-contain" />
-          <h1 className="text-xl font-bold text-orange-800 hidden md:block">P3K 2025</h1>
         </div>
 
         <div className="hidden md:flex gap-6">
@@ -101,7 +100,7 @@ export default function Home() {
 
       {/* Konten */}
       <div className="pt-28 px-4 md:px-20 pb-10 flex flex-col md:flex-row items-center justify-between">
-        <div className="w-full md:w-1/2 text-center md:text-left z-10">
+        <div className="w-full md:w-1/2 text-center md:text-center z-10">
           <motion.h2
             className="text-xl md:text-2xl text-orange-900 font-bold drop-shadow-md mb-2"
             initial={{ opacity: 0, y: -10 }}
