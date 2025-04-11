@@ -34,9 +34,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div
-      className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10"
-    >
+    <div className="min-h-screen px-4 py-10">
       {/* Logo pojok kiri atas */}
       <div className="absolute top-1 righ-4 md:right-20 z-50">
         <motion.div
