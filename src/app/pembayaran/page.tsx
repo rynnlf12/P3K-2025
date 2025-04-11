@@ -70,14 +70,16 @@ export default function PembayaranPage() {
     });
 
     // Ambil jumlah baris saat ini dari SheetDB
+    // Ambil jumlah baris saat ini dari SheetDB
     let nomorUrut = 1;
     try {
       const countRes = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3/count');
       const countJson = await countRes.json();
-      nomorUrut = (countJson?.rows || 0) + 1;
-    } catch {
-      console.warn('Tidak bisa ambil jumlah baris dari spreadsheet. Gunakan nomor 1.');
+      nomorUrut = (countJson?.count || 0) + 1;
+    } catch (err) {
+      console.warn('Gagal mengambil jumlah data, menggunakan default 1.');
     }
+
 
     const kodeUnit = `P3K2025-${sekolah.nama.replace(/\s+/g, '').toUpperCase()}-${String(nomorUrut).padStart(3, '0')}`;
 
