@@ -37,51 +37,21 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative z-0 font-montserrat min-h-screen pt-10 bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10">
-        {/* Sidebar Mobile */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex">
-            <div className="w-64 bg-white h-full shadow-lg p-6 flex flex-col gap-4 transition-all duration-300">
-              <button
-                className="self-end mb-4 text-gray-700"
-                onClick={() => setSidebarOpen(false)}
-              >
-                ✕
-              </button>
-              <Link
-                href="/daftar"
-                onClick={() => setSidebarOpen(false)}
-                className="text-orange-700 font-semibold hover:text-orange-600 transition"
-              >
-                Daftar
-              </Link>
-              <a
-                href="https://drive.google.com/file/d/1sZtWkWkGlsuratEdaranContoh/view"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-orange-700 font-semibold hover:text-orange-600 transition"
-              >
-                Surat Edaran
-              </a>
-            </div>
-            {/* Klik luar sidebar menutup menu */}
-            <div
-              className="flex-1"
+    <div className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col items-center justify-between px-4 md:px-20 pt-24 pb-10">
+      {/* Sidebar Mobile */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex">
+          <div className="w-64 bg-white h-full shadow-lg p-6 flex flex-col gap-4">
+            <button
+              className="self-end mb-4 text-gray-700"
               onClick={() => setSidebarOpen(false)}
-            />
-          </div>
-        )}
-
-              
-      {/* Navbar */}
-      <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/60 shadow-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-20 py-4">
-
-          {/* Desktop menu */}
-          <nav className="hidden md:flex gap-6">
+            >
+              ✕
+            </button>
             <Link
               href="/daftar"
-              className="text-orange-800 font-medium hover:text-orange-600 transition-colors"
+              onClick={() => setSidebarOpen(false)}
+              className="text-orange-700 font-semibold hover:text-orange-600 transition"
             >
               Daftar
             </Link>
@@ -89,51 +59,67 @@ export default function Home() {
               href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-orange-800 font-medium hover:text-orange-600 transition-colors"
+              className="text-orange-700 font-semibold hover:text-orange-600 transition"
             >
               Surat Edaran
             </a>
-          </nav>
-
-          {/* Hamburger menu (mobile) */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="md:hidden text-orange-800 focus:outline-none"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          </div>
+          <div className="flex-1" onClick={() => setSidebarOpen(false)} />
         </div>
-      </header>
+      )}
 
-      {/* Logo pojok kanan atas */}
-      <div className="absolute top-1 right-4 md:right-20 z-50">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-        >
+      {/* Navbar */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] md:w-[90%] max-w-6xl z-50 bg-white/70 backdrop-blur-md shadow-md px-6 py-3 rounded-full flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <Image
             src="/desain-p3k.png"
             alt="Logo P3K"
-            width={200}
-            height={80}
+            width={140}
+            height={40}
             className="object-contain"
           />
-        </motion.div>
+        </div>
+
+        <div className="hidden md:flex gap-6 items-center">
+          <Link
+            href="/daftar"
+            className="relative text-orange-800 font-semibold hover:text-orange-600 transition group"
+          >
+            Daftar
+            <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
+          </Link>
+          <a
+            href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative text-orange-800 font-semibold hover:text-orange-600 transition group"
+          >
+            Surat Edaran
+            <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
+          </a>
+        </div>
+
+        {/* Hamburger */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="md:hidden text-orange-800 focus:outline-none"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </div>
 
-      {/* Kiri: Teks Besar */}
-      <div className="w-full md:w-1/2 text-left md:text-left mt-27 md:mt-5 z-10">
+      {/* Konten Utama */}
+      <div className="w-full md:w-1/2 text-center md:text-left z-10 mt-6 md:mt-0">
         <motion.h2
-          className="text-xl md:text-2xl text-orange-900 font-bold drop-shadow-md mb-1"
+          className="text-xl md:text-2xl text-orange-900 font-bold drop-shadow-md mb-4 mt-12 md:mt-0"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -153,7 +139,6 @@ export default function Home() {
           <span className="text-orange-500 ml-3">2025</span>
         </motion.h1>
 
-        {/* Deskripsi Acara */}
         <motion.p
           className="text-orange-900 text-md md:text-lg mt-4 max-w-xl drop-shadow-sm"
           initial={{ opacity: 0 }}
@@ -163,7 +148,6 @@ export default function Home() {
           Pekan Perlombaan PMR (P3K) KSR PMI Unit Universitas Suryakancana tingkat Wira dan Madya Se-Wilayah Provinsi Jawa Barat
         </motion.p>
 
-        {/* Tombol */}
         <motion.a
           href="/daftar"
           className="mt-10 inline-block w-full max-w-xs text-center bg-blue-600 text-white px-8 py-4 rounded-full text-lg shadow-md hover:bg-blue-700 transition"
@@ -174,7 +158,6 @@ export default function Home() {
           Daftar Sekarang
         </motion.a>
 
-        {/* Countdown Digital */}
         <motion.div
           className="mt-10 p-4 bg-black rounded-xl shadow-lg text-center max-w-sm border border-yellow-500"
           initial={{ opacity: 0, y: 20 }}
