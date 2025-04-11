@@ -44,7 +44,7 @@ export default function Home() {
         <Image
           src="/desain-p3k.png"
           alt="Logo P3K"
-          width={165}
+          width={135}
           height={0} // abaikan height
           className="object-contain h-auto"
         />
