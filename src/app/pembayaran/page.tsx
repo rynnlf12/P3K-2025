@@ -46,17 +46,22 @@ export default function PembayaranPage() {
       alert('Harap upload bukti pembayaran!');
       return;
     }
-
+  
+    if (!dataPendaftaran || !dataPendaftaran.sekolah) {
+      alert('Data sekolah tidak ditemukan.');
+      return;
+    }
+  
     setLoading(true);
 
     const rows: Record<string, string | number | undefined>[] = [];
     const pesertaData = dataPendaftaran?.peserta || {};
-    const sekolah: {
-      nama: string;
-      pembina: string;
-      whatsapp: string;
-      kategori: string;
-    } = dataPendaftaran?.sekolah!;
+    if (!dataPendaftaran || !dataPendaftaran.sekolah) {
+      alert('Data sekolah tidak ditemukan.');
+      return;
+    }
+    const sekolah = dataPendaftaran.sekolah;
+    
     
 
     Object.entries(pesertaData).forEach(([, timList]) => {
