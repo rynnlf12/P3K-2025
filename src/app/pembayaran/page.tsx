@@ -76,7 +76,7 @@ export default function PembayaranPage() {
       const countRes = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3/count');
       const countJson = await countRes.json();
       nomorUrut = (countJson?.count || 0) + 1;
-    } catch (err) {
+    } catch{
       console.warn('Gagal mengambil jumlah data, menggunakan default 1.');
     }
 
