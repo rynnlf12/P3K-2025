@@ -49,9 +49,15 @@ export default function PembayaranPage() {
 
     setLoading(true);
 
-    const rows = [];
+    const rows: Record<string, string | number | undefined>[] = [];
     const pesertaData = dataPendaftaran?.peserta || {};
-    const sekolah = dataPendaftaran?.sekolah || {};
+    const sekolah: {
+      nama: string;
+      pembina: string;
+      whatsapp: string;
+      kategori: string;
+    } = dataPendaftaran?.sekolah!;
+    
 
     Object.entries(pesertaData).forEach(([, timList]) => {
       timList.forEach((anggota) => {
