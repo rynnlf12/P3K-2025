@@ -73,14 +73,15 @@ export default function Home() {
         )}
 
               
-        {/* Navbar */}
-        <div className="w-full px-4 md:px-20 py-4 flex items-center justify-between bg-transparent absolute top-0 left-0 z-50">
+      {/* Navbar */}
+      <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/60 shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-20 py-4">
 
           {/* Desktop menu */}
-          <div className="hidden md:flex gap-6">
+          <nav className="hidden md:flex gap-6">
             <Link
               href="/daftar"
-              className="text-orange-800 font-semibold hover:text-orange-600 transition"
+              className="text-orange-800 font-medium hover:text-orange-600 transition-colors"
             >
               Daftar
             </Link>
@@ -88,13 +89,13 @@ export default function Home() {
               href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-orange-800 font-semibold hover:text-orange-600 transition"
+              className="text-orange-800 font-medium hover:text-orange-600 transition-colors"
             >
               Surat Edaran
             </a>
-          </div>
+          </nav>
 
-          {/* Hamburger button (mobile) */}
+          {/* Hamburger menu (mobile) */}
           <button
             onClick={() => setSidebarOpen(true)}
             className="md:hidden text-orange-800 focus:outline-none"
@@ -110,6 +111,7 @@ export default function Home() {
             </svg>
           </button>
         </div>
+      </header>
 
       {/* Logo pojok kanan atas */}
       <div className="absolute top-1 right-4 md:right-20 z-50">
