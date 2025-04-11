@@ -5,7 +5,6 @@ import { useRef } from 'react';
 import html2pdf from 'html2pdf.js';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { LOMBA_LIST } from '@/data/lomba';
 
 export default function SuksesContent() {
   const searchParams = useSearchParams();
