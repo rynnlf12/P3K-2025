@@ -13,7 +13,7 @@ export default function Home() {
   });
 
   useEffect(() => {
-    const eventDate = new Date('2025-05-30T00:00:00');
+    const eventDate = new Date('2025-08-10T08:00:00');
     const updateCountdown = () => {
       const now = new Date().getTime();
       const distance = eventDate.getTime() - now;
@@ -34,9 +34,11 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen px-4 py-10">
+    <div
+      className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10"
+    >
       {/* Logo pojok kiri atas */}
-      <div className="absolute top-1 righ-4 md:right-20 z-50">
+      <div className="absolute top-1 left-4 md:left-20 z-50">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -88,7 +90,7 @@ export default function Home() {
         {/* Tombol */}
         <motion.a
           href="/daftar"
-          className="mt-10 inline-block w-full max-w-xs text-center bg-yellow-400 text-black px-8 py-4 rounded-full text-lg shadow-md hover:bg-blue-700 transition"
+          className="mt-10 inline-block w-full max-w-xs text-center bg-blue-600 text-white px-8 py-4 rounded-full text-lg shadow-md hover:bg-blue-700 transition"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
@@ -103,8 +105,8 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
         >
-          <h3 className="text-sm font-semibold text-yellow-400 mb-3">Menuju Hari-H</h3>
-          <div className="grid grid-cols-4 gap-3 font-digital text-yellow-400 text-2xl">
+          <h3 className="text-sm font-semibold text-yellow-300 mb-3">Menuju Hari-H</h3>
+          <div className="grid grid-cols-4 gap-3 font-digital text-green-400 text-2xl">
             <div className="bg-gray-900 p-2 rounded shadow-inner animate-pulse">
               {String(timeLeft.days).padStart(2, '0')}
               <div className="text-[10px] text-yellow-400 mt-1">Hari</div>

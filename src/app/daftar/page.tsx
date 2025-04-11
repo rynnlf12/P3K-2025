@@ -97,93 +97,99 @@ export default function DaftarPage() {
 
   return (
     <div className="min-h-screen px-4 py-10 bg-gradient-to-br from-yellow-100 via-orange-100 to-pink-100">
-      <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Form Pendaftaran P3K 2025</h1>
+      <div className="max-w-4xl mx-auto space-y-10">
+        <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran Lomba PMR</h1>
 
-      <div className="space-y-4 p-4 bg-red-50 rounded border border-red-200">
-        <input type="text" placeholder="Nama Sekolah" value={formSekolah.nama} onChange={(e) => setFormSekolah({ ...formSekolah, nama: e.target.value })} className="w-full border px-2 py-1 rounded" />
-        <input type="text" placeholder="Nama Pembina" value={formSekolah.pembina} onChange={(e) => setFormSekolah({ ...formSekolah, pembina: e.target.value })} className="w-full border px-2 py-1 rounded" />
-        <input type="text" placeholder="Nomor WhatsApp" value={formSekolah.whatsapp} onChange={(e) => setFormSekolah({ ...formSekolah, whatsapp: e.target.value })} className="w-full border px-2 py-1 rounded" />
-        <select value={formSekolah.kategori} onChange={(e) => setFormSekolah({ ...formSekolah, kategori: e.target.value })} className="w-full border px-2 py-1 rounded">
-          <option value="">Pilih Kategori</option>
-          <option value="Wira">Wira</option>
-          <option value="Madya">Madya</option>
-        </select>
-      </div>
+        {/* Form Sekolah */}
+        <div className="space-y-4 p-4 bg-white/80 backdrop-blur border border-red-200 rounded-lg shadow">
+          <input type="text" placeholder="Nama Sekolah" value={formSekolah.nama} onChange={(e) => setFormSekolah({ ...formSekolah, nama: e.target.value })} className="w-full border px-2 py-1 rounded" />
+          <input type="text" placeholder="Nama Pembina" value={formSekolah.pembina} onChange={(e) => setFormSekolah({ ...formSekolah, pembina: e.target.value })} className="w-full border px-2 py-1 rounded" />
+          <input type="text" placeholder="Nomor WhatsApp" value={formSekolah.whatsapp} onChange={(e) => setFormSekolah({ ...formSekolah, whatsapp: e.target.value })} className="w-full border px-2 py-1 rounded" />
+          <select value={formSekolah.kategori} onChange={(e) => setFormSekolah({ ...formSekolah, kategori: e.target.value })} className="w-full border px-2 py-1 rounded">
+            <option value="">Pilih Kategori</option>
+            <option value="Wira">Wira</option>
+            <option value="Madya">Madya</option>
+          </select>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {LOMBA_LIST.map((lomba) => {
-          const jumlahPeserta = peserta[lomba.id]?.length || 0;
-          const maksimal = lomba.maksPeserta ?? 100;
-          const sudahMaks = jumlahPeserta >= maksimal;
+        {/* Pilihan Lomba */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {LOMBA_LIST.map((lomba) => {
+            const jumlahPeserta = peserta[lomba.id]?.length || 0;
+            const maksimal = lomba.maksPeserta ?? 100;
+            const sudahMaks = jumlahPeserta >= maksimal;
 
-          return (
-            <MotionCard key={lomba.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="cursor-pointer border border-red-300 hover:shadow-md">
-              <CardContent className="p-4 space-y-2">
-                <div className="flex justify-between items-center">
-                  <h2 className="font-semibold text-red-800">{lomba.nama}</h2>
-                  <span className="text-sm text-red-600">Rp {lomba.biaya.toLocaleString('id-ID')}</span>
-                </div>
-                <p className="text-sm text-gray-600">{lomba.keterangan}</p>
-                <label className="inline-flex items-center gap-2 mt-2">
-                  <input type="checkbox" checked={!!lombaDipilih[lomba.id]} onChange={() => toggleLomba(lomba.id)} />
-                  <span className="text-sm">Ikut lomba ini</span>
-                </label>
-
-                {lombaDipilih[lomba.id] && (
-                  <div className="mt-2 space-y-2">
-                    {(peserta[lomba.id] || []).map((nama, i) => (
-                      <div key={i} className="flex gap-2 items-center">
-                        <input
-                          type="text"
-                          placeholder={`Peserta ${i + 1}`}
-                          value={nama}
-                          onChange={(e) => handlePesertaChange(lomba.id, i, e.target.value)}
-                          className="w-full border px-2 py-1 text-sm rounded"
-                        />
-                        <button type="button" onClick={() => hapusPeserta(lomba.id, i)} className="text-red-500 text-sm">Hapus</button>
-                      </div>
-                    ))}
-                    {!sudahMaks ? (
-                      <Button type="button" onClick={() => tambahPeserta(lomba.id)} size="sm" variant="outline">+ Tambah Peserta</Button>
-                    ) : (
-                      <p className="text-xs text-red-500">Maksimal {maksimal} peserta tercapai.</p>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </MotionCard>
-          );
-        })}
-      </div>
-
-      <div className="bg-red-50 p-4 rounded shadow-sm">
-        <h3 className="text-xl font-semibold text-red-700 mb-2">Rincian Biaya</h3>
-        <ul className="text-sm text-gray-700 space-y-1">
-          {Object.keys(lombaDipilih).map((id) => {
-            const lomba = LOMBA_LIST.find((l) => l.id === id);
-            if (!lomba) return null;
             return (
-              <li key={id}>
-                {lomba.nama} = Rp {lomba.biaya.toLocaleString('id-ID')}
-              </li>
+              <MotionCard key={lomba.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="cursor-pointer border border-red-300 hover:shadow-md bg-white/70 backdrop-blur">
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <h2 className="font-semibold text-red-800">{lomba.nama}</h2>
+                    <span className="text-sm text-red-600">Rp {lomba.biaya.toLocaleString('id-ID')}</span>
+                  </div>
+                  <p className="text-sm text-gray-600">{lomba.keterangan}</p>
+                  <label className="inline-flex items-center gap-2 mt-2">
+                    <input type="checkbox" checked={!!lombaDipilih[lomba.id]} onChange={() => toggleLomba(lomba.id)} />
+                    <span className="text-sm">Ikut lomba ini</span>
+                  </label>
+
+                  {lombaDipilih[lomba.id] && (
+                    <div className="mt-2 space-y-2">
+                      {(peserta[lomba.id] || []).map((nama, i) => (
+                        <div key={i} className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            placeholder={`Peserta ${i + 1}`}
+                            value={nama}
+                            onChange={(e) => handlePesertaChange(lomba.id, i, e.target.value)}
+                            className="w-full border px-2 py-1 text-sm rounded"
+                          />
+                          <button type="button" onClick={() => hapusPeserta(lomba.id, i)} className="text-red-500 text-sm">Hapus</button>
+                        </div>
+                      ))}
+                      {!sudahMaks ? (
+                        <Button type="button" onClick={() => tambahPeserta(lomba.id)} size="sm" variant="outline">+ Tambah Peserta</Button>
+                      ) : (
+                        <p className="text-xs text-red-500">Maksimal {maksimal} peserta tercapai.</p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </MotionCard>
             );
           })}
-        </ul>
-        <p className="font-bold mt-2">Total: Rp {totalBayar.toLocaleString('id-ID')}</p>
-      </div>
+        </div>
 
-      <AnimatePresence>
-        {errors.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
-            {errors.map((error, idx) => <p key={idx}>⚠️ {error}</p>)}
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* Rincian Biaya */}
+        <div className="bg-white/80 p-4 rounded shadow-sm border border-red-200">
+          <h3 className="text-xl font-semibold text-red-700 mb-2">Rincian Biaya</h3>
+          <ul className="text-sm text-gray-700 space-y-1">
+            {Object.keys(lombaDipilih).map((id) => {
+              const lomba = LOMBA_LIST.find((l) => l.id === id);
+              if (!lomba) return null;
+              return (
+                <li key={id}>
+                  {lomba.nama} = Rp {lomba.biaya.toLocaleString('id-ID')}
+                </li>
+              );
+            })}
+          </ul>
+          <p className="font-bold mt-2">Total: Rp {totalBayar.toLocaleString('id-ID')}</p>
+        </div>
 
-      <div className="mt-6 flex justify-center">
-        <MotionButton type="button" onClick={handleLanjut} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="bg-red-600 text-white hover:bg-red-700 px-6 py-2 rounded">
-          Lanjut ke Pembayaran
-        </MotionButton>
+        {/* Error / Validasi */}
+        <AnimatePresence>
+          {errors.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
+              {errors.map((error, idx) => <p key={idx}>⚠️ {error}</p>)}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="mt-6 flex justify-center">
+          <MotionButton type="button" onClick={handleLanjut} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="bg-red-600 text-white hover:bg-red-700 px-6 py-2 rounded">
+            Lanjut ke Pembayaran
+          </MotionButton>
+        </div>
       </div>
     </div>
   );
