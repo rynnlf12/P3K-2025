@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Label } from '@/components/ui/label';
+import { LOMBA_LIST } from '@/data/lomba';
 
 const MotionButton = motion(Button);
 
@@ -26,11 +27,26 @@ export default function PembayaranPage() {
   const [dataPendaftaran, setDataPendaftaran] = useState<DataPendaftaran | null>(null);
   const [bukti, setBukti] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [kodeUnit, setKodeUnit] = useState<string>('');
 
   useEffect(() => {
     const stored = localStorage.getItem('formPendaftaran');
     if (stored) {
-      setDataPendaftaran(JSON.parse(stored));
+      const parsed = JSON.parse(stored);
+      setDataPendaftaran(parsed);
+
+      // Generate kode unit
+      (async () => {
+        try {
+          const countRes = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3/count');
+          const countJson = await countRes.json();
+          const nomorUrut = (countJson?.count || 0) + 1;
+          const generated = `P3K2025-${parsed.sekolah.nama.replace(/\s+/g, '').toUpperCase()}-${String(nomorUrut).padStart(3, '0')}`;
+          setKodeUnit(generated);
+        } catch {
+          setKodeUnit('P3K2025-UNKNOWN-001');
+        }
+      })();
     } else {
       alert('Data pendaftaran tidak ditemukan.');
       router.push('/daftar');
@@ -68,20 +84,6 @@ export default function PembayaranPage() {
         });
       });
     });
-
-    // Ambil jumlah baris saat ini dari SheetDB
-    // Ambil jumlah baris saat ini dari SheetDB
-    let nomorUrut = 1;
-    try {
-      const countRes = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3/count');
-      const countJson = await countRes.json();
-      nomorUrut = (countJson?.count || 0) + 1;
-    } catch{
-      console.warn('Gagal mengambil jumlah data, menggunakan default 1.');
-    }
-
-
-    const kodeUnit = `P3K2025-${sekolah.nama.replace(/\s+/g, '').toUpperCase()}-${String(nomorUrut).padStart(3, '0')}`;
 
     const rows = allPeserta.map((nama, index) => {
       const isFirst = index === 0;
@@ -130,10 +132,29 @@ export default function PembayaranPage() {
 
         {/* Info Sekolah */}
         <div className="space-y-1 text-sm">
+          {kodeUnit && (
+            <p className="text-xs text-gray-600 italic">Kode Unit: <span className="font-semibold">{kodeUnit}</span></p>
+          )}
           <p><strong>Nama Sekolah:</strong> {dataPendaftaran.sekolah.nama}</p>
           <p><strong>Pembina:</strong> {dataPendaftaran.sekolah.pembina}</p>
           <p><strong>WhatsApp:</strong> {dataPendaftaran.sekolah.whatsapp}</p>
           <p><strong>Kategori:</strong> {dataPendaftaran.sekolah.kategori}</p>
+        </div>
+
+        {/* Rincian Biaya */}
+        <div className="bg-orange-50 border border-orange-300 p-4 rounded-md space-y-1">
+          <h3 className="text-md font-semibold text-orange-800 mb-2">Rincian Biaya</h3>
+          <ul className="text-sm text-gray-800">
+            {Object.entries(dataPendaftaran.lombaDipilih).map(([id, jumlah]) => {
+              const lomba = LOMBA_LIST.find((l) => l.id === id);
+              return lomba ? (
+                <li key={id}>
+                  {lomba.nama} x {jumlah} tim = Rp {(lomba.biaya * jumlah).toLocaleString('id-ID')}
+                </li>
+              ) : null;
+            })}
+          </ul>
+          <p className="font-bold mt-2">Total: Rp {dataPendaftaran.totalBayar.toLocaleString('id-ID')}</p>
         </div>
 
         {/* Info Rekening */}
