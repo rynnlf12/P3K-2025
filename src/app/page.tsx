@@ -37,11 +37,11 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10">
+    <div className="relative z-0 font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10">
         {/* Sidebar Mobile */}
         {sidebarOpen && (
           <div className="fixed inset-0 bg-black/50 z-50 flex">
-            <div className="w-64 bg-white h-full shadow-lg p-6 flex flex-col gap-4">
+            <div className="w-64 bg-white h-full shadow-lg p-6 flex flex-col gap-4 transition-all duration-300">
               <button
                 className="self-end mb-4 text-gray-700"
                 onClick={() => setSidebarOpen(false)}
@@ -75,7 +75,6 @@ export default function Home() {
               
         {/* Navbar */}
         <div className="w-full px-4 md:px-20 py-4 flex items-center justify-between bg-transparent absolute top-0 left-0 z-50">
-          <h1 className="text-xl font-bold text-orange-800">P3K 2025</h1>
 
           {/* Desktop menu */}
           <div className="hidden md:flex gap-6">
@@ -122,7 +121,7 @@ export default function Home() {
           <Image
             src="/desain-p3k.png"
             alt="Logo P3K"
-            width={220}
+            width={150}
             height={80}
             className="object-contain"
           />
