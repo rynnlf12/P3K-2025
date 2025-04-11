@@ -29,7 +29,7 @@ export const LOMBA_LIST = [
     biaya: 75000,
     keterangan: "5–7 orang per tim",
     maksPesertaPerTim: 7,
-    maksTim: 1, // hanya 1 tim karena fleksibel
+    maksTim: 3, // hanya 1 tim karena fleksibel
   },
   {
     id: "mojang-jajaka",
