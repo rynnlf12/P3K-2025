@@ -27,7 +27,7 @@ export default function PembayaranPage() {
   const [dataPendaftaran, setDataPendaftaran] = useState<DataPendaftaran | null>(null);
   const [bukti, setBukti] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [kodeUnit, setKodeUnit] = useState<string>('');
+  const [kodeUnit, setKodeUnit] = useState('');
 
   useEffect(() => {
     const stored = localStorage.getItem('formPendaftaran');
@@ -35,18 +35,10 @@ export default function PembayaranPage() {
       const parsed = JSON.parse(stored);
       setDataPendaftaran(parsed);
 
-      // Generate kode unit
-      (async () => {
-        try {
-          const countRes = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3/count');
-          const countJson = await countRes.json();
-          const nomorUrut = (countJson?.count || 0) + 1;
-          const generated = `P3K2025-${parsed.sekolah.nama.replace(/\s+/g, '').toUpperCase()}-${String(nomorUrut).padStart(3, '0')}`;
-          setKodeUnit(generated);
-        } catch {
-          setKodeUnit('P3K2025-UNKNOWN-001');
-        }
-      })();
+      const now = new Date();
+      const timestamp = now.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+      const kode = `P3K2025/${parsed.sekolah.nama.replace(/\s+/g, '').toUpperCase()}/${timestamp}`;
+      setKodeUnit(kode);
     } else {
       alert('Data pendaftaran tidak ditemukan.');
       router.push('/daftar');
@@ -58,26 +50,16 @@ export default function PembayaranPage() {
   };
 
   const handleSubmit = async () => {
-    if (!bukti) {
-      alert('Harap upload bukti pembayaran!');
-      return;
-    }
-
-    if (!dataPendaftaran || !dataPendaftaran.sekolah) {
-      alert('Data sekolah tidak ditemukan.');
-      return;
-    }
+    if (!bukti) return alert('Harap upload bukti pembayaran!');
+    if (!dataPendaftaran) return alert('Data sekolah tidak ditemukan.');
 
     setLoading(true);
 
-    const pesertaData = dataPendaftaran.peserta || {};
-    const sekolah = dataPendaftaran.sekolah;
-    const lombaDipilih = dataPendaftaran.lombaDipilih || {};
-    const totalBayar = dataPendaftaran.totalBayar || 0;
+    const { sekolah, peserta, lombaDipilih, totalBayar } = dataPendaftaran;
     const buktiFile = bukti?.name || 'Belum Upload';
 
     const allPeserta: string[] = [];
-    Object.values(pesertaData).forEach((timList) => {
+    Object.values(peserta).forEach((timList) => {
       timList.forEach((anggota) => {
         anggota.forEach((nama) => {
           allPeserta.push(nama);
@@ -130,11 +112,13 @@ export default function PembayaranPage() {
       <div className="max-w-3xl mx-auto bg-white/80 border p-6 rounded-lg shadow space-y-6">
         <h1 className="text-2xl font-bold text-orange-700 text-center">Konfirmasi Pembayaran</h1>
 
+        {/* Kode Unit */}
+        <div className="text-sm text-center bg-orange-50 p-2 rounded border font-mono">
+          <strong>Kode Unit:</strong> {kodeUnit}
+        </div>
+
         {/* Info Sekolah */}
         <div className="space-y-1 text-sm">
-          {kodeUnit && (
-            <p className="text-xs text-gray-600 italic">Kode Unit: <span className="font-semibold">{kodeUnit}</span></p>
-          )}
           <p><strong>Nama Sekolah:</strong> {dataPendaftaran.sekolah.nama}</p>
           <p><strong>Pembina:</strong> {dataPendaftaran.sekolah.pembina}</p>
           <p><strong>WhatsApp:</strong> {dataPendaftaran.sekolah.whatsapp}</p>
@@ -142,9 +126,9 @@ export default function PembayaranPage() {
         </div>
 
         {/* Rincian Biaya */}
-        <div className="bg-orange-50 border border-orange-300 p-4 rounded-md space-y-1">
-          <h3 className="text-md font-semibold text-orange-800 mb-2">Rincian Biaya</h3>
-          <ul className="text-sm text-gray-800">
+        <div className="bg-yellow-50 border border-yellow-300 p-4 rounded-md">
+          <p className="font-semibold mb-2 text-yellow-900">💰 Rincian Biaya</p>
+          <ul className="text-sm space-y-1">
             {Object.entries(dataPendaftaran.lombaDipilih).map(([id, jumlah]) => {
               const lomba = LOMBA_LIST.find((l) => l.id === id);
               return lomba ? (
@@ -154,7 +138,9 @@ export default function PembayaranPage() {
               ) : null;
             })}
           </ul>
-          <p className="font-bold mt-2">Total: Rp {dataPendaftaran.totalBayar.toLocaleString('id-ID')}</p>
+          <p className="mt-2 font-bold text-yellow-900">
+            Total: Rp {dataPendaftaran.totalBayar.toLocaleString('id-ID')}
+          </p>
         </div>
 
         {/* Info Rekening */}
