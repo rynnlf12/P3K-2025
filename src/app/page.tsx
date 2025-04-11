@@ -41,7 +41,7 @@ export default function Home() {
       {/* Navbar */}
       <div className="w-full px-4 md:px-20 py-3 flex items-center justify-between bg-white/80 backdrop-blur-sm shadow-sm border-b border-orange-200 fixed top-0 left-0 z-50">
         <div className="flex items-center gap-3">
-        <Image src="/desain-p3k.png" alt="Logo P3K" width={140} height={60} className="object-contain" />
+        <Image src="/desain-p3k.png" alt="Logo P3K" width={120} height={60} className="object-contain" />
 
         </div>
 
