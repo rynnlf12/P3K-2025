@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+const [sidebarOpen, setSidebarOpen] = useState(false);
+
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -38,16 +40,44 @@ export default function Home() {
     <div className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10">
 
       {/* Navbar */}
-      <div className="absolute top-4 left-4 md:left-20 z-50">
-        <Link
-          href="https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view?usp=sharing"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm hover:bg-orange-600 transition"
-        >
-          📄 Lihat Surat Edaran
-        </Link>
-      </div>
+{/* Navbar */}
+<div className="w-full px-4 md:px-20 py-4 flex items-center justify-between bg-transparent absolute top-0 left-0 z-50">
+  <h1 className="text-xl font-bold text-orange-800">P3K 2025</h1>
+
+  {/* Desktop menu */}
+  <div className="hidden md:flex gap-6">
+    <Link
+      href="/daftar"
+      className="text-orange-800 font-semibold hover:text-orange-600 transition"
+    >
+      Daftar
+    </Link>
+    <a
+      href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-orange-800 font-semibold hover:text-orange-600 transition"
+    >
+      Surat Edaran
+    </a>
+  </div>
+
+  {/* Hamburger button (mobile) */}
+  <button
+    onClick={() => setSidebarOpen(true)}
+    className="md:hidden text-orange-800 focus:outline-none"
+  >
+    <svg
+      className="w-6 h-6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </button>
+</div>
 
       {/* Logo pojok kanan atas */}
       <div className="absolute top-1 right-4 md:right-20 z-50">
