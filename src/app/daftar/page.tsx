@@ -98,7 +98,7 @@ export default function DaftarPage() {
   return (
     <div className="min-h-screen px-4 py-10 bg-gradient-to-br from-yellow-100 via-orange-100 to-pink-100">
       <div className="max-w-4xl mx-auto space-y-10">
-        <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran Lomba PMR</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran Lomba P3K 2025</h1>
 
         {/* Form Sekolah */}
         <div className="space-y-4 p-4 bg-white/80 backdrop-blur border border-red-200 rounded-lg shadow">
