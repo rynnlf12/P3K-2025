@@ -53,45 +53,45 @@ export default function PembayaranPage() {
     }
   
     setLoading(true);
-
-    const rows: Record<string, string | number | undefined>[] = [];
-    const pesertaData = dataPendaftaran?.peserta || {};
-    if (!dataPendaftaran || !dataPendaftaran.sekolah) {
-      alert('Data sekolah tidak ditemukan.');
-      return;
-    }
+  
+    const pesertaData = dataPendaftaran.peserta || {};
     const sekolah = dataPendaftaran.sekolah;
-    
-    
-
-    Object.entries(pesertaData).forEach(([, timList]) => {
+    const lombaDipilih = dataPendaftaran.lombaDipilih || {};
+    const totalBayar = dataPendaftaran.totalBayar || 0;
+    const buktiFile = bukti?.name || 'Belum Upload';
+  
+    const allPeserta: string[] = [];
+    Object.values(pesertaData).forEach((timList) => {
       timList.forEach((anggota) => {
         anggota.forEach((nama) => {
-          rows.push({
-            nomor: '',
-            nama_sekolah: sekolah.nama,
-            pembina: sekolah.pembina,
-            whatsapp: sekolah.whatsapp,
-            kategori: sekolah.kategori,
-            lomba: '',
-            peserta: nama,
-            total: dataPendaftaran?.totalBayar.toString() || '0',
-            bukti: bukti?.name || 'Belum Upload',
-            ...Object.fromEntries(
-              Object.entries(dataPendaftaran?.lombaDipilih || {}).map(([id, jumlah]) => [id, jumlah.toString()])
-            )
-          });
+          allPeserta.push(nama);
         });
       });
     });
-
+  
+    const rows = allPeserta.map((nama, index) => {
+      return {
+        nomor: '',
+        nama_sekolah: index === 0 ? sekolah.nama : '',
+        pembina: index === 0 ? sekolah.pembina : '',
+        whatsapp: index === 0 ? sekolah.whatsapp : '',
+        kategori: index === 0 ? sekolah.kategori : '',
+        ...Object.fromEntries(
+          Object.entries(lombaDipilih).map(([id, jumlah]) => [id, index === 0 ? jumlah.toString() : ''])
+        ),
+        data_peserta: nama,
+        total: index === 0 ? totalBayar.toString() : '',
+        bukti: index === 0 ? buktiFile : '',
+      };
+    });
+  
     try {
       const res = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: rows })
+        body: JSON.stringify({ data: rows }),
       });
-
+  
       if (res.ok) {
         alert('✅ Data berhasil dikirim!');
         router.push('/sukses');
@@ -105,7 +105,7 @@ export default function PembayaranPage() {
       setLoading(false);
     }
   };
-
+  
   if (!dataPendaftaran) return <p className="p-6">Memuat data...</p>;
 
   return (
