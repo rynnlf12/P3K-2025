@@ -33,7 +33,7 @@ export default function RootLayout({
       lang="id"
       className={`${montserrat.variable} ${geistSans.variable} ${geistMono.variable}`}
     >
-      <body className="antialiased bg-gradient-to-br from-yellow-100 via-orange-100 to-pink-100 min-h-screen">
+      <body className="min-h-screen">
         {children}
 
         {/* Floating Button */}
