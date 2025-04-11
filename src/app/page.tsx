@@ -38,7 +38,7 @@ export default function Home() {
       className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10"
     >
       {/* Logo pojok kiri atas */}
-      <div className="absolute top-1 right-4 md:left-20 z-50">
+      <div className="absolute top-1 right-4 md:right-20 z-50">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
