@@ -18,8 +18,8 @@ export default function PembayaranPage() {
       whatsapp: string;
       kategori: string;
     };
-    lombaDipilih: Record<string, boolean>;
-    peserta: Record<string, string[]>;
+    lombaDipilih: Record<string, number>;
+    peserta: Record<string, string[][]>;
     totalBayar: number;
   } | null>(null);
 
@@ -46,32 +46,38 @@ export default function PembayaranPage() {
       return;
     }
 
-    setLoading(true);
+    if (!dataPendaftaran) return;
 
-    const pesertaFormatted = Object.entries(dataPendaftaran?.peserta || {}).map(([id, list]) => {
-      const isNestedArray = Array.isArray(list[0]);
-      const flatList = isNestedArray
-      ? (list as unknown as string[][]).flat()
-      : (list as string[]);
+    const { sekolah, lombaDipilih, peserta, totalBayar } = dataPendaftaran;
 
-      return `${id}: ${flatList.join(', ')}`;
+    const allPeserta: string[] = [];
+    Object.values(peserta).forEach((timList) => {
+      timList.forEach((tim) => {
+        tim.forEach((nama) => {
+          if (nama.trim()) allPeserta.push(nama.trim());
+        });
+      });
+    });
+
+    const lombaFields: Record<string, string> = {};
+    Object.entries(lombaDipilih).forEach(([id, jumlah]) => {
+      lombaFields[id] = jumlah.toString();
     });
 
     const payload = {
-      data: [
-        {
-          nama_sekolah: dataPendaftaran?.sekolah.nama || '',
-          pembina: dataPendaftaran?.sekolah.pembina || '',
-          whatsapp: dataPendaftaran?.sekolah.whatsapp || '',
-          kategori: dataPendaftaran?.sekolah.kategori || '',
-          lomba: Object.keys(dataPendaftaran?.lombaDipilih || {}).join(', '),
-          peserta: pesertaFormatted.join(' | '),
-          total: dataPendaftaran?.totalBayar || 0,
-          bukti: bukti?.name || 'Belum Upload',
-        },
-      ],
+      data: allPeserta.map((nama) => ({
+        nama_sekolah: sekolah.nama,
+        pembina: sekolah.pembina,
+        whatsapp: sekolah.whatsapp,
+        kategori: sekolah.kategori,
+        ...lombaFields,
+        data_peserta: nama,
+        total: totalBayar.toString(),
+        bukti: bukti?.name || 'Belum Upload',
+      })),
     };
 
+    setLoading(true);
     try {
       const res = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3', {
         method: 'POST',
@@ -100,7 +106,6 @@ export default function PembayaranPage() {
       <div className="max-w-3xl mx-auto bg-white/80 border p-6 rounded-lg shadow space-y-6">
         <h1 className="text-2xl font-bold text-orange-700 text-center">Konfirmasi Pembayaran</h1>
 
-        {/* Info Sekolah */}
         <div className="space-y-1 text-sm">
           <p><strong>Nama Sekolah:</strong> {dataPendaftaran.sekolah.nama}</p>
           <p><strong>Pembina:</strong> {dataPendaftaran.sekolah.pembina}</p>
@@ -108,32 +113,31 @@ export default function PembayaranPage() {
           <p><strong>Kategori:</strong> {dataPendaftaran.sekolah.kategori}</p>
         </div>
 
-        {/* Rincian Lomba */}
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Rincian Lomba</h2>
           <ul className="list-disc pl-5">
-            {Object.keys(dataPendaftaran.lombaDipilih).map((id) => (
-              <li key={id}>{id}</li>
+            {Object.entries(dataPendaftaran.lombaDipilih).map(([id, jumlah]) => (
+              <li key={id}>{id} - {jumlah} tim</li>
             ))}
           </ul>
         </div>
 
-        {/* Peserta */}
         <div className="space-y-1 text-sm">
           <h2 className="font-semibold text-orange-600 mt-4">Nama Peserta</h2>
-          {Object.entries(dataPendaftaran.peserta).map(([id, list], i) => (
+          {Object.entries(dataPendaftaran.peserta).map(([id, tim], i) => (
             <div key={i}>
               <p className="font-medium">{id}:</p>
-              <ul className="pl-5 list-disc text-sm text-gray-800 mb-1">
-                {list.map((nama, j) => (
-                  <li key={j}>{nama}</li>
-                ))}
-              </ul>
+              {tim.map((anggota, idx) => (
+                <ul key={idx} className="pl-5 list-disc text-sm text-gray-800 mb-1">
+                  {anggota.map((nama, j) => (
+                    <li key={j}>{nama}</li>
+                  ))}
+                </ul>
+              ))}
             </div>
           ))}
         </div>
 
-        {/* Info Rekening */}
         <div className="bg-yellow-50 border border-yellow-400 p-4 rounded-md">
           <p className="text-sm font-semibold text-yellow-800">Silakan transfer ke rekening berikut:</p>
           <p className="mt-1">Bank BRI</p>
@@ -141,14 +145,12 @@ export default function PembayaranPage() {
           <p>Atas Nama: <strong>Panitia P3K 2025</strong></p>
         </div>
 
-        {/* Upload Bukti */}
         <div>
           <Label className="block mb-1 font-medium">Upload Bukti Pembayaran</Label>
           <Input type="file" accept="image/*,application/pdf" onChange={handleUpload} className="bg-white border" />
           {bukti && <p className="text-sm text-green-700 mt-1">📎 {bukti.name}</p>}
         </div>
 
-        {/* Submit */}
         <MotionButton
           type="button"
           whileHover={{ scale: 1.05 }}

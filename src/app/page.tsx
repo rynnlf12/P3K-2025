@@ -71,9 +71,9 @@ export default function Home() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <span className="text-yellow-500">P</span>
-          <span className="text-yellow-500">3</span>
-          <span className="text-yellow-500">K</span>
+          <span className="text-yellow-400">P</span>
+          <span className="text-yellow-400">3</span>
+          <span className="text-yellow-400">K</span>
           <span className="text-orange-500 ml-3">2025</span>
         </motion.h1>
 
@@ -106,7 +106,7 @@ export default function Home() {
           transition={{ duration: 1 }}
         >
           <h3 className="text-sm font-semibold text-yellow-300 mb-3">Menuju Hari-H</h3>
-          <div className="grid grid-cols-4 gap-3 font-digital text-green-400 text-2xl">
+          <div className="grid grid-cols-4 gap-3 font-digital text-yellow-400 text-2xl">
             <div className="bg-gray-900 p-2 rounded shadow-inner animate-pulse">
               {String(timeLeft.days).padStart(2, '0')}
               <div className="text-[10px] text-yellow-400 mt-1">Hari</div>
