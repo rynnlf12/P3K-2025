@@ -38,46 +38,79 @@ export default function Home() {
 
   return (
     <div className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10">
+        {/* Sidebar Mobile */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex">
+            <div className="w-64 bg-white h-full shadow-lg p-6 flex flex-col gap-4">
+              <button
+                className="self-end mb-4 text-gray-700"
+                onClick={() => setSidebarOpen(false)}
+              >
+                ✕
+              </button>
+              <Link
+                href="/daftar"
+                onClick={() => setSidebarOpen(false)}
+                className="text-orange-700 font-semibold hover:text-orange-600 transition"
+              >
+                Daftar
+              </Link>
+              <a
+                href="https://drive.google.com/file/d/1sZtWkWkGlsuratEdaranContoh/view"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-orange-700 font-semibold hover:text-orange-600 transition"
+              >
+                Surat Edaran
+              </a>
+            </div>
+            {/* Klik luar sidebar menutup menu */}
+            <div
+              className="flex-1"
+              onClick={() => setSidebarOpen(false)}
+            />
+          </div>
+        )}
 
-      {/* Navbar */}
-{/* Navbar */}
-<div className="w-full px-4 md:px-20 py-4 flex items-center justify-between bg-transparent absolute top-0 left-0 z-50">
-  <h1 className="text-xl font-bold text-orange-800">P3K 2025</h1>
+              
+        {/* Navbar */}
+        <div className="w-full px-4 md:px-20 py-4 flex items-center justify-between bg-transparent absolute top-0 left-0 z-50">
+          <h1 className="text-xl font-bold text-orange-800">P3K 2025</h1>
 
-  {/* Desktop menu */}
-  <div className="hidden md:flex gap-6">
-    <Link
-      href="/daftar"
-      className="text-orange-800 font-semibold hover:text-orange-600 transition"
-    >
-      Daftar
-    </Link>
-    <a
-      href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-orange-800 font-semibold hover:text-orange-600 transition"
-    >
-      Surat Edaran
-    </a>
-  </div>
+          {/* Desktop menu */}
+          <div className="hidden md:flex gap-6">
+            <Link
+              href="/daftar"
+              className="text-orange-800 font-semibold hover:text-orange-600 transition"
+            >
+              Daftar
+            </Link>
+            <a
+              href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-800 font-semibold hover:text-orange-600 transition"
+            >
+              Surat Edaran
+            </a>
+          </div>
 
-  {/* Hamburger button (mobile) */}
-  <button
-    onClick={() => setSidebarOpen(true)}
-    className="md:hidden text-orange-800 focus:outline-none"
-  >
-    <svg
-      className="w-6 h-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-    </svg>
-  </button>
-</div>
+          {/* Hamburger button (mobile) */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden text-orange-800 focus:outline-none"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
 
       {/* Logo pojok kanan atas */}
       <div className="absolute top-1 right-4 md:right-20 z-50">
