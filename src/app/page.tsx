@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({
@@ -34,10 +35,21 @@ export default function Home() {
   }, []);
 
   return (
-    <div
-      className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10"
-    >
-      {/* Logo pojok kiri atas */}
+    <div className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10">
+
+      {/* Navbar */}
+      <div className="absolute top-4 left-4 md:left-20 z-50">
+        <Link
+          href="https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm hover:bg-orange-600 transition"
+        >
+          📄 Lihat Surat Edaran
+        </Link>
+      </div>
+
+      {/* Logo pojok kanan atas */}
       <div className="absolute top-1 right-4 md:right-20 z-50">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
