@@ -122,6 +122,15 @@ export default function PembayaranPage() {
     } finally {
       setLoading(false);
     }
+
+    // Ganti dengan nomor WhatsApp admin kamu & API key dari CallMeBot
+    const adminPhone = "6288802017127"; // tanpa +, misal: 6281234567890
+    const apiKey = "6242351"; // dari CallMeBot
+
+    const pesan = `📢 *Pendaftar Baru!*\n\n🏫 *${sekolah.nama}*\n👤 Pembina: ${sekolah.pembina}\n📱 WA: ${sekolah.whatsapp}\n📎 Bukti: ${buktiFile}\n 👤 Nama Pengirim: ${namaPengirim}\n\nHarap verifikasi pembayaran.`;
+
+    await fetch(`https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodeURIComponent(pesan)}&apikey=${apiKey}`);
+
   };
 
   if (!dataPendaftaran) return <p className="p-6">Memuat data...</p>;
