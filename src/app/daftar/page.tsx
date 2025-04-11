@@ -96,7 +96,7 @@ export default function DaftarPage() {
   };
 
   return (
-    <div className="min-h-screen px-4 py-10">
+    <div className="min-h-screen px-4 py-10 bg-gradient-to-br from-yellow-100 via-orange-100 to-pink-100">
       <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Form Pendaftaran P3K 2025</h1>
 
       <div className="space-y-4 p-4 bg-red-50 rounded border border-red-200">
