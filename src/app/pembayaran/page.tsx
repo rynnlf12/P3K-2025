@@ -26,6 +26,7 @@ export default function PembayaranPage() {
   const router = useRouter();
   const [dataPendaftaran, setDataPendaftaran] = useState<DataPendaftaran | null>(null);
   const [bukti, setBukti] = useState<File | null>(null);
+  const [namaPengirim, setNamaPengirim] = useState('');
   const [loading, setLoading] = useState(false);
   const [kodeUnit, setKodeUnit] = useState<string>('');
 
@@ -56,6 +57,11 @@ export default function PembayaranPage() {
   const handleSubmit = async () => {
     if (!bukti) {
       alert('Harap upload bukti pembayaran!');
+      return;
+    }
+
+    if (!namaPengirim.trim()) {
+      alert('Harap isi nama pengirim transfer!');
       return;
     }
 
@@ -92,6 +98,8 @@ export default function PembayaranPage() {
         data_peserta: nama,
         total: isFirst ? totalBayar.toString() : '',
         bukti: isFirst ? buktiFile : '',
+        nama_pengirim: isFirst ? namaPengirim : '',
+        status_verifikasi: isFirst ? 'Menunggu Verifikasi' : '',
       };
     });
 
@@ -159,6 +167,18 @@ export default function PembayaranPage() {
           <p className="mt-1">Bank BRI</p>
           <p>No. Rekening: <strong>1234 5678 9012 3456</strong></p>
           <p>Atas Nama: <strong>Panitia P3K 2025</strong></p>
+        </div>
+
+        {/* Nama Pengirim */}
+        <div>
+          <Label className="block mb-1 font-medium">Nama Pengirim Transfer</Label>
+          <Input
+            type="text"
+            placeholder="Contoh: Ahmad Fikri"
+            value={namaPengirim}
+            onChange={(e) => setNamaPengirim(e.target.value)}
+            className="bg-white border"
+          />
         </div>
 
         {/* Upload Bukti */}
