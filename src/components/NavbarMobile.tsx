@@ -1,72 +1,93 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 export default function NavbarMobile() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const menuItems = [
+    { label: "Beranda", href: "/" },
+    { label: "Daftar", href: "/daftar" },
+    {
+      label: "Surat Edaran",
+      href: "https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing",
+      external: true,
+    },
+  ];
 
   return (
-    <>
-      {/* Navbar Top */}
-      <nav className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-4 py-2 bg-white/80 backdrop-blur border-b border-orange-200 shadow-sm">
-        <div className="flex items-center gap-2">
-          <Image src="/desain-p3k.png" alt="Logo P3K" width={140} height={0} className="object-contain" />
-          <span className="text-orange-700 font-bold text-lg">P3K 2025</span>
-        </div>
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="md:hidden text-orange-700 focus:outline-none"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <motion.nav
+      initial={{ y: -40, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="md:hidden flex items-center justify-between px-4 py-3 border-b border-orange-300 bg-white shadow fixed top-0 left-0 right-0 z-50"
+    >
+      <div className="flex items-center gap-2">
+        <Image
+          src="/desain-p3k.png"
+          alt="Logo P3K"
+          width={140}
+          height={0}
+          className="object-contain"
+        />
+      </div>
+
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="text-orange-800 focus:outline-none"
+      >
+        {isOpen ? "✕" : (
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-        </button>
-      </nav>
+        )}
+      </button>
 
-      {/* Sidebar Overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex">
-          <div className="w-64 bg-white h-full shadow-lg p-6 flex flex-col gap-4 relative">
-            <button
-              className="absolute top-3 right-4 text-gray-600 text-xl"
-              onClick={() => setSidebarOpen(false)}
-            >
-              ✕
-            </button>
-
-            <div className="flex items-center gap-2 mt-6">
-              <Image src="/desain-p3k.png" alt="Logo P3K" width={120} height={0} className="object-contain" />
-              <span className="font-bold text-orange-700 text-lg">P3K 2025</span>
-            </div>
-
-            <Link
-              href="/"
-              onClick={() => setSidebarOpen(false)}
-              className="text-orange-800 font-semibold hover:text-orange-600 transition"
-            >
-              Beranda
-            </Link>
-            <Link
-              href="/daftar"
-              onClick={() => setSidebarOpen(false)}
-              className="text-orange-800 font-semibold hover:text-orange-600 transition"
-            >
-              Daftar
-            </Link>
-            <a
-              href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-orange-800 font-semibold hover:text-orange-600 transition"
-            >
-              Surat Edaran
-            </a>
-          </div>
-          <div className="flex-1" onClick={() => setSidebarOpen(false)} />
-        </div>
-      )}
-    </>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed top-0 right-0 w-64 h-full bg-white shadow-lg z-50 flex flex-col px-6 py-4 space-y-6"
+          >
+            {menuItems.map((item) => (
+              item.external ? (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-orange-800 font-semibold hover:text-orange-600 transition border-b"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`text-orange-800 font-semibold hover:text-orange-600 transition border-b ${pathname === item.href ? "underline underline-offset-4 text-orange-600" : ""}`}
+                >
+                  {item.label}
+                </Link>
+              )
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.nav>
   );
 }

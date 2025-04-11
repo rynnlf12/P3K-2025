@@ -13,7 +13,7 @@ export default function Home() {
     seconds: 0,
   });
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+ 
 
   useEffect(() => {
     const eventDate = new Date('2025-05-30T00:00:00');
@@ -38,67 +38,6 @@ export default function Home() {
 
   return (
     <div className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center">
-      {/* Navbar */}
-      <div className="w-full px-4 md:px-20 py-3 flex items-center justify-between bg-white/80 backdrop-blur-sm shadow-sm border-b border-orange-200 fixed top-0 left-0 z-50">
-        <div className="flex items-center gap-3">
-        <Image src="/desain-p3k.png" alt="Logo P3K" width={120} height={60} className="object-contain" />
-
-        </div>
-
-        <div className="hidden md:flex gap-6">
-          <Link href="/daftar" className="relative text-orange-800 font-semibold hover:text-orange-600 transition before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-orange-600 hover:before:w-full before:transition-all">
-            Daftar
-          </Link>
-          <a
-            href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative text-orange-800 font-semibold hover:text-orange-600 transition before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-orange-600 hover:before:w-full before:transition-all"
-          >
-            Surat Edaran
-          </a>
-        </div>
-
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="md:hidden text-orange-800 focus:outline-none"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Sidebar Mobile */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex">
-          <div className="w-64 bg-white h-full shadow-lg p-6 flex flex-col gap-4 pt-10">
-            <button
-              className="self-end mb-4 text-gray-700"
-              onClick={() => setSidebarOpen(false)}
-            >
-              ✕
-            </button>
-            <Link
-              href="/daftar"
-              onClick={() => setSidebarOpen(false)}
-              className="text-orange-700 font-semibold hover:text-orange-600 transition"
-            >
-              Daftar
-            </Link>
-            <a
-              href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-orange-700 font-semibold hover:text-orange-600 transition"
-            >
-              Surat Edaran
-            </a>
-          </div>
-          <div className="flex-1" onClick={() => setSidebarOpen(false)} />
-        </div>
-      )}
-
       {/* Konten */}
       <div className="pt-28 px-4 md:px-20 pb-10 flex flex-col md:flex-row items-center justify-between">
         <div className="w-full md:w-1/2 text-left md:text-left z-10">
