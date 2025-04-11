@@ -70,18 +70,19 @@ export default function PembayaranPage() {
     });
   
     const rows = allPeserta.map((nama, index) => {
+      const isFirst = index === 0;
       return {
         nomor: '',
-        nama_sekolah: index === 0 ? sekolah.nama : '',
-        pembina: index === 0 ? sekolah.pembina : '',
-        whatsapp: index === 0 ? sekolah.whatsapp : '',
-        kategori: index === 0 ? sekolah.kategori : '',
+        nama_sekolah: isFirst ? sekolah.nama : '',
+        pembina: isFirst ? sekolah.pembina : '',
+        whatsapp: isFirst ? sekolah.whatsapp : '',
+        kategori: isFirst ? sekolah.kategori : '',
         ...Object.fromEntries(
-          Object.entries(lombaDipilih).map(([id, jumlah]) => [id, index === 0 ? jumlah.toString() : ''])
+          Object.entries(lombaDipilih).map(([id, jumlah]) => [id, isFirst ? jumlah.toString() : ''])
         ),
         data_peserta: nama,
-        total: index === 0 ? totalBayar.toString() : '',
-        bukti: index === 0 ? buktiFile : '',
+        total: isFirst ? totalBayar.toString() : '',
+        bukti: isFirst ? buktiFile : '',
       };
     });
   
@@ -105,7 +106,7 @@ export default function PembayaranPage() {
       setLoading(false);
     }
   };
-  
+   
   if (!dataPendaftaran) return <p className="p-6">Memuat data...</p>;
 
   return (
