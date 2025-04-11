@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <div className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center">
       {/* Konten */}
-      <div className="pt-28 px-4 md:px-20 pb-10 flex flex-col md:flex-row items-center justify-between">
+      <div className="pt-32 px-4 md:px-20 pb-10 flex flex-col md:flex-row items-center justify-between">
         <div className="w-full md:w-1/2 text-left md:text-left z-10">
           <motion.h2
             className="text-xl md:text-2xl text-orange-900 font-bold drop-shadow-md mb-2"

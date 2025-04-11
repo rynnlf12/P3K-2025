@@ -101,7 +101,7 @@ export default function DaftarPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10 pt-24 space-y-10">
+    <div className="max-w-5xl mx-auto px-4 py-10 pt-28 space-y-10">
       <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran P3K 2025</h1>
 
       {/* FORM SEKOLAH */}
