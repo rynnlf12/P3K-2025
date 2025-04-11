@@ -1,93 +1,64 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+
+const navItems = [
+  { href: '/', label: 'Beranda' },
+  { href: '/daftar', label: 'Daftar' },
+  {
+    href: 'https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing',
+    label: 'Surat Edaran',
+    external: true,
+  },
+];
 
 export default function NavbarMobile() {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
-
-  const menuItems = [
-    { label: "Beranda", href: "/" },
-    { label: "Daftar", href: "/daftar" },
-    {
-      label: "Surat Edaran",
-      href: "https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing",
-      external: true,
-    },
-  ];
+  const [open, setOpen] = useState(false);
 
   return (
-    <motion.nav
-      initial={{ y: -40, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.4 }}
-      className="md:hidden flex items-center justify-between px-4 py-3 border-b border-orange-300 bg-white shadow fixed top-0 left-0 right-0 z-50"
-    >
-      <div className="flex items-center gap-2">
-        <Image
-          src="/desain-p3k.png"
-          alt="Logo P3K"
-          width={140}
-          height={0}
-          className="object-contain"
-        />
-      </div>
-
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="text-orange-800 focus:outline-none"
-      >
-        {isOpen ? "✕" : (
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
+    <nav className="md:hidden fixed top-0 left-0 w-full z-50">
+      <div className="flex items-center justify-between bg-white/80 backdrop-blur-md px-4 py-2 shadow border-b">
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/desain-p3k.png" alt="Logo P3K" width={120} height={0} className="h-auto object-contain" />
+        </Link>
+        <button onClick={() => setOpen(!open)} className="text-orange-800 focus:outline-none">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-        )}
-      </button>
+        </button>
+      </div>
 
       <AnimatePresence>
-        {isOpen && (
+        {open && (
           <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 right-0 w-64 h-full bg-white shadow-lg z-50 flex flex-col px-6 py-4 space-y-6"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white border-b shadow-md backdrop-blur px-4 py-4 space-y-2"
           >
-            {menuItems.map((item) => (
-              item.external ? (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-orange-800 font-semibold hover:text-orange-600 transition border-b"
-                >
-                  {item.label}
-                </a>
-              ) : (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`text-orange-800 font-semibold hover:text-orange-600 transition border-b ${pathname === item.href ? "underline underline-offset-4 text-orange-600" : ""}`}
-                >
-                  {item.label}
-                </Link>
-              )
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                target={item.external ? '_blank' : undefined}
+                rel={item.external ? 'noopener noreferrer' : undefined}
+                onClick={() => setOpen(false)}
+                className={`block text-sm font-semibold transition duration-200 border-b pb-2 ${
+                  pathname === item.href ? 'text-orange-600' : 'text-orange-800 hover:text-orange-600'
+                }`}
+              >
+                {item.label}
+              </Link>
             ))}
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.nav>
+    </nav>
   );
 }
