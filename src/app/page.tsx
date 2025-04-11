@@ -37,7 +37,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative z-0 font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10">
+    <div className="relative z-0 font-montserrat min-h-screen pt-24 bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center flex flex-col md:flex-row items-center justify-between px-4 md:px-20 py-10">
         {/* Sidebar Mobile */}
         {sidebarOpen && (
           <div className="fixed inset-0 bg-black/50 z-50 flex">
@@ -129,7 +129,7 @@ export default function Home() {
       </div>
 
       {/* Kiri: Teks Besar */}
-      <div className="w-full md:w-1/2 text-center md:text-left mt-20 md:mt-0 z-10">
+      <div className="w-full md:w-1/2 text-center md:text-center mt-32 md:mt-16 z-10">
         <motion.h2
           className="text-xl md:text-2xl text-orange-900 font-bold drop-shadow-md mb-1"
           initial={{ opacity: 0, y: -10 }}
