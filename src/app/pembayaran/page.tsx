@@ -30,22 +30,27 @@ export default function PembayaranPage() {
   const [loading, setLoading] = useState(false);
   const [kodeUnit, setKodeUnit] = useState<string>('');
 
-  useEffect(() => {
+ useEffect(() => {
     const stored = localStorage.getItem('formPendaftaran');
     if (stored) {
-      const data = JSON.parse(stored);
-      setDataPendaftaran(data);
+      try {
+        const data = JSON.parse(stored);
+        if (!data.sekolah?.nama) throw new Error('Data invalid');
+        
+        setDataPendaftaran(data);
 
-      // Generate kode unit berbasis waktu Waktu Indonesia Barat (WIB)
-      const now = new Date();
-      const offset = 7 * 60 * 60 * 1000;
-      const wib = new Date(now.getTime() + offset);
-      const pad = (n: number) => String(n).padStart(2, '0');
-      const timestamp = `${wib.getFullYear()}${pad(wib.getMonth() + 1)}${pad(wib.getDate())}${pad(wib.getHours())}${pad(wib.getMinutes())}`;
-      const unit = `P3K2025-${data.sekolah.nama.replace(/\s+/g, '').toUpperCase()}-${timestamp}`;
-      setKodeUnit(unit);
+        const now = new Date();
+        const offset = 7 * 60 * 60 * 1000;
+        const wib = new Date(now.getTime() + offset);
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const timestamp = `${wib.getFullYear()}${pad(wib.getMonth() + 1)}${pad(wib.getDate())}${pad(wib.getHours())}${pad(wib.getMinutes())}`;
+        const unit = `P3K2025-${data.sekolah.nama.replace(/\s+/g, '').toUpperCase().slice(0, 10)}-${timestamp}`;
+        setKodeUnit(unit);
+      } catch (error) {
+        console.error('Error parsing data:', error);
+        router.push('/daftar');
+      }
     } else {
-      alert('Data pendaftaran tidak ditemukan.');
       router.push('/daftar');
     }
   }, [router]);
