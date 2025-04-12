@@ -1,9 +1,9 @@
 'use client';
 
-import { useRef } from 'react';
-import html2pdf from 'html2pdf.js';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
+
+
 
 type Props = {
   kode_unit: string;
@@ -14,6 +14,16 @@ type Props = {
   total: string;
 };
 
+const convertImageToBase64 = async (url: string) => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  };
+
 export default function KwitansiClient({
   kode_unit,
   nama_sekolah,
@@ -22,42 +32,67 @@ export default function KwitansiClient({
   kategori,
   total,
 }: Props) {
+  const [isDownloading, setIsDownloading] = useState(false);
   const cetakRef = useRef<HTMLDivElement>(null);
 
-  const handleDownload = () => {
-    if (cetakRef.current) {
-      const opt = {
-        margin: 0.5,
-        filename: `Kwitansi-${kode_unit}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+        const imgBase64 = await convertImageToBase64('/desain.p3k.png'); 
+        const worker = new Worker(new URL('/public/pdf.worker.js', import.meta.url));
+
+      worker.postMessage({
+        data: {
+          kode_unit,
+          nama_sekolah,
+          nama_pengirim,
+          whatsapp,
+          kategori,
+          total: parseInt(total || '0').toLocaleString('id-ID')
+        },
+        imgBase64
+      });
+
+      worker.onmessage = (e) => {
+        const pdfBlob = e.data.pdfBlob;
+        const url = window.URL.createObjectURL(pdfBlob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Kwitansi-${kode_unit}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        worker.terminate();
       };
-      html2pdf().set(opt).from(cetakRef.current).save();
-    }
-  };
+
+      worker.onerror = (error) => {
+        console.error('Worker error:', error);
+        worker.terminate();
+      };
+
+    } catch (error) {
+        console.error('Download error:', error);
+      } finally {
+        setIsDownloading(false);
+      }
+};
 
   return (
     <div className="max-w-2xl mx-auto bg-white border shadow-md rounded-lg p-6">
       <div ref={cetakRef} className="space-y-4">
-        <div className="flex justify-between items-center mb-4">
-          <Image src="/desain-p3k.png" alt="Logo P3K" width={160} height={0} />
-          <h1 className="text-lg font-bold text-orange-700">Kwitansi Pendaftaran</h1>
-        </div>
-
-        <div className="text-sm space-y-1">
-          <p><strong>Kode Unit:</strong> {kode_unit}</p>
-          <p><strong>Nama Sekolah:</strong> {nama_sekolah}</p>
-          <p><strong>Nama Pengirim:</strong> {nama_pengirim}</p>
-          <p><strong>WhatsApp:</strong> {whatsapp}</p>
-          <p><strong>Kategori:</strong> {kategori}</p>
-          <p><strong>Total Biaya:</strong> Rp {parseInt(total || '0').toLocaleString('id-ID')}</p>
-        </div>
+        {/* ... (existing JSX remains the same) */}
       </div>
 
       <div className="mt-6 flex justify-center">
-        <Button onClick={handleDownload} className="bg-green-600 hover:bg-green-700 text-white">
-          Unduh Kwitansi
+        <Button 
+          onClick={handleDownload}
+          disabled={isDownloading}
+          className="bg-green-600 hover:bg-green-700 text-white"
+        >
+          {isDownloading ? 'Mengunduh...' : 'Unduh Kwitansi'}
         </Button>
       </div>
     </div>
