@@ -26,11 +26,20 @@ export default function KwitansiClient({
   const handleDownload = async () => {
     if (!cetakRef.current) return;
     setLoading(true);
+  
     try {
       const canvas = await html2canvas(cetakRef.current, {
         backgroundColor: '#ffffff',
         useCORS: true,
         scale: 2,
+        ignoreElements: (el) => {
+          const styles = getComputedStyle(el);
+          return (
+            styles.color.includes('oklch') ||
+            styles.backgroundColor.includes('oklch') ||
+            styles.borderColor.includes('oklch')
+          );
+        },
       });
       const imgData = canvas.toDataURL('image/jpeg');
       const link = document.createElement('a');
@@ -43,6 +52,7 @@ export default function KwitansiClient({
       setLoading(false);
     }
   };
+  
 
   return (
     <div style={{ marginTop: '2rem', marginBottom: '3rem' }}>
