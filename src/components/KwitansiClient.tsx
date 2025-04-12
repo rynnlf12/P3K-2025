@@ -1,17 +1,9 @@
+// KwitansiClient.tsx
 'use client';
 
-import { useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useRef } from 'react';
 import Image from 'next/image';
-
-type Props = {
-  kode_unit: string;
-  nama_sekolah: string;
-  nama_pengirim: string;
-  whatsapp: string;
-  kategori: string;
-  total: string;
-};
+import html2pdf from 'html2pdf.js';
 
 export default function KwitansiClient({
   kode_unit,
@@ -20,104 +12,87 @@ export default function KwitansiClient({
   whatsapp,
   kategori,
   total,
-}: Props) {
-  const [isDownloading, setIsDownloading] = useState(false);
+  rincian,
+}: {
+  kode_unit: string;
+  nama_sekolah: string;
+  nama_pengirim: string;
+  whatsapp: string;
+  kategori: string;
+  total: string;
+  rincian: { nama: string; jumlah: number; biaya: number }[];
+}) {
   const cetakRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = async () => {
-    console.log('[1] Tombol diklik - Mulai proses unduh');
-    setIsDownloading(true);
-    
-    try {
-        console.log('[2] Init worker');
-        const worker = new Worker(new URL('/public/pdf.worker.js', import.meta.url));
-      
-      const imgResponse = await fetch('/desain-p3k.png');
-      const imgBlob = await imgResponse.blob();
-      const imgBase64 = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.readAsDataURL(imgBlob);
-    });
-    
-      console.log('[3] Mengirim data ke worker:', {
-        kode_unit,
-        nama_sekolah,
-        nama_pengirim,
-        whatsapp,
-        kategori,
-        total: parseInt(total || '0').toLocaleString('id-ID'),
+    if (!cetakRef.current) return;
 
-        imgBase64
-      });
-      
-
-
-      worker.postMessage({
-        data: {
-          kode_unit,
-          nama_sekolah,
-          nama_pengirim,
-          whatsapp,
-          kategori,
-          total: parseInt(total || '0').toLocaleString('id-ID')
-        }
-      });
-  
-      worker.onmessage = (e) => {
-        console.log('[4] Message from worker:', e.data);
-        if(e.data.pdfBlob) {
-          console.log('[5] Blob size:', e.data.pdfBlob.size);
-          const url = URL.createObjectURL(e.data.pdfBlob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `test.pdf`;
-          a.click();
-          URL.revokeObjectURL(url);
-        }
-        worker.terminate();
-      };
-  
-      worker.onerror = (error) => {
-        console.error('[Worker Error]', error);
-        worker.terminate();
-      };
-      
-  
-    } catch (error) {
-      console.error('[Main Error]', error);
-    } finally {
-      console.log('[7] Proses selesai');
-      setIsDownloading(false);
-    }
+    // Menghindari freeze: konversi setelah sedikit delay
+    setTimeout(() => {
+      html2pdf()
+        .set({
+          margin: [10, 10],
+          filename: `Kwitansi_${nama_sekolah}_${kode_unit}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        })
+        .from(cetakRef.current)
+        .save();
+    }, 100); // jeda kecil agar layout siap
   };
 
   return (
-    <div className="max-w-2xl mx-auto pt-32 bg-white border shadow-md rounded-lg p-6">
-      <div ref={cetakRef} className="space-y-4">
-        <div className="flex justify-between items-center mb-4">
-          <Image src="/desain-p3k.png" alt="Logo P3K" width={160} height={0} />
-          <h1 className="text-lg font-bold text-orange-700">Kwitansi Pendaftaran</h1>
+    <div className="space-y-6">
+      {/* Konten kwitansi yang akan diubah menjadi PDF */}
+      <div
+        ref={cetakRef}
+        className="bg-white text-black p-6 rounded-md shadow max-w-2xl mx-auto border border-gray-300"
+      >
+        <div className="flex items-center justify-between border-b pb-2 mb-4">
+          <Image src="/desain-p3k.png" alt="Logo P3K" width={120} height={40} />
+          <div className="text-right text-sm">
+            <p className="text-gray-600">Kode Unit:</p>
+            <strong className="text-orange-700">{kode_unit}</strong>
+          </div>
         </div>
 
+        <h2 className="text-xl font-semibold text-center mb-4 text-red-700">
+          Kwitansi Pembayaran
+        </h2>
+
         <div className="text-sm space-y-1">
-          <p><strong>Kode Unit:</strong> {kode_unit}</p>
           <p><strong>Nama Sekolah:</strong> {nama_sekolah}</p>
           <p><strong>Nama Pengirim:</strong> {nama_pengirim}</p>
           <p><strong>WhatsApp:</strong> {whatsapp}</p>
           <p><strong>Kategori:</strong> {kategori}</p>
-          <p><strong>Total Biaya:</strong> Rp {parseInt(total || '0').toLocaleString('id-ID')}</p>
         </div>
+
+        <div className="mt-4 text-sm">
+          <p className="font-semibold mb-2">Rincian Biaya:</p>
+          <ul className="list-disc list-inside space-y-1">
+            {rincian.map((r, i) => (
+              <li key={i}>
+                {r.nama} × {r.jumlah} tim = <strong>Rp {(r.jumlah * r.biaya).toLocaleString('id-ID')}</strong>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 font-bold text-orange-700">Total: Rp {Number(total).toLocaleString('id-ID')}</p>
+        </div>
+
+        <p className="text-xs text-center mt-6 text-gray-500 italic">
+          Dokumen ini dicetak otomatis oleh sistem dan tidak memerlukan tanda tangan.
+        </p>
       </div>
 
-      <div className="mt-6 flex justify-center">
-        <Button 
+      {/* Tombol Download */}
+      <div className="text-center">
+        <button
           onClick={handleDownload}
-          disabled={isDownloading}
-          className="bg-green-600 hover:bg-green-700 text-white"
+          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded shadow transition"
         >
-          {isDownloading ? 'Mengunduh...' : 'Unduh Kwitansi'}
-        </Button>
+          Unduh Kwitansi
+        </button>
       </div>
     </div>
   );
