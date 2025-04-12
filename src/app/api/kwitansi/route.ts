@@ -1,69 +1,61 @@
-// File: src/pages/api/kwitansi.ts
+// File: src/app/api/kwitansi/route.ts
 
-import type { NextApiRequest, NextApiResponse } from 'next';
-import PDFDocument from 'pdfkit';
+import { NextRequest, NextResponse } from 'next/server'
+import PDFDocument from 'pdfkit'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const {
-    kode_unit,
-    nama_sekolah,
-    nama_pengirim,
-    whatsapp,
-    kategori,
-    total,
-    rincian
-  } = req.body;
-
-  if (!kode_unit || !nama_sekolah || !nama_pengirim || !total || !Array.isArray(rincian)) {
-    return res.status(400).json({ error: 'Data tidak lengkap' });
-  }
-
+export async function POST(req: NextRequest) {
   try {
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="Kwitansi_${kode_unit}.pdf"`);
+    // Mengambil data dari request body
+    const data = await req.json()
 
-    const doc = new PDFDocument();
-    doc.pipe(res);
+    // Membuat instance PDFDocument
+    const doc = new PDFDocument()
+    const chunks: Buffer[] = [] // Ubah tipe array ke Buffer[]
 
-    // Header
-    doc.fontSize(20).fillColor('#b91c1c').text('Kwitansi Pembayaran', { align: 'center' });
-    doc.moveDown();
+    // Mengumpulkan data PDF menjadi array chunks
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk)) // Tambahkan tipe Buffer pada parameter
+    doc.on('end', () => {})
 
-    // Info Sekolah
-    doc.fontSize(12).fillColor('#000000');
-    doc.text(`Kode Unit: ${kode_unit}`);
-    doc.text(`Nama Sekolah: ${nama_sekolah}`);
-    doc.text(`Nama Pengirim: ${nama_pengirim}`);
-    doc.text(`WhatsApp: ${whatsapp}`);
-    doc.text(`Kategori: ${kategori}`);
-    doc.moveDown();
+    // Header - Judul Kwitansi
+    doc.fontSize(16).text('Kwitansi Pembayaran', { align: 'center' })
+    doc.moveDown()
 
-    // Rincian
-    doc.fontSize(14).fillColor('#000000').text('Rincian Biaya:', { underline: true });
-    doc.moveDown(0.5);
-    rincian.forEach((item: any) => {
-      doc.text(`- ${item.nama} x ${item.jumlah} tim = Rp ${(item.jumlah * item.biaya).toLocaleString('id-ID')}`);
-    });
-    doc.moveDown();
+    // Menampilkan informasi Sekolah dan Pengirim
+    doc.fontSize(12).text(`Nama Sekolah: ${data.nama_sekolah}`)
+    doc.text(`Nama Pengirim: ${data.nama_pengirim}`)
+    doc.text(`WhatsApp: ${data.whatsapp}`)
+    doc.text(`Kategori: ${data.kategori}`)
+    doc.moveDown()
 
-    // Total
-    doc.fontSize(12).fillColor('#c2410c').text(`Total: Rp ${Number(total).toLocaleString('id-ID')}`, {
-      align: 'right',
-    });
+    // Menampilkan total pembayaran
+    doc.text(`Total: Rp ${Number(data.total).toLocaleString('id-ID')}`)
+    doc.moveDown()
 
-    doc.moveDown(2);
-    doc.fontSize(10).fillColor('#6b7280').text('Dokumen ini dicetak otomatis oleh sistem dan tidak memerlukan tanda tangan.', {
-      align: 'center',
-      italic: true
-    });
+    // Menampilkan rincian biaya
+    doc.text('Rincian Lomba:')
+    data.rincian.forEach((r: any) => {
+      doc.text(`- ${r.nama} x ${r.jumlah} tim = Rp ${(r.jumlah * r.biaya).toLocaleString('id-ID')}`)
+    })
 
-    doc.end();
-  } catch (error) {
-    console.error('PDF generation error:', error);
-    res.status(500).json({ error: 'Gagal membuat PDF' });
+    // Mengakhiri PDF
+    doc.end()
+
+    // Menggabungkan semua chunks menjadi buffer
+    const buffer = Buffer.concat(chunks)
+
+    // Mengirimkan PDF sebagai response dengan header yang sesuai
+    return new NextResponse(buffer, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename=kwitansi_${data.nama_sekolah}_${data.kode_unit}.pdf`,
+      },
+    })
+  } catch (err) {
+    console.error('PDF generation error:', err)
+    return new NextResponse(
+      JSON.stringify({ error: 'Gagal membuat PDF' }),
+      { status: 500 }
+    )
   }
 }
