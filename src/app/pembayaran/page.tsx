@@ -136,7 +136,7 @@ export default function PembayaranPage() {
   if (!dataPendaftaran) return <p className="p-6">Memuat data...</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-100 to-orange-100 px-4 py-8 text-orange-900">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-100 to-orange-100 px-4 py-8 pt-28 text-orange-900">
       <div className="max-w-3xl mx-auto bg-white/80 border p-6 rounded-lg shadow space-y-6">
         <h1 className="text-2xl font-bold text-orange-700 text-center">Konfirmasi Pembayaran</h1>
 

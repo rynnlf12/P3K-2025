@@ -63,7 +63,7 @@ export default function KwitansiClient({
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white border shadow-md rounded-lg p-6">
+    <div className="max-w-2xl mx-auto pt-32 bg-white border shadow-md rounded-lg p-6">
       <div ref={cetakRef} className="space-y-4">
         <div className="flex justify-between items-center mb-4">
           <Image src="/desain-p3k.png" alt="Logo P3K" width={160} height={0} />
