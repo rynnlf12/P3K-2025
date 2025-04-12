@@ -2,8 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-
-
+import Image from 'next/image';
 
 type Props = {
   kode_unit: string;
@@ -13,16 +12,6 @@ type Props = {
   kategori: string;
   total: string;
 };
-
-const convertImageToBase64 = async (url: string) => {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.readAsDataURL(blob);
-    });
-  };
 
 export default function KwitansiClient({
   kode_unit,
@@ -38,9 +27,8 @@ export default function KwitansiClient({
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-        const imgBase64 = await convertImageToBase64('/desain.p3k.png'); 
-        const worker = new Worker(new URL('/public/pdf.worker.js', import.meta.url));
-
+      const worker = new Worker(new URL('/public/pdf.worker.js', import.meta.url));
+      
       worker.postMessage({
         data: {
           kode_unit,
@@ -49,8 +37,7 @@ export default function KwitansiClient({
           whatsapp,
           kategori,
           total: parseInt(total || '0').toLocaleString('id-ID')
-        },
-        imgBase64
+        }
       });
 
       worker.onmessage = (e) => {
@@ -68,22 +55,29 @@ export default function KwitansiClient({
         worker.terminate();
       };
 
-      worker.onerror = (error) => {
-        console.error('Worker error:', error);
-        worker.terminate();
-      };
-
     } catch (error) {
-        console.error('Download error:', error);
-      } finally {
-        setIsDownloading(false);
-      }
-};
+      console.error('Download error:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto bg-white border shadow-md rounded-lg p-6">
       <div ref={cetakRef} className="space-y-4">
-        {/* ... (existing JSX remains the same) */}
+        <div className="flex justify-between items-center mb-4">
+          <Image src="/desain-p3k.png" alt="Logo P3K" width={160} height={0} />
+          <h1 className="text-lg font-bold text-orange-700">Kwitansi Pendaftaran</h1>
+        </div>
+
+        <div className="text-sm space-y-1">
+          <p><strong>Kode Unit:</strong> {kode_unit}</p>
+          <p><strong>Nama Sekolah:</strong> {nama_sekolah}</p>
+          <p><strong>Nama Pengirim:</strong> {nama_pengirim}</p>
+          <p><strong>WhatsApp:</strong> {whatsapp}</p>
+          <p><strong>Kategori:</strong> {kategori}</p>
+          <p><strong>Total Biaya:</strong> Rp {parseInt(total || '0').toLocaleString('id-ID')}</p>
+        </div>
       </div>
 
       <div className="mt-6 flex justify-center">

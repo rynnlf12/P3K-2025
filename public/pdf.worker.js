@@ -1,7 +1,7 @@
 importScripts('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
 
-self.onmessage = function(e) {
-  const { data } = e.data;
+self.onmessage = async function(e) {
+  const { data, imgBase64 } = e.data;
   const { jsPDF } = self.jspdf;
   
   const doc = new jsPDF({
@@ -12,9 +12,12 @@ self.onmessage = function(e) {
 
   // Add logo
   if(imgBase64) {
-    doc.addImage(imgBase64, 'PNG', 0.5, 0.5, 2, 0.5)
+    try {
+      doc.addImage(imgBase64, 'PNG', 0.5, 0.5, 2, 0.5);
+    } catch (error) {
+      console.error('Error adding image:', error);
+    }
   }
-
   // Add title
   doc.setFontSize(16);
   doc.text('Kwitansi Pendaftaran', 4, 1, { align: 'right' });
