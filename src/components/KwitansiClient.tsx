@@ -28,23 +28,33 @@ export default function KwitansiClient({
   const handleDownload = async () => {
     if (!cetakRef.current) return;
     setLoading(true);
-
+  
     try {
       const canvas = await html2canvas(cetakRef.current);
-      const image = canvas.toDataURL('image/jpeg', 1.0);
-
-      const link = document.createElement('a');
-      link.href = image;
-      link.download = `Kwitansi_${nama_sekolah}_${kode_unit}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Gagal mengunduh kwitansi:', error);
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+  
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Kwitansi_${nama_sekolah}_${kode_unit}.jpg`;
+  
+        // Tambahkan ke DOM lalu klik
+        document.body.appendChild(link);
+        link.click();
+  
+        // Bersihkan setelah klik
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 'image/jpeg');
+    } catch (err) {
+      console.error('Gagal unduh gambar:', err);
+      alert('❌ Gagal mengunduh kwitansi.');
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="space-y-6">
