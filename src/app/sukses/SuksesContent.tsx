@@ -4,11 +4,13 @@ import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { CheckCircle } from 'lucide-react';
 
+// Import dinamis untuk KwitansiClient
 const KwitansiClient = dynamic(() => import('@/components/KwitansiClient'), { ssr: false });
 
 export default function SuksesContent() {
   const searchParams = useSearchParams();
 
+  // Ambil data dari URL
   const kode_unit = searchParams.get('kode_unit') || '';
   const nama_sekolah = searchParams.get('nama_sekolah') || '';
   const nama_pengirim = searchParams.get('nama_pengirim') || '';
@@ -16,22 +18,36 @@ export default function SuksesContent() {
   const kategori = searchParams.get('kategori') || '';
   const total = searchParams.get('total') || '';
 
+  // Ambil rincian lomba
   const rincian: { nama: string; jumlah: number; biaya: number }[] = [];
   searchParams.forEach((val, key) => {
-    if (!['kode_unit', 'nama_sekolah', 'nama_pengirim', 'whatsapp', 'kategori', 'total'].includes(key)) {
+    const nonLombaKeys = [
+      'kode_unit',
+      'nama_sekolah',
+      'nama_pengirim',
+      'whatsapp',
+      'kategori',
+      'total',
+    ];
+    if (!nonLombaKeys.includes(key)) {
       const jumlah = parseInt(val || '0');
-      if (jumlah > 0) rincian.push({ nama: key, jumlah, biaya: 20000 });
+      const biaya = 20000; // Bisa disesuaikan jika ingin ambil dari LOMBA_LIST
+      if (jumlah > 0) {
+        rincian.push({ nama: key, jumlah, biaya });
+      }
     }
   });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 px-4 py-12 pt-32">
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
+        {/* Header Sukses */}
         <div className="text-center space-y-4">
           <CheckCircle className="h-16 w-16 text-green-600 mx-auto animate-bounce" />
           <h1 className="text-3xl font-bold text-green-700">Pendaftaran Berhasil!</h1>
-          <p className="text-orange-600">Data Anda tersimpan. Unduh kwitansi sebagai bukti pendaftaran.</p>
+          <p className="text-orange-600">
+            Data Anda telah tersimpan. Silakan unduh kwitansi sebagai bukti pendaftaran.
+          </p>
         </div>
 
         {/* Info Sekolah */}
@@ -58,7 +74,7 @@ export default function SuksesContent() {
           </div>
         </div>
 
-        {/* Kwitansi */}
+        {/* Komponen Cetak Kwitansi */}
         <KwitansiClient
           kode_unit={kode_unit}
           nama_sekolah={nama_sekolah}
@@ -69,10 +85,10 @@ export default function SuksesContent() {
           rincian={rincian}
         />
 
-        {/* Footer */}
+        {/* Footer Info */}
         <div className="text-center text-sm text-orange-600 space-y-2">
-          <p>✉️ Kwitansi akan dikirim juga ke WhatsApp yang didaftarkan</p>
-          <p>📞 Hubungi panitia jika ada kendala</p>
+          <p>✉️ Kwitansi akan dikirim juga melalui WhatsApp yang terdaftar</p>
+          <p>📞 Hubungi 0822-8968-XXXX jika ada pertanyaan</p>
         </div>
       </div>
     </div>

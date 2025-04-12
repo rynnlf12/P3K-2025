@@ -2,8 +2,11 @@
 
 import dynamic from 'next/dynamic';
 
-// Hanya muat komponen ini di client-side (html2pdf butuh window/self)
-const SuksesContent = dynamic(() => import('./SuksesContent'), { ssr: false });
+// Dynamic import untuk mencegah error saat build karena html2canvas tidak support SSR
+const SuksesContent = dynamic(() => import('./SuksesContent'), {
+  ssr: false,
+  loading: () => <p className="text-center mt-20 text-orange-600">Memuat halaman sukses...</p>,
+});
 
 export default function Page() {
   return <SuksesContent />;

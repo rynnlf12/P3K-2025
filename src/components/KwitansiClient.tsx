@@ -1,8 +1,9 @@
+// KwitansiClient.tsx
 'use client';
 
 import { useRef, useState } from 'react';
 import Image from 'next/image';
-import html2pdf from 'html2pdf.js';
+import html2canvas from 'html2canvas';
 
 export default function KwitansiClient({
   kode_unit,
@@ -28,26 +29,26 @@ export default function KwitansiClient({
     if (!cetakRef.current) return;
     setLoading(true);
 
-    const element = cetakRef.current;
+    try {
+      const canvas = await html2canvas(cetakRef.current);
+      const image = canvas.toDataURL('image/jpeg', 1.0);
 
-    setTimeout(() => {
-      html2pdf()
-        .set({
-          margin: 10,
-          filename: `Kwitansi_${nama_sekolah}_${kode_unit}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        })
-        .from(element)
-        .save()
-        .finally(() => setLoading(false));
-    }, 200); // Delay pendek untuk memastikan render selesai
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `Kwitansi_${nama_sekolah}_${kode_unit}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Gagal mengunduh kwitansi:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Konten PDF */}
+      {/* Konten kwitansi yang akan diubah menjadi gambar */}
       <div
         ref={cetakRef}
         className="bg-white text-black p-6 rounded-md shadow max-w-2xl mx-auto border border-gray-300"
@@ -60,7 +61,9 @@ export default function KwitansiClient({
           </div>
         </div>
 
-        <h2 className="text-xl font-semibold text-center mb-4 text-red-700">Kwitansi Pembayaran</h2>
+        <h2 className="text-xl font-semibold text-center mb-4 text-red-700">
+          Kwitansi Pembayaran
+        </h2>
 
         <div className="text-sm space-y-1">
           <p><strong>Nama Sekolah:</strong> {nama_sekolah}</p>
@@ -90,31 +93,10 @@ export default function KwitansiClient({
       <div className="text-center">
         <button
           onClick={handleDownload}
-          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded shadow transition flex items-center justify-center gap-2 mx-auto"
+          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded shadow transition disabled:opacity-50"
           disabled={loading}
         >
-          {loading ? (
-            <>
-              <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                />
-              </svg>
-              Memproses...
-            </>
-          ) : (
-            'Unduh Kwitansi'
-          )}
+          {loading ? 'Mengunduh...' : 'Unduh Kwitansi'}
         </button>
       </div>
     </div>
