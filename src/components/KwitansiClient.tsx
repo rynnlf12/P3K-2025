@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import Image from 'next/image';
 import html2canvas from 'html2canvas';
 
 export default function KwitansiClient({
@@ -30,9 +29,9 @@ export default function KwitansiClient({
 
     try {
       const canvas = await html2canvas(cetakRef.current, {
+        backgroundColor: '#ffffff',
         useCORS: true,
         scale: 2,
-        backgroundColor: '#ffffff',
       });
       const imgData = canvas.toDataURL('image/jpeg');
       const link = document.createElement('a');
@@ -53,22 +52,24 @@ export default function KwitansiClient({
         style={{
           backgroundColor: '#ffffff',
           color: '#000000',
+          fontFamily: 'Arial, sans-serif',
           padding: '1.5rem',
           borderRadius: '0.75rem',
-          maxWidth: '42rem',
+          maxWidth: '700px',
           margin: '0 auto',
           border: '1px solid #d1d5db',
-          fontFamily: 'Arial, sans-serif',
         }}
       >
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
+          alignItems: 'center',
           borderBottom: '1px solid #e5e7eb',
           paddingBottom: '0.5rem',
           marginBottom: '1rem',
         }}>
-          <Image src="/desain-p3k.png" alt="Logo P3K" width={120} height={40} />
+          {/* Ganti dari <Image /> */}
+          <img src="/desain-p3k.png" alt="Logo P3K" style={{ width: '120px', height: 'auto' }} />
           <div style={{ textAlign: 'right', fontSize: '0.875rem' }}>
             <p style={{ color: '#6b7280' }}>Kode Unit:</p>
             <strong style={{ color: '#c2410c' }}>{kode_unit}</strong>
