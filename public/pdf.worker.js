@@ -1,5 +1,6 @@
 importScripts('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-
+// Di awal worker
+self.jspdf = self.jspdf || {};
 self.onmessage = function(e) {
   console.log('[Worker] Menerima data:', e.data);
   
@@ -40,7 +41,8 @@ self.onmessage = function(e) {
       yPos += 0.5;
     });
 
-    const pdfBlob = doc.output('blob', { type: 'application/pdf' });
+    // Ganti cara membuat blob
+const pdfBlob = new Blob([doc.output()], { type: 'application/pdf' });
     console.log('[Worker] PDF blob created:', pdfBlob);
     
     self.postMessage({ pdfBlob });
