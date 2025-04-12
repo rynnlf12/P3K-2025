@@ -25,10 +25,34 @@ export default function KwitansiClient({
   const cetakRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = async () => {
+    console.log('[1] Tombol diklik - Mulai proses unduh');
     setIsDownloading(true);
+    
     try {
+      console.log('[2] Membuat worker baru');
       const worker = new Worker(new URL('/public/pdf.worker.js', import.meta.url));
       
+      const imgResponse = await fetch('/desain-p3k.png');
+      const imgBlob = await imgResponse.blob();
+      const imgBase64 = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(imgBlob);
+    });
+
+      console.log('[3] Mengirim data ke worker:', {
+        kode_unit,
+        nama_sekolah,
+        nama_pengirim,
+        whatsapp,
+        kategori,
+        total: parseInt(total || '0').toLocaleString('id-ID'),
+
+        imgBase64
+      });
+      
+
+
       worker.postMessage({
         data: {
           kode_unit,
@@ -39,25 +63,35 @@ export default function KwitansiClient({
           total: parseInt(total || '0').toLocaleString('id-ID')
         }
       });
-
+  
       worker.onmessage = (e) => {
-        const pdfBlob = e.data.pdfBlob;
-        const url = window.URL.createObjectURL(pdfBlob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Kwitansi-${kode_unit}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        console.log('[4] Menerima pesan dari worker:', e.data);
+        if(e.data.pdfBlob) {
+          console.log('[5] Membuat URL dari blob');
+          const url = window.URL.createObjectURL(e.data.pdfBlob);
+          
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Kwitansi-${kode_unit}.pdf`;
+          console.log('[6] Memicu unduhan dengan nama file:', a.download);
+          document.body.appendChild(a);
+          a.click();
+          
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          worker.terminate();
+        }
+      };
+  
+      worker.onerror = (error) => {
+        console.error('[ERROR] Worker error:', error);
         worker.terminate();
       };
-
+  
     } catch (error) {
-      console.error('Download error:', error);
+      console.error('[ERROR] Download error:', error);
     } finally {
+      console.log('[7] Proses selesai');
       setIsDownloading(false);
     }
   };
