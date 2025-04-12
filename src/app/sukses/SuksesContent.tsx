@@ -2,7 +2,6 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useRef } from 'react';
-import html2pdf from 'html2pdf.js';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 
@@ -16,8 +15,9 @@ export default function SuksesContent() {
   const whatsapp = searchParams.get('whatsapp') || '';
   const total = searchParams.get('total') || '';
 
-  const handleCetak = () => {
+  const handleCetak = async () => {
     if (!cetakRef.current) return;
+    const html2pdf = (await import('html2pdf.js')).default;
 
     html2pdf()
       .from(cetakRef.current)
@@ -34,7 +34,6 @@ export default function SuksesContent() {
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 px-4 py-10">
       <div className="max-w-2xl mx-auto bg-white border shadow p-6 rounded space-y-6">
         <div ref={cetakRef} className="text-sm space-y-4">
-          {/* Logo */}
           <div className="flex justify-center">
             <Image
               src="/desain-p3k.png"

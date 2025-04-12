@@ -1,12 +1,10 @@
 'use client';
-export const dynamic = 'force-dynamic';
-
 import { Suspense } from 'react';
 import SuksesContent from './SuksesContent';
 
-export default function SuksesPage() {
+export default function Page() {
   return (
-    <Suspense fallback={<p className="p-6">Memuat data...</p>}>
+    <Suspense fallback={<div>Memuat...</div>}>
       <SuksesContent />
     </Suspense>
   );
