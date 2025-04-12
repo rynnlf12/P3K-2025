@@ -112,7 +112,7 @@ export default function PembayaranPage() {
 
       if (res.ok) {
         alert('✅ Data berhasil dikirim!');
-        router.push('/sukses');
+        router.push(`/sukses?kode_unit=${kodeUnit}&nama_sekolah=${sekolah.nama}&nama_pengirim=${sekolah.pembina}&whatsapp=${sekolah.whatsapp}&kategori=${sekolah.kategori}&total=${totalBayar}`);
       } else {
         alert('❌ Gagal mengirim data!');
       }
