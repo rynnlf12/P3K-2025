@@ -1,4 +1,3 @@
-// KwitansiClient.tsx
 'use client';
 
 import { useRef, useState } from 'react';
@@ -24,37 +23,31 @@ export default function KwitansiClient({
 }) {
   const cetakRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleDownload = async () => {
     if (!cetakRef.current) return;
     setLoading(true);
-  
+
     try {
       const canvas = await html2canvas(cetakRef.current);
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-  
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Kwitansi_${nama_sekolah}_${kode_unit}.jpg`;
-  
-        // Tambahkan ke DOM lalu klik
-        document.body.appendChild(link);
-        link.click();
-  
-        // Bersihkan setelah klik
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }, 'image/jpeg');
+      const image = canvas.toDataURL('image/jpeg', 1.0);
+
+      // Preview dulu
+      setPreviewUrl(image);
+
+      // Trigger download
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `Kwitansi_${kode_unit}.jpg`;
+      link.click();
     } catch (err) {
-      console.error('Gagal unduh gambar:', err);
-      alert('❌ Gagal mengunduh kwitansi.');
+      console.error('❌ Gagal membuat kwitansi:', err);
+      alert('Gagal mengunduh kwitansi. Coba lagi.');
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="space-y-6">
@@ -103,12 +96,20 @@ export default function KwitansiClient({
       <div className="text-center">
         <button
           onClick={handleDownload}
-          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded shadow transition disabled:opacity-50"
           disabled={loading}
+          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded shadow transition disabled:opacity-60"
         >
           {loading ? 'Mengunduh...' : 'Unduh Kwitansi'}
         </button>
       </div>
+
+      {/* Preview Gambar */}
+      {previewUrl && (
+        <div className="mt-6 text-center">
+          <p className="text-sm mb-2 text-gray-600">📄 Pratinjau Kwitansi:</p>
+          <img src={previewUrl} alt="Preview Kwitansi" className="max-w-xs mx-auto border shadow" />
+        </div>
+      )}
     </div>
   );
 }
