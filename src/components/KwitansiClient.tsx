@@ -26,63 +26,58 @@ export default function KwitansiClient({
   const handleDownload = async () => {
     if (!cetakRef.current) return;
     setLoading(true);
-  
+
     try {
-      // Tunggu semua gambar di dalam cetakRef selesai dimuat
+      // Pastikan semua <img> selesai dimuat
       const images = cetakRef.current.querySelectorAll('img');
       await Promise.all(
         Array.from(images).map((img) => {
           if (!img.complete) {
             return new Promise((resolve) => {
-              img.onload = () => resolve(true);
-              img.onerror = () => resolve(true); // biar tidak error total
+              img.onload = resolve;
+              img.onerror = resolve;
             });
           }
           return Promise.resolve(true);
         })
       );
-  
-      // Delay agar layout stabil
+
+      // Tunggu stabil layout
       setTimeout(async () => {
         const canvas = await html2canvas(cetakRef.current!, {
           backgroundColor: '#ffffff',
-          useCORS: true,
           scale: 2,
-          ignoreElements: (el) => {
-            const styles = getComputedStyle(el);
-            return (
-              styles.color.includes('oklch') ||
-              styles.backgroundColor.includes('oklch') ||
-              styles.borderColor.includes('oklch')
-            );
-          },
+          useCORS: true,
         });
-  
-        const imgData = canvas.toDataURL('image/jpeg');
-        const link = document.createElement('a');
-        link.href = imgData;
-        link.download = `Kwitansi_${nama_sekolah}_${kode_unit}.jpg`;
-        link.click();
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Kwitansi_${nama_sekolah}_${kode_unit}.jpg`;
+            link.click();
+            URL.revokeObjectURL(url);
+          }
+        }, 'image/jpeg');
+
         setLoading(false);
-      }, 200);
-    } catch (error) {
-      console.error('❌ Gagal membuat kwitansi:', error);
+      }, 150);
+    } catch (err) {
+      console.error('❌ Gagal membuat kwitansi:', err);
       setLoading(false);
     }
   };
-   
 
   return (
     <div style={{ marginTop: '2rem', marginBottom: '3rem' }}>
       <div
         ref={cetakRef}
         style={{
-          all: 'initial',
           backgroundColor: '#ffffff',
-          color: '#000000',
           fontFamily: 'Arial, sans-serif',
-          padding: '24px',
-          borderRadius: '12px',
+          padding: '1.5rem',
+          borderRadius: '0.75rem',
           maxWidth: '700px',
           margin: '0 auto',
           border: '1px solid #d1d5db',
@@ -95,11 +90,15 @@ export default function KwitansiClient({
             justifyContent: 'space-between',
             alignItems: 'center',
             borderBottom: '1px solid #e5e7eb',
-            paddingBottom: '8px',
-            marginBottom: '16px',
+            paddingBottom: '0.5rem',
+            marginBottom: '1rem',
           }}
         >
-          <img src="/desain-p3k.png" alt="Logo P3K" style={{ width: '120px', height: 'auto' }} />
+          <img
+            src="/desain-p3k.png"
+            alt="Logo P3K"
+            style={{ width: '120px', height: 'auto' }}
+          />
           <div style={{ textAlign: 'right', fontSize: '14px' }}>
             <p style={{ color: '#6b7280', margin: 0 }}>Kode Unit:</p>
             <strong style={{ color: '#c2410c' }}>{kode_unit}</strong>
@@ -109,7 +108,7 @@ export default function KwitansiClient({
         <h2
           style={{
             fontSize: '20px',
-            fontWeight: '600',
+            fontWeight: 600,
             textAlign: 'center',
             marginBottom: '20px',
             color: '#b91c1c',
@@ -130,8 +129,7 @@ export default function KwitansiClient({
           <ul style={{ listStyle: 'disc', paddingLeft: '20px', margin: 0 }}>
             {rincian.map((r, i) => (
               <li key={i}>
-                {r.nama} × {r.jumlah} tim ={' '}
-                <strong>Rp {(r.jumlah * r.biaya).toLocaleString('id-ID')}</strong>
+                {r.nama} × {r.jumlah} tim = <strong>Rp {(r.jumlah * r.biaya).toLocaleString('id-ID')}</strong>
               </li>
             ))}
           </ul>
@@ -153,7 +151,7 @@ export default function KwitansiClient({
         </p>
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+      <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
         <button
           onClick={handleDownload}
           disabled={loading}
