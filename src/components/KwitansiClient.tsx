@@ -28,43 +28,30 @@ export default function KwitansiClient({
     setLoading(true);
 
     try {
-      // Pastikan semua <img> selesai dimuat
       const images = cetakRef.current.querySelectorAll('img');
-      await Promise.all(
-        Array.from(images).map((img) => {
-          if (!img.complete) {
-            return new Promise((resolve) => {
-              img.onload = resolve;
-              img.onerror = resolve;
-            });
-          }
-          return Promise.resolve(true);
+      await Promise.all(Array.from(images).map((img) =>
+        img.complete ? Promise.resolve() : new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
         })
-      );
+      ));
 
-      // Tunggu stabil layout
       setTimeout(async () => {
         const canvas = await html2canvas(cetakRef.current!, {
           backgroundColor: '#ffffff',
-          scale: 2,
           useCORS: true,
+          scale: 2,
         });
 
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `Kwitansi_${nama_sekolah}_${kode_unit}.jpg`;
-            link.click();
-            URL.revokeObjectURL(url);
-          }
-        }, 'image/jpeg');
-
+        const imgData = canvas.toDataURL('image/jpeg');
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = `Kwitansi_${nama_sekolah}_${kode_unit}.jpg`;
+        link.click();
         setLoading(false);
-      }, 150);
-    } catch (err) {
-      console.error('❌ Gagal membuat kwitansi:', err);
+      }, 300);
+    } catch (error) {
+      console.error('❌ Gagal membuat kwitansi:', error);
       setLoading(false);
     }
   };
@@ -84,38 +71,28 @@ export default function KwitansiClient({
           boxSizing: 'border-box',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderBottom: '1px solid #e5e7eb',
-            paddingBottom: '0.5rem',
-            marginBottom: '1rem',
-          }}
-        >
-          <img
-            src="/desain-p3k.png"
-            alt="Logo P3K"
-            style={{ width: '120px', height: 'auto' }}
-          />
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '1px solid #e5e7eb',
+          paddingBottom: '8px',
+          marginBottom: '16px',
+        }}>
+          <img src="/desain-p3k.png" alt="Logo P3K" style={{ width: '120px', height: 'auto' }} />
           <div style={{ textAlign: 'right', fontSize: '14px' }}>
             <p style={{ color: '#6b7280', margin: 0 }}>Kode Unit:</p>
             <strong style={{ color: '#c2410c' }}>{kode_unit}</strong>
           </div>
         </div>
 
-        <h2
-          style={{
-            fontSize: '20px',
-            fontWeight: 600,
-            textAlign: 'center',
-            marginBottom: '20px',
-            color: '#b91c1c',
-          }}
-        >
-          Kwitansi Pembayaran
-        </h2>
+        <h2 style={{
+          fontSize: '20px',
+          fontWeight: 600,
+          textAlign: 'center',
+          marginBottom: '20px',
+          color: '#b91c1c',
+        }}>Kwitansi Pembayaran</h2>
 
         <div style={{ fontSize: '14px', lineHeight: '1.6' }}>
           <p><strong>Nama Sekolah:</strong> {nama_sekolah}</p>
@@ -129,7 +106,8 @@ export default function KwitansiClient({
           <ul style={{ listStyle: 'disc', paddingLeft: '20px', margin: 0 }}>
             {rincian.map((r, i) => (
               <li key={i}>
-                {r.nama} × {r.jumlah} tim = <strong>Rp {(r.jumlah * r.biaya).toLocaleString('id-ID')}</strong>
+                {r.nama} × {r.jumlah} tim ={' '}
+                <strong>Rp {(r.jumlah * r.biaya).toLocaleString('id-ID')}</strong>
               </li>
             ))}
           </ul>
@@ -138,20 +116,18 @@ export default function KwitansiClient({
           </p>
         </div>
 
-        <p
-          style={{
-            fontSize: '12px',
-            textAlign: 'center',
-            marginTop: '24px',
-            color: '#6b7280',
-            fontStyle: 'italic',
-          }}
-        >
+        <p style={{
+          fontSize: '12px',
+          textAlign: 'center',
+          marginTop: '24px',
+          color: '#6b7280',
+          fontStyle: 'italic',
+        }}>
           Dokumen ini dicetak otomatis oleh sistem dan tidak memerlukan tanda tangan.
         </p>
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
         <button
           onClick={handleDownload}
           disabled={loading}
