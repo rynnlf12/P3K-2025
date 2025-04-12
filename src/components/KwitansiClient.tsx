@@ -28,31 +28,49 @@ export default function KwitansiClient({
     setLoading(true);
   
     try {
-      const canvas = await html2canvas(cetakRef.current, {
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        scale: 2,
-        ignoreElements: (el) => {
-          const styles = getComputedStyle(el);
-          return (
-            styles.color.includes('oklch') ||
-            styles.backgroundColor.includes('oklch') ||
-            styles.borderColor.includes('oklch')
-          );
-        },
-      });
-      const imgData = canvas.toDataURL('image/jpeg');
-      const link = document.createElement('a');
-      link.href = imgData;
-      link.download = `Kwitansi_${nama_sekolah}_${kode_unit}.jpg`;
-      link.click();
+      // Tunggu semua gambar di dalam cetakRef selesai dimuat
+      const images = cetakRef.current.querySelectorAll('img');
+      await Promise.all(
+        Array.from(images).map((img) => {
+          if (!img.complete) {
+            return new Promise((resolve) => {
+              img.onload = () => resolve(true);
+              img.onerror = () => resolve(true); // biar tidak error total
+            });
+          }
+          return Promise.resolve(true);
+        })
+      );
+  
+      // Delay agar layout stabil
+      setTimeout(async () => {
+        const canvas = await html2canvas(cetakRef.current!, {
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          scale: 2,
+          ignoreElements: (el) => {
+            const styles = getComputedStyle(el);
+            return (
+              styles.color.includes('oklch') ||
+              styles.backgroundColor.includes('oklch') ||
+              styles.borderColor.includes('oklch')
+            );
+          },
+        });
+  
+        const imgData = canvas.toDataURL('image/jpeg');
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = `Kwitansi_${nama_sekolah}_${kode_unit}.jpg`;
+        link.click();
+        setLoading(false);
+      }, 200);
     } catch (error) {
       console.error('❌ Gagal membuat kwitansi:', error);
-    } finally {
       setLoading(false);
     }
   };
-  
+   
 
   return (
     <div style={{ marginTop: '2rem', marginBottom: '3rem' }}>
