@@ -5,11 +5,14 @@ self.onmessage = function(e) {
   
   try {
     const { jsPDF } = self.jspdf;
+    console.log('[Worker] JSPDF loaded:', !!jsPDF);
     const doc = new jsPDF({
       unit: 'in',
       format: 'letter',
       orientation: 'portrait'
     });
+
+    doc.text("TEST PDF", 1, 1);
 
     console.log('[Worker] Membuat dokumen baru');
     
@@ -39,15 +42,13 @@ self.onmessage = function(e) {
       yPos += 0.5;
     });
 
-    console.log('[Worker] Menghasilkan blob');
-    const pdfBlob = doc.output('arraybuffer');
+    const pdfBlob = doc.output('blob', { type: 'application/pdf' });
+    console.log('[Worker] PDF blob created:', pdfBlob);
     
-    console.log('[Worker] Mengirim blob kembali');
     self.postMessage({ pdfBlob });
-    
   } catch (error) {
     console.error('[Worker Error]', error);
-    self.postMessage({ error: error.message });
+    self.postMessage({ error: error.toString() });
   } finally {
     self.close();
   }

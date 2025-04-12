@@ -29,8 +29,8 @@ export default function KwitansiClient({
     setIsDownloading(true);
     
     try {
-      console.log('[2] Membuat worker baru');
-      const worker = new Worker(new URL('/public/pdf.worker.js', import.meta.url));
+        console.log('[2] Init worker');
+        const worker = new Worker(new URL('/pdf.worker.js', import.meta.url));
       
       const imgResponse = await fetch('/desain-p3k.png');
       const imgBlob = await imgResponse.blob();
@@ -65,31 +65,29 @@ export default function KwitansiClient({
       });
   
       worker.onmessage = (e) => {
-        console.log('[4] Menerima pesan dari worker:', e.data);
+        console.log('[4] Message from worker:', e.data);
         if(e.data.pdfBlob) {
-          console.log('[5] Membuat URL dari blob');
-          const url = window.URL.createObjectURL(e.data.pdfBlob);
-          
+          console.log('[5] Blob size:', e.data.pdfBlob.size);
+          const url = URL.createObjectURL(e.data.pdfBlob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `Kwitansi-${kode_unit}.pdf`;
-          console.log('[6] Memicu unduhan dengan nama file:', a.download);
-          document.body.appendChild(a);
+          a.download = `test.pdf`;
           a.click();
-          
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-          worker.terminate();
+          URL.revokeObjectURL(url);
         }
-      };
-  
-      worker.onerror = (error) => {
-        console.error('[ERROR] Worker error:', error);
         worker.terminate();
       };
   
+      worker.onerror = (error) => {
+        console.error('[Worker Error]', error);
+        worker.terminate();
+      };
+  
+      console.log('[3] Posting message');
+      worker.postMessage({ data: {} }); // Kosongkan data dulu untuk test
+  
     } catch (error) {
-      console.error('[ERROR] Download error:', error);
+      console.error('[Main Error]', error);
     } finally {
       console.log('[7] Proses selesai');
       setIsDownloading(false);
