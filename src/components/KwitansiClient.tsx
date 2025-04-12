@@ -39,7 +39,7 @@ export default function KwitansiClient({
       reader.onloadend = () => resolve(reader.result);
       reader.readAsDataURL(imgBlob);
     });
-
+    
       console.log('[3] Mengirim data ke worker:', {
         kode_unit,
         nama_sekolah,
@@ -82,9 +82,7 @@ export default function KwitansiClient({
         console.error('[Worker Error]', error);
         worker.terminate();
       };
-  
-      console.log('[3] Posting message');
-      worker.postMessage({ data: {} }); // Kosongkan data dulu untuk test
+      
   
     } catch (error) {
       console.error('[Main Error]', error);

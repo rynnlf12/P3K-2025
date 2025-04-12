@@ -12,8 +12,6 @@ self.onmessage = function(e) {
       orientation: 'portrait'
     });
 
-    doc.text("TEST PDF", 1, 1);
-
     console.log('[Worker] Membuat dokumen baru');
     
     // Konten PDF
