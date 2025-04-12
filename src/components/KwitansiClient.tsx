@@ -30,7 +30,7 @@ export default function KwitansiClient({
     
     try {
         console.log('[2] Init worker');
-        const worker = new Worker(new URL('/Public/pdf.worker.js', import.meta.url));
+        const worker = new Worker(new URL('/public/pdf.worker.js', import.meta.url));
       
       const imgResponse = await fetch('/desain-p3k.png');
       const imgBlob = await imgResponse.blob();
