@@ -26,7 +26,7 @@ export default function SuksesContent() {
   const handleDownload = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/downlaod-pdf', {
+      const res = await fetch('/api/download-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
