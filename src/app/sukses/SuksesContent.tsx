@@ -17,7 +17,8 @@ export default function SuksesContent() {
 
   const rincian: { nama: string; jumlah: number; biaya: number }[] = [];
   searchParams.forEach((val, key) => {
-    if (!['kode_unit', 'nama_sekolah', 'nama_pengirim', 'whatsapp', 'kategori', 'total'].includes(key)) {
+    const exclude = ['kode_unit', 'nama_sekolah', 'nama_pengirim', 'whatsapp', 'kategori', 'total'];
+    if (!exclude.includes(key)) {
       const jumlah = parseInt(val || '0');
       if (jumlah > 0) rincian.push({ nama: key, jumlah, biaya: 20000 });
     }
@@ -26,12 +27,8 @@ export default function SuksesContent() {
   const handleDownload = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/download-pdf', {
+      const response = await fetch('/api/download-pdf', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        },
         body: JSON.stringify({
           kode_unit,
           nama_sekolah,
@@ -39,47 +36,65 @@ export default function SuksesContent() {
           whatsapp,
           kategori,
           total,
-          rincian
+          rincian,
         }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
-      if (!res.ok) throw new Error('Gagal membuat PDF');
+      if (!response.ok) throw new Error('Gagal membuat PDF');
 
-      const blob = await res.blob();
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `Kwitansi_${nama_sekolah}_${kode_unit}.pdf`;
+      document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('❌ Gagal mengunduh kwitansi:', err);
+      a.remove();
+    } catch (error) {
+      console.error('❌ Gagal mengunduh kwitansi:', error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
       <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-        <CheckCircle size={48} color="#16a34a" />
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>Pendaftaran Berhasil!</h1>
-        <p>Silakan unduh kwitansi sebagai bukti pendaftaran.</p>
+        <CheckCircle size={64} color="#22c55e" />
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#15803d' }}>Pendaftaran Berhasil!</h1>
+        <p style={{ color: '#92400e' }}>Silakan unduh kwitansi sebagai bukti pendaftaran.</p>
       </div>
-      <div style={{ textAlign: 'center' }}>
-        <button
-          onClick={handleDownload}
-          disabled={loading}
-          style={{
-            backgroundColor: '#2563eb',
-            color: '#fff',
-            padding: '10px 20px',
-            fontSize: '16px',
-            borderRadius: '8px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {loading ? 'Memproses...' : 'Unduh Kwitansi (PDF)'}
+
+      <div style={{ maxWidth: '700px', margin: '0 auto', background: '#fff', padding: '1.5rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem' }}>
+        <p><strong>Kode Unit:</strong> {kode_unit}</p>
+        <p><strong>Nama Sekolah:</strong> {nama_sekolah}</p>
+        <p><strong>Nama Pengirim:</strong> {nama_pengirim}</p>
+        <p><strong>WhatsApp:</strong> {whatsapp}</p>
+        <p><strong>Kategori:</strong> {kategori}</p>
+        <p><strong>Total:</strong> Rp {parseInt(total || '0').toLocaleString('id-ID')}</p>
+        <hr style={{ margin: '1rem 0' }} />
+        <p><strong>Rincian Lomba:</strong></p>
+        <ul>
+          {rincian.map((item, i) => (
+            <li key={i}>{item.nama} x {item.jumlah} tim = Rp {(item.jumlah * item.biaya).toLocaleString('id-ID')}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+        <button onClick={handleDownload} disabled={loading} style={{
+          backgroundColor: '#059669',
+          color: '#fff',
+          padding: '0.75rem 1.5rem',
+          borderRadius: '8px',
+          fontSize: '1rem',
+          border: 'none',
+          cursor: 'pointer'
+        }}>
+          {loading ? 'Memproses...' : 'Unduh Kwitansi PDF'}
         </button>
       </div>
     </div>
