@@ -1,8 +1,8 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
 import { CheckCircle } from 'lucide-react';
+import { useState } from 'react';
 
 export default function SuksesContent() {
   const searchParams = useSearchParams();
@@ -17,8 +17,7 @@ export default function SuksesContent() {
 
   const rincian: { nama: string; jumlah: number; biaya: number }[] = [];
   searchParams.forEach((value, key) => {
-    const exclude = ['kode_unit', 'nama_sekolah', 'nama_pengirim', 'whatsapp', 'kategori', 'total'];
-    if (!exclude.includes(key)) {
+    if (!['kode_unit', 'nama_sekolah', 'nama_pengirim', 'whatsapp', 'kategori', 'total'].includes(key)) {
       const jumlah = parseInt(value || '0');
       const biaya = 20000;
       if (jumlah > 0) {
@@ -27,26 +26,27 @@ export default function SuksesContent() {
     }
   });
 
-  const handleDownload = async () => {
+  const handleUnduhPDF = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/kwitansi', {
+      const response = await fetch('/api/kwitansi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kode_unit, nama_sekolah, nama_pengirim, whatsapp, kategori, total, rincian }),
+        body: JSON.stringify({
+          kode_unit, nama_sekolah, nama_pengirim, whatsapp, kategori, total, rincian
+        }),
       });
 
-      if (!res.ok) throw new Error('Gagal membuat PDF');
-
-      const blob = await res.blob();
+      if (!response.ok) throw new Error('Gagal membuat PDF');
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Kwitansi_${nama_sekolah.replace(/[^a-z0-9]/gi, '_')}_${kode_unit}.pdf`;
+      a.download = `Kwitansi_${nama_sekolah}_${kode_unit}.pdf`;
       document.body.appendChild(a);
       a.click();
+      a.remove();
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
     } catch (err) {
       console.error('❌ Gagal mengunduh kwitansi:', err);
       alert('Terjadi kesalahan saat mengunduh kwitansi.');
@@ -63,24 +63,36 @@ export default function SuksesContent() {
           <h1 className="text-3xl font-bold text-green-700">Pendaftaran Berhasil!</h1>
           <p className="text-orange-600">Data Anda telah tersimpan. Silakan unduh kwitansi sebagai bukti pendaftaran.</p>
         </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6 border border-orange-200 text-sm space-y-2">
+        <div className="bg-white rounded-lg shadow-lg p-6 border border-orange-200 text-sm">
           <p><strong>Kode Unit:</strong> {kode_unit}</p>
           <p><strong>Nama Sekolah:</strong> {nama_sekolah}</p>
           <p><strong>Nama Pengirim:</strong> {nama_pengirim}</p>
           <p><strong>WhatsApp:</strong> {whatsapp}</p>
           <p><strong>Kategori:</strong> {kategori}</p>
-          <p><strong>Total:</strong> Rp {parseInt(total).toLocaleString('id-ID')}</p>
+          <p><strong>Total:</strong> Rp {Number(total).toLocaleString('id-ID')}</p>
+          <div className="mt-3">
+            <p className="font-semibold text-orange-700">Rincian:</p>
+            <ul className="list-disc list-inside">
+              {rincian.map((item, idx) => (
+                <li key={idx}>
+                  {item.nama} x {item.jumlah} tim = Rp {(item.jumlah * item.biaya).toLocaleString('id-ID')}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-
         <div className="text-center">
           <button
-            onClick={handleDownload}
+            onClick={handleUnduhPDF}
             disabled={loading}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded shadow"
+            className={`px-6 py-3 rounded bg-green-600 hover:bg-green-700 text-white transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {loading ? 'Memproses Kwitansi...' : 'Unduh Kwitansi PDF'}
+            {loading ? 'Memproses...' : 'Unduh Kwitansi PDF'}
           </button>
+        </div>
+        <div className="text-center text-sm text-orange-600 space-y-2">
+          <p>✉️ Kwitansi akan dikirim juga melalui WhatsApp yang terdaftar</p>
+          <p>📞 Hubungi panitia jika ada pertanyaan atau kendala teknis</p>
         </div>
       </div>
     </div>
