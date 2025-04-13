@@ -19,7 +19,7 @@ type DataPendaftaran = {
 export default function KwitansiPage() {
   const kwitansiRef = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<{
-    kodeUnit: string;
+    nomor: string;
     namaPengirim: string;
     dataPendaftaran: DataPendaftaran;
   } | null>(null);
@@ -37,10 +37,10 @@ export default function KwitansiPage() {
         const wib = new Date(now.getTime() + offset);
         const pad = (n: number) => String(n).padStart(2, '0');
         const timestamp = `${wib.getFullYear()}${pad(wib.getMonth() + 1)}${pad(wib.getDate())}${pad(wib.getHours())}${pad(wib.getMinutes())}`;
-        const unit = `P3K2025-${parsed.sekolah.nama.replace(/\s+/g, '').toUpperCase().slice(0, 10)}-${timestamp}`;
+        const nomor = `P3K2025-${parsed.sekolah.nama.replace(/\s+/g, '').toUpperCase().slice(0, 10)}-${timestamp}`;
 
         setData({
-          kodeUnit: unit,
+          nomor: nomor,
           namaPengirim,
           dataPendaftaran: parsed,
         });
@@ -52,43 +52,55 @@ export default function KwitansiPage() {
 
   const handleDownload = async () => {
     if (!kwitansiRef.current) return;
-
+  
+    const originalScale = document.body.style.zoom;
+    document.body.style.zoom = '1'; // Matikan zoom dulu untuk stabilitas layout
+  
     try {
+      // Scroll ke atas agar elemen di viewport (beberapa browser seperti Safari perlu ini)
+      window.scrollTo(0, 0);
+  
       const canvas = await html2canvas(kwitansiRef.current, {
         backgroundColor: '#ffffff',
         scale: 2,
+        useCORS: true,
+        windowWidth: 800, // lebar fixed saat render
       });
-
+  
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
+  
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
+  
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-
+  
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       if (isIOS) {
         const blob = pdf.output('blob');
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = blobUrl;
-        a.download = `kwitansi-${data?.kodeUnit || 'download'}.pdf`;
+        a.download = `kwitansi-${data?.nomor || 'download'}.pdf`;
         document.body.appendChild(a);
         a.click();
         a.remove();
         URL.revokeObjectURL(blobUrl);
         alert('📎 Jika PDF tidak otomatis tersimpan, tekan dan tahan tampilan lalu pilih "Download" atau "Simpan".');
       } else {
-        pdf.save(`kwitansi-${data?.kodeUnit || 'download'}.pdf`);
+        pdf.save(`kwitansi-${data?.nomor || 'download'}.pdf`);
       }
     } catch (err) {
       console.error('Error saat mendownload kwitansi:', err);
+    } finally {
+      document.body.style.zoom = originalScale || ''; // Balikin zoom ke semula
     }
   };
+  
 
   if (!data) return <p style={{ padding: 24 }}>Memuat kwitansi...</p>;
 
-  const { kodeUnit, namaPengirim, dataPendaftaran } = data;
+  const { nomor, namaPengirim, dataPendaftaran } = data;
 
   return (
     <div style={{ padding: 80, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
@@ -119,8 +131,8 @@ export default function KwitansiPage() {
         <table style={{ width: '100%', fontSize: '14px', marginBottom: '16px' }}>
           <tbody>
             <tr>
-              <td style={{ fontWeight: '600', width: '160px' }}>Kode Unit</td>
-              <td>: {kodeUnit}</td>
+              <td style={{ fontWeight: '600', width: '160px' }}>Nomor Kwitansi</td>
+              <td>: {nomor}</td>
             </tr>
             <tr>
               <td style={{ fontWeight: '600' }}>Nama Sekolah</td>

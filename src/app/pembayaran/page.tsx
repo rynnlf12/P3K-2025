@@ -28,7 +28,7 @@ export default function PembayaranPage() {
   const [bukti, setBukti] = useState<File | null>(null);
   const [namaPengirim, setNamaPengirim] = useState('');
   const [loading, setLoading] = useState(false);
-  const [kodeUnit, setKodeUnit] = useState<string>('');
+  const [nomor, setnomor] = useState<string>('');
 
  useEffect(() => {
     const stored = localStorage.getItem('formPendaftaran');
@@ -44,8 +44,8 @@ export default function PembayaranPage() {
         const wib = new Date(now.getTime() + offset);
         const pad = (n: number) => String(n).padStart(2, '0');
         const timestamp = `${wib.getFullYear()}${pad(wib.getMonth() + 1)}${pad(wib.getDate())}${pad(wib.getHours())}${pad(wib.getMinutes())}`;
-        const unit = `P3K2025-${data.sekolah.nama.replace(/\s+/g, '').toUpperCase().slice(0, 10)}-${timestamp}`;
-        setKodeUnit(unit);
+        const nomor = `P3K2025-${data.sekolah.nama.replace(/\s+/g, '').toUpperCase().slice(0, 10)}-${timestamp}`;
+        setnomor(nomor);
       } catch (error) {
         console.error('Error parsing data:', error);
         router.push('/daftar');
@@ -92,7 +92,7 @@ export default function PembayaranPage() {
     const rows = allPeserta.map((nama, index) => {
       const isFirst = index === 0;
       return {
-        kode_unit: isFirst ? kodeUnit : '',
+        nomor: isFirst ? nomor : '',
         nama_sekolah: isFirst ? sekolah.nama : '',
         pembina: isFirst ? sekolah.pembina : '',
         whatsapp: isFirst ? sekolah.whatsapp : '',
@@ -148,7 +148,7 @@ export default function PembayaranPage() {
 
         {/* KODE UNIT */}
         <div className="text-center text-sm text-gray-600 font-mono mb-4">
-          <span className="text-orange-700 font-bold">Kode Unit:</span> {kodeUnit}
+          <span className="text-orange-700 font-bold">Kode Unit:</span> {nomor}
         </div>
 
         {/* Info Sekolah */}
