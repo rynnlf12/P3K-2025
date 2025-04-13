@@ -4,6 +4,7 @@ module.exports = {
   future: {
     useOklch: false, // ⛔ pastikan warna tidak pakai oklch
   },
+  
   theme: {
     extend: {
       fontFamily: {
@@ -12,6 +13,12 @@ module.exports = {
       backgroundImage: {
         'golden-hour': 'linear-gradient(135deg, #FDB813, #FF5E00, #D72638)',
       },
+      future: {
+        respectDefaultRingColorOpacity: false,
+      },
+      corePlugins: {
+        preflight:false,
+      }
     },
   },
   plugins: [],

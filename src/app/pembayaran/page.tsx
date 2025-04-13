@@ -117,7 +117,8 @@ export default function PembayaranPage() {
 
       if (res.ok) {
         alert('✅ Data berhasil dikirim!');
-        router.push(`/sukses?kode_unit=${kodeUnit}&nama_sekolah=${sekolah.nama}&nama_pengirim=${sekolah.pembina}&whatsapp=${sekolah.whatsapp}&kategori=${sekolah.kategori}&total=${totalBayar}`);
+        localStorage.setItem('namaPengirim', namaPengirim);
+        router.push('/kwitansi');
       } else {
         alert('❌ Gagal mengirim data!');
       }

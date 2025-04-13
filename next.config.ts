@@ -1,29 +1,10 @@
-import path from 'path';
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
-  webpack: (config) => {
-    // Path alias
-    config.node = {
-      __dirname: true,
-    };
-
-    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
-    
-    // Worker loader configuration
-    config.module.rules.push({
-      test: /\.worker\.js$/,
-      use: {
-        loader: 'worker-loader',
-        options: {
-          publicPath: '/_next/',
-          inline: 'no-fallback' // <-- Diubah ke string
-        }
-      }
-    });
-
-    return config;
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    turbo: true, // Aktifkan Turbopack
   },
 };
 
-export default nextConfig;
+
+
+module.exports = nextConfig;
