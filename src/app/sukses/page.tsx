@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-const SuksesContent = dynamic(() => import('./SuksesContent'), { ssr: false });
+const SuksesContent = dynamic(() => import('src/components/SuksesContent'), { ssr: false });
 
 export default function Page() {
   return <SuksesContent />;
