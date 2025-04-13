@@ -4,6 +4,10 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   webpack: (config) => {
     // Path alias
+    config.node = {
+      __dirname: true,
+    };
+
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     
     // Worker loader configuration
