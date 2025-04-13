@@ -56,21 +56,30 @@ export default function KwitansiPage() {
     try {
       const canvas = await html2canvas(kwitansiRef.current, {
         backgroundColor: '#ffffff',
-        scale: 2, // supaya hasilnya lebih tajam
+        scale: 2,
       });
   
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
-  
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
   
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`kwitansi-${data?.kodeUnit || 'download'}.pdf`);
+  
+      // Cek apakah di iOS (userAgent hacky but works)
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        const blobUrl = pdf.output('bloburl');
+        window.open(blobUrl, '_blank');
+        alert('📎 Jika PDF tidak langsung terunduh, tekan dan tahan di tampilan lalu pilih "Download" atau "Simpan".');
+      } else {
+        pdf.save(`kwitansi-${data?.kodeUnit || 'download'}.pdf`);
+      }
     } catch (err) {
       console.error('Error saat mendownload kwitansi:', err);
     }
   };
+  
   
   
   
