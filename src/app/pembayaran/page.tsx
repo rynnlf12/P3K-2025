@@ -150,7 +150,6 @@ export default function PembayaranPage() {
         body: JSON.stringify({ data: rows }),
       });
 
-      const result = await res.json();
       if (res.ok) {
         alert('✅ Data berhasil dikirim!');
         localStorage.setItem('namaPengirim', namaPengirim);
