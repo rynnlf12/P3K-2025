@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
+
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -10,8 +11,6 @@ export default function Home() {
     minutes: 0,
     seconds: 0,
   });
-
- 
 
   useEffect(() => {
     const eventDate = new Date('2025-05-30T00:00:00');
@@ -107,6 +106,7 @@ export default function Home() {
           </motion.div>
         </div>
       </div>
+
     </div>
   );
 }
