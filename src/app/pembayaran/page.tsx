@@ -31,12 +31,11 @@ export default function PembayaranPage() {
   const [nomor, setNomor] = useState<string>('');
 
   useEffect(() => {
-    const stored = localStorage.getItem('formPendaftaran');
-    if (stored) {
-      try {
+    try {
+      const stored = localStorage.getItem('formPendaftaran');
+      if (stored) {
         const data = JSON.parse(stored);
-        if (!data.sekolah?.nama) throw new Error('Data invalid');
-
+        if (!data?.sekolah?.nama) throw new Error('Data tidak lengkap');
         setDataPendaftaran(data);
 
         const now = new Date();
@@ -46,71 +45,85 @@ export default function PembayaranPage() {
         const timestamp = `${wib.getFullYear()}${pad(wib.getMonth() + 1)}${pad(wib.getDate())}${pad(wib.getHours())}${pad(wib.getMinutes())}`;
         const nomor = `P3K2025-${data.sekolah.nama.replace(/\s+/g, '').toUpperCase().slice(0, 10)}-${timestamp}`;
         setNomor(nomor);
-      } catch (error) {
-        console.error('Error parsing data:', error);
+      } else {
         router.push('/daftar');
       }
-    } else {
+    } catch (error) {
+      console.error('Gagal parsing localStorage:', error);
       router.push('/daftar');
     }
   }, [router]);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) setBukti(e.target.files[0]);
+    if (e.target.files?.[0]) {
+      setBukti(e.target.files[0]);
+    }
   };
 
   const handleSubmit = async () => {
+    // Validasi awal untuk input
     if (!bukti) {
-      alert('Harap upload bukti pembayaran!');
+      alert('❌ Harap upload bukti pembayaran!');
       return;
     }
-
+  
     if (!namaPengirim.trim()) {
-      alert('Harap isi nama pengirim transfer!');
+      alert('❌ Harap isi nama pengirim transfer!');
       return;
     }
-
+  
+    if (!dataPendaftaran) {
+      alert('❌ Data pendaftaran tidak ditemukan!');
+      return;
+    }
+  
     setLoading(true);
-
+  
     let buktiUrl = '';
     try {
+      // Upload bukti pembayaran ke Cloudinary
       const formData = new FormData();
       formData.append('file', bukti);
       formData.append('upload_preset', 'bukti_pembayaran');
-
+  
       const cloudinaryRes = await fetch('https://api.cloudinary.com/v1_1/dcjpyx1om/upload', {
         method: 'POST',
         body: formData,
       });
-
+  
       const cloudinaryData = await cloudinaryRes.json();
+  
+      // Validasi respons dari Cloudinary
       if (!cloudinaryRes.ok || !cloudinaryData.secure_url) {
-        throw new Error('Gagal mengunggah bukti pembayaran ke Cloudinary.');
+        throw new Error(cloudinaryData.error?.message || 'Gagal upload ke Cloudinary');
       }
+  
       buktiUrl = cloudinaryData.secure_url;
     } catch (err) {
-      console.error('Gagal upload ke Cloudinary:', err);
-      alert('❌ Gagal upload bukti pembayaran.');
+      console.error('❌ Gagal upload ke Cloudinary:', err);
+      alert('❌ Upload bukti pembayaran gagal. Pastikan koneksi internet stabil.');
       setLoading(false);
       return;
     }
-
-    if (!dataPendaftaran) return;
+  
     const { peserta, sekolah, lombaDipilih, totalBayar } = dataPendaftaran;
+  
     const allPeserta: string[] = [];
+    // Mengumpulkan semua nama peserta dari data pendaftaran
     Object.values(peserta).forEach((timList) => {
       timList.forEach((anggota) => {
         anggota.forEach((nama) => {
-          allPeserta.push(nama);
+          if (nama?.trim()) allPeserta.push(nama);
         });
       });
     });
-
+  
+    // Membuat data untuk dikirim ke SheetDB
     const rows = allPeserta.map((nama, index) => {
       const commonLombaCols = Object.fromEntries(
         Object.entries(lombaDipilih).map(([id]) => [id, index === 0 ? lombaDipilih[id].toString() : ''])
       );
-    
+  
       if (index === 0) {
         return {
           nomor,
@@ -137,43 +150,44 @@ export default function PembayaranPage() {
           total: '',
           bukti: '',
           nama_pengirim: '',
-          status_verifikasi: ''
+          status_verifikasi: '',
         };
       }
     });
-
+  
     try {
-      console.log('DATA YANG DIKIRIM KE SHEETDB:', JSON.stringify({ data: rows }, null, 2));
+      // Kirim data ke SheetDB
       const res = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: rows }),
       });
-
+  
       if (res.ok) {
-        alert('✅ Data berhasil dikirim!');
-        localStorage.setItem('namaPengirim', namaPengirim);
         localStorage.setItem('formPendaftaran', JSON.stringify(dataPendaftaran));
+        localStorage.setItem('namaPengirim', namaPengirim);
         localStorage.setItem('nomor', nomor);
-
+  
         const adminPhone = '6288802017127';
         const apiKey = '6242351';
         const pesan = `📢 *Pendaftar Baru!*\n\n🏫 *${sekolah.nama}*\n👤 Pembina: ${sekolah.pembina}\n📱 WA: ${sekolah.whatsapp}\n📎 Bukti: ${buktiUrl}\n👤 Nama Pengirim: ${namaPengirim}\n\nHarap verifikasi pembayaran.`;
-
+  
+        // Kirim pesan WhatsApp ke admin
         await fetch(`https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodeURIComponent(pesan)}&apikey=${apiKey}`);
-
-        console.log('✅ Mengarahkan ke halaman kwitansi...');
+  
+        // Arahkan ke halaman kwitansi
         router.push('/kwitansi');
       } else {
-        alert('❌ Gagal mengirim data!');
+        alert('❌ Gagal mengirim data ke SheetDB!');
       }
     } catch (err) {
-      console.error('Terjadi kesalahan saat mengirim data:', err);
-      alert('❌ Terjadi kesalahan saat mengirim!');
+      console.error('❌ Gagal kirim data:', err);
+      alert('❌ Terjadi kesalahan saat mengirim data! Pastikan koneksi internet stabil.');
     } finally {
       setLoading(false);
     }
   };
+  
 
   if (!dataPendaftaran) return <p className="p-6">Memuat data...</p>;
 
@@ -198,10 +212,9 @@ export default function PembayaranPage() {
           <ul className="space-y-1">
             {Object.entries(dataPendaftaran.lombaDipilih).map(([id, jumlah]) => {
               const lomba = LOMBA_LIST.find((l) => l.id === id);
-              if (!lomba) return null;
               return (
                 <li key={id}>
-                  {lomba.nama} × {jumlah} tim = <strong>Rp {(jumlah * lomba.biaya).toLocaleString('id-ID')}</strong>
+                  {lomba?.nama || id} × {jumlah} tim = <strong>Rp {(jumlah * (lomba?.biaya ?? 0)).toLocaleString('id-ID')}</strong>
                 </li>
               );
             })}
