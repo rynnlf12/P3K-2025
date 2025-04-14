@@ -82,13 +82,13 @@ export default function PembayaranPage() {
     try {
       const formData = new FormData();
       formData.append('file', bukti);
-      formData.append('upload_preset', 'bukti_pembayaran'); // preset kamu
-  
+      formData.append('upload_preset', 'bukti_pembayaran');
+
       const cloudinaryRes = await fetch('https://api.cloudinary.com/v1_1/dcjpyx1om/upload', {
         method: 'POST',
         body: formData,
       });
-  
+
       const cloudinaryData = await cloudinaryRes.json();
       buktiUrl = cloudinaryData.secure_url;
     } catch (err) {
@@ -98,42 +98,63 @@ export default function PembayaranPage() {
       return;
     }
 
-  // ⬇️ Lanjut kirim ke SheetDB
-  const { peserta, sekolah, lombaDipilih, totalBayar } = dataPendaftaran!;
-  const allPeserta: string[] = [];
-  Object.values(peserta).forEach((timList) => {
-    timList.forEach((anggota) => {
-      anggota.forEach((nama) => {
-        allPeserta.push(nama);
+    const { peserta, sekolah, lombaDipilih, totalBayar } = dataPendaftaran;
+  
+    const allPeserta: string[] = [];
+    Object.values(peserta).forEach((timList) => {
+      timList.forEach((anggota) => {
+        anggota.forEach((nama) => {
+          allPeserta.push(nama);
+        });
       });
     });
-  });
 
-  const rows = allPeserta.map((nama, index) => {
-    const isFirst = index === 0;
-    return {
-      nomor: isFirst ? nomor : '',
-      nama_sekolah: isFirst ? sekolah.nama : '',
-      pembina: isFirst ? sekolah.pembina : '',
-      whatsapp: isFirst ? sekolah.whatsapp : '',
-      kategori: isFirst ? sekolah.kategori : '',
-      ...Object.fromEntries(
-        Object.entries(lombaDipilih).map(([id, jumlah]) => [id, isFirst ? jumlah.toString() : ''])
-      ),
-      data_peserta: nama,
-      total: isFirst ? totalBayar.toString() : '',
-      bukti: isFirst ? buktiUrl : '',
-      nama_pengirim: isFirst ? namaPengirim : '',
-      status_verifikasi: isFirst ? 'Menunggu Verifikasi' : '',
-    };
-  });
-
-  try {
-    const res = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: rows }),
+    const rows = allPeserta.map((nama, index) => {
+      const isFirst = index === 0;
+      return {
+        nomor: isFirst ? nomor : '',
+        nama_sekolah: isFirst ? sekolah.nama : '',
+        pembina: isFirst ? sekolah.pembina : '',
+        whatsapp: isFirst ? sekolah.whatsapp : '',
+        kategori: isFirst ? sekolah.kategori : '',
+        ...Object.fromEntries(
+          Object.entries(lombaDipilih).map(([id, jumlah]) => [id, isFirst ? jumlah.toString() : ''])
+        ),
+        data_peserta: nama,
+        total: isFirst ? totalBayar.toString() : '',
+        bukti: isFirst ? buktiUrl : '',
+        nama_pengirim: isFirst ? namaPengirim : '',
+        status_verifikasi: isFirst ? 'Menunggu Verifikasi' : '',
+      };
     });
+
+    try {
+      const res = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: rows }),
+      });
+
+      // Kirim data peserta ke sheet 'peserta'
+      const pesertaRows = allPeserta.map((nama) => ({
+        nama_sekolah: sekolah.nama,
+        data_peserta: nama,
+      }));
+
+      console.log("Mengirim ke sheet peserta:", pesertaRows);
+      try {
+        const resPeserta = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3?sheet=peserta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: pesertaRows }),
+        });
+      
+        const hasil = await resPeserta.json();
+        console.log("Response peserta:", hasil);
+      } catch (err) {
+        console.error("❌ Gagal mengirim ke sheet peserta:", err);
+      }
+      
 
       if (res.ok) {
         alert('✅ Data berhasil dikirim!');
@@ -149,15 +170,11 @@ export default function PembayaranPage() {
       setLoading(false);
     }
 
-    // Ganti dengan nomor WhatsApp admin kamu & API key dari CallMeBot
-    const adminPhone = "6288802017127"; // tanpa +, misal: 6281234567890
-    const apiKey = "6242351"; // dari CallMeBot
-
+ const adminPhone = "6288802017127";
+    const apiKey = "6242351";
     const pesan = `📢 *Pendaftar Baru!*\n\n🏫 *${sekolah.nama}*\n👤 Pembina: ${sekolah.pembina}\n📱 WA: ${sekolah.whatsapp}\n📎 Bukti: ${buktiUrl}\n👤 Nama Pengirim: ${namaPengirim}\n\nHarap verifikasi pembayaran.`;
     await fetch(`https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodeURIComponent(pesan)}&apikey=${apiKey}`);
-
   };
-  
 
   if (!dataPendaftaran) return <p className="p-6">Memuat data...</p>;
 

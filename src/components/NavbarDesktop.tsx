@@ -16,6 +16,7 @@ export default function NavbarDesktop() {
       href: 'https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing',
       external: true,
     },
+
   ];
 
   return (
@@ -40,6 +41,7 @@ export default function NavbarDesktop() {
       <div className="flex gap-8 text-orange-800 font-semibold">
         {navItems.map((item) => (
           item.external ? (
+            
             <a
               key={item.label}
               href={item.href}
