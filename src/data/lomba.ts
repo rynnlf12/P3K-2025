@@ -26,7 +26,7 @@ export const LOMBA_LIST = [
   {
     id: "senam-poco-poco",
     nama: "Senam Kreasi Poco-Poco",
-    biaya: 70000,
+    biaya: 75000,
     keterangan: "5–7 orang per tim",
     maksPesertaPerTim: 7,
     maksTim: 3, // hanya 1 tim karena fleksibel

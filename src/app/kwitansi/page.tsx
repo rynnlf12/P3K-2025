@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 type DataPendaftaran = {
   sekolah: {
@@ -16,13 +15,31 @@ type DataPendaftaran = {
   totalBayar: number;
 };
 
+const getImageBase64 = (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.src = url;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject('Canvas not supported');
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = (err) => reject(err);
+  });
+};
+
 export default function KwitansiPage() {
-  const kwitansiRef = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<{
     nomor: string;
     namaPengirim: string;
     dataPendaftaran: DataPendaftaran;
   } | null>(null);
+  const [isDownloaded, setIsDownloaded] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('formPendaftaran');
@@ -51,166 +68,177 @@ export default function KwitansiPage() {
   }, []);
 
   const handleDownload = async () => {
-    if (!kwitansiRef.current) return;
+    if (!data) return;
   
-    const originalScale = document.body.style.zoom;
-    document.body.style.zoom = '1'; // Matikan zoom dulu untuk stabilitas layout
+    const { nomor, namaPengirim, dataPendaftaran } = data;
+  
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const margin = 20;
+    let y = margin;
   
     try {
-      // Scroll ke atas agar elemen di viewport (beberapa browser seperti Safari perlu ini)
-      window.scrollTo(0, 0);
+      const logoBase64 = await getImageBase64('/desain-p3k.png');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const maxLogoWidth = pageWidth - margin * 2; // Batas maksimal lebar logo
+      const maxLogoHeight = 40; // Batas maksimal tinggi logo
   
-      const canvas = await html2canvas(kwitansiRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        windowWidth: 800, // lebar fixed saat render
-      });
+      // Membuat image untuk mendapatkan ukuran aslinya
+      const img = new Image();
+      img.src = logoBase64;
+      img.onload = function() {
+        const ratio = img.width / img.height;
+        
+        // Menyesuaikan lebar dan tinggi gambar agar proporsional
+        let logoWidth = maxLogoWidth;
+        let logoHeight = logoWidth / ratio;
   
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
+        // Memastikan tinggi logo tidak melebihi batas maksimal
+        if (logoHeight > maxLogoHeight) {
+          logoHeight = maxLogoHeight;
+          logoWidth = logoHeight * ratio;
+        }
   
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        const logoX = (pageWidth - logoWidth) / 2; // Menempatkan gambar di tengah
   
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        // Menambahkan gambar dengan ukuran yang sudah disesuaikan
+        doc.addImage(logoBase64, 'PNG', logoX, y, logoWidth, logoHeight);
+        y += logoHeight + 8;
   
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      if (isIOS) {
-        const blob = pdf.output('blob');
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = `kwitansi-${data?.nomor || 'download'}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(blobUrl);
-        alert('📎 Jika PDF tidak otomatis tersimpan, tekan dan tahan tampilan lalu pilih "Download" atau "Simpan".');
-      } else {
-        pdf.save(`kwitansi-${data?.nomor || 'download'}.pdf`);
-      }
-    } catch (err) {
-      console.error('Error saat mendownload kwitansi:', err);
-    } finally {
-      document.body.style.zoom = originalScale || ''; // Balikin zoom ke semula
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text('KWITANSI PEMBAYARAN', pageWidth / 2, y, { align: 'center' });
+        y += 8;
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text('P3K 2025', pageWidth / 2, y, { align: 'center' });
+        y += 12;
+  
+        const addRow = (label: string, value: string) => {
+          doc.setFont('helvetica', 'bold');
+          doc.text(`${label}`, margin, y);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`: ${value}`, margin + 40, y);
+          y += 7;
+        };
+  
+        addRow('Nomor Kwitansi', nomor);
+        addRow('Nama Sekolah', dataPendaftaran.sekolah.nama);
+        addRow('Pembina', dataPendaftaran.sekolah.pembina);
+        addRow('WhatsApp', dataPendaftaran.sekolah.whatsapp);
+        addRow('Kategori', dataPendaftaran.sekolah.kategori);
+        addRow('Nama Pengirim', namaPengirim);
+        y += 4;
+  
+        doc.setFont('helvetica', 'bold');
+        doc.text('Lomba yang Diikuti:', margin, y);
+        y += 6;
+        doc.setFont('helvetica', 'normal');
+        Object.entries(dataPendaftaran.lombaDipilih).forEach(([nama, jumlah]) => {
+          doc.text(`- ${nama} (${jumlah} tim)`, margin + 5, y);
+          y += 6;
+        });
+  
+        y += 5;
+  
+        const totalPeserta = Object.values(dataPendaftaran.peserta).reduce((acc, val) => acc + val.length, 0);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Total Jumlah Peserta: ${totalPeserta}`, margin, y);
+        y += 10;
+  
+        doc.setFillColor(209, 250, 229);
+        doc.setDrawColor(16, 185, 129);
+        doc.setTextColor(6, 95, 70);
+        doc.rect(margin, y, 170, 14, 'FD');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.text(`Total Pembayaran: Rp ${dataPendaftaran.totalBayar.toLocaleString('id-ID')}`, margin + 5, y + 9);
+  
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(12);
+        y += 26;
+  
+        doc.text('Hormat Kami,', 150, y);
+        y += 10;
+        doc.text('(Panitia P3K 2025)', 145, y);
+  
+        doc.save(`kwitansi-${nomor}.pdf`);
+        setIsDownloaded(true);
+      };
+    } catch (error) {
+      console.error('Gagal membuat kwitansi:', error);
     }
   };
   
-
   if (!data) return <p style={{ padding: 24 }}>Memuat kwitansi...</p>;
 
-  const { nomor, namaPengirim, dataPendaftaran } = data;
-
   return (
-    <div style={{ padding: 80, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <div
-        ref={kwitansiRef}
-        style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #ccc',
-          padding: '40px',
-          width: '100%',
-          maxWidth: '640px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          borderRadius: '12px',
-          fontFamily: 'sans-serif',
-          color: '#000000',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <img
-            src="/desain-p3k.png"
-            alt="Logo P3K"
-            style={{ width: '80px', height: 'auto', marginBottom: '8px' }}
-          />
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>Kwitansi Pembayaran</h1>
-          <p style={{ fontSize: '14px', color: '#666666' }}>P3K 2025</p>
-        </div>
-
-        <table style={{ width: '100%', fontSize: '14px', marginBottom: '16px' }}>
-          <tbody>
-            <tr>
-              <td style={{ fontWeight: '600', width: '160px' }}>Nomor Kwitansi</td>
-              <td>: {nomor}</td>
-            </tr>
-            <tr>
-              <td style={{ fontWeight: '600' }}>Nama Sekolah</td>
-              <td>: {dataPendaftaran.sekolah.nama}</td>
-            </tr>
-            <tr>
-              <td style={{ fontWeight: '600' }}>Pembina</td>
-              <td>: {dataPendaftaran.sekolah.pembina}</td>
-            </tr>
-            <tr>
-              <td style={{ fontWeight: '600' }}>WhatsApp</td>
-              <td>: {dataPendaftaran.sekolah.whatsapp}</td>
-            </tr>
-            <tr>
-              <td style={{ fontWeight: '600' }}>Kategori</td>
-              <td>: {dataPendaftaran.sekolah.kategori}</td>
-            </tr>
-            <tr>
-              <td style={{ fontWeight: '600' }}>Nama Pengirim</td>
-              <td>: {namaPengirim}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div style={{ marginBottom: '16px' }}>
-          <h2 style={{ fontWeight: '600', marginBottom: '4px' }}>Lomba yang Diikuti :</h2>
-          <ul style={{ paddingLeft: '20px', fontSize: '14px', margin: 0 }}>
-            {Object.entries(dataPendaftaran.lombaDipilih).map(([namaLomba, jumlah]) => (
-              <li key={namaLomba}>
-                {namaLomba} – {jumlah} tim
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div style={{ marginBottom: '16px', fontSize: '14px', fontWeight: 600 }}>
-          Total Jumlah Peserta :{" "}
-          {
-            Object.values(dataPendaftaran.peserta).reduce((total, pesertaList) => total + pesertaList.length, 0)
-          }
-        </div>
-
-        <div
-          style={{
-            backgroundColor: '#d1fae5',
-            borderLeft: '4px solid #10b981',
-            color: '#065f46',
-            padding: '16px',
-            borderRadius: '8px',
-            marginBottom: '24px',
-          }}
-        >
-          <p style={{ fontWeight: 'bold', fontSize: '18px' }}>
-            Total Pembayaran: Rp {dataPendaftaran.totalBayar.toLocaleString('id-ID')}
+    <div style={{
+      minHeight: '100vh',
+      paddingTop: 100,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 32,
+      background: 'linear-gradient(135deg, #fbd786, #f7797d)', // soft peach to coral
+      fontFamily: `'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`,
+    }}>
+    
+      <div style={{
+        backgroundColor: '#ffffff',
+        padding: '32px',
+        borderRadius: '16px',
+        maxWidth: 680,
+        textAlign: 'center',
+        boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)',
+        transition: 'all 0.3s ease-in-out',
+      }}>
+        <p style={{ fontSize: 20, fontWeight: 700, marginBottom: 10 }}>
+          🎉 Kwitansi Siap Diunduh
+        </p>
+        <p style={{ fontSize: 15, color: '#444' }}>
+          Silakan klik tombol di bawah untuk menyimpan kwitansi sebagai bukti pembayaran.
+        </p>
+        {isDownloaded && (
+          <p style={{
+            marginTop: 16,
+            fontSize: 14,
+            color: '#16a34a',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            animation: 'fadeIn 0.5s ease-in-out',
+          }}>
+            ✅ Kwitansi berhasil diunduh!
           </p>
-        </div>
-
-        <div style={{ textAlign: 'right', fontSize: '14px', marginTop: '32px' }}>
-          <p>Hormat Kami,</p>
-          <p style={{ marginTop: '48px' }}>(Panitia P3K 2025)</p>
-        </div>
+        )}
       </div>
 
       <button
         onClick={handleDownload}
         style={{
-          backgroundColor: '#16a34a',
-          color: '#ffffff',
-          padding: '12px 24px',
-          borderRadius: 8,
-          border: 'none',
-          cursor: 'pointer',
+          background: 'linear-gradient(to right, #16a34a, #10b981)',
+          color: '#fff',
+          padding: '14px 28px',
           fontSize: 16,
+          fontWeight: 600,
+          border: 'none',
+          borderRadius: 12,
+          cursor: 'pointer',
+          boxShadow: '0 4px 15px rgba(22, 163, 74, 0.4)',
+          transition: 'all 0.3s ease-in-out',
         }}
-        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#15803d')}
-        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#16a34a')}
+        onMouseOver={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.boxShadow = '0 6px 18px rgba(16, 185, 129, 0.6)';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 4px 15px rgba(22, 163, 74, 0.4)';
+        }}
       >
-        Download Kwitansi
+        📄 Download Kwitansi
       </button>
     </div>
   );

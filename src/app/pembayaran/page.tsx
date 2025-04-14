@@ -179,9 +179,9 @@ export default function PembayaranPage() {
         {/* Info Rekening */}
         <div className="bg-yellow-50 border border-yellow-400 p-4 rounded-md">
           <p className="text-sm font-semibold text-yellow-800">Silakan transfer ke rekening berikut:</p>
-          <p className="mt-1">Bank BRI</p>
-          <p>No. Rekening: <strong>1234 5678 9012 3456</strong></p>
-          <p>Atas Nama: <strong>Panitia P3K 2025</strong></p>
+          <p className="mt-1">Bank <strong>BCA</strong></p>
+          <p>No. Rekening: <strong>4020701434</strong></p>
+          <p>Atas Nama: <strong>Kayla Andini Putri</strong></p>
         </div>
 
         {/* Nama Pengirim */}
@@ -189,7 +189,7 @@ export default function PembayaranPage() {
           <Label className="block mb-1 font-medium">Nama Pengirim Transfer</Label>
           <Input
             type="text"
-            placeholder="Contoh: Ahmad Fikri"
+            placeholder="Contoh: Ryan Alfaridzy"
             value={namaPengirim}
             onChange={(e) => setNamaPengirim(e.target.value)}
             className="bg-white border"
