@@ -26,7 +26,7 @@ export default function NavbarMobile() {
         <Link href="/" className="flex items-center gap-2">
           <Image src="/desain-p3k.png" alt="Logo P3K" width={120} height={0} className="h-auto object-contain" />
         </Link>
-        <button onClick={() => setOpen(!open)} className="text-orange-800 focus:outline-none">
+        <button onClick={() => setOpen(!open)} className="text-orange-800 focus:outline-none z-50">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
@@ -36,11 +36,11 @@ export default function NavbarMobile() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -20, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="bg-white border-b shadow-md backdrop-blur px-4 py-4 space-y-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 bg-white z-40 flex flex-col items-center justify-center space-y-6"
           >
             {navItems.map((item) => (
               <Link
@@ -49,7 +49,7 @@ export default function NavbarMobile() {
                 target={item.external ? '_blank' : undefined}
                 rel={item.external ? 'noopener noreferrer' : undefined}
                 onClick={() => setOpen(false)}
-                className={`block text-sm font-semibold transition duration-200 border-b pb-2 ${
+                className={`text-xl font-semibold ${
                   pathname === item.href ? 'text-orange-600' : 'text-orange-800 hover:text-orange-600'
                 }`}
               >
