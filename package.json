@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@netlify/next": "^1.4.9",
+    "@netlify/plugin-nextjs": "^5.10.5",
     "@prisma/client": "^6.6.0",
     "@radix-ui/react-checkbox": "^1.1.5",
     "@radix-ui/react-label": "^2.1.3",
