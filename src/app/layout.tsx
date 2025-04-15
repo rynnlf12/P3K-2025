@@ -2,6 +2,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react"
 
 import NavbarMobile from "@/components/NavbarMobile";
 import NavbarDesktop from "@/components/NavbarDesktop";
@@ -30,6 +32,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
+  
   children,
 }: {
   children: React.ReactNode;
@@ -68,8 +71,10 @@ export default function RootLayout({
             <FaInstagram className="w-6 h-6" />
           </a>
         </div>
-
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
+  
 }
