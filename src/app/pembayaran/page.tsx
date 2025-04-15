@@ -124,7 +124,6 @@ export default function PembayaranPage() {
         total: isFirst ? totalBayar.toString() : '',
         bukti: isFirst ? buktiUrl : '',
         nama_pengirim: isFirst ? namaPengirim : '',
-        status_verifikasi: isFirst ? 'belum diverifikasi' : '',
       };
     });
 
