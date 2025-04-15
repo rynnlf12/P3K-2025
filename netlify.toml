@@ -1,3 +1,10 @@
 [[edge_functions]]
 path = "/*"
 function = "fallback"
+
+[build]
+command = "npm run build"
+publish = ".next"
+
+[[plugins]]
+package = "@netlify/next"
