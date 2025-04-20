@@ -151,8 +151,8 @@ export default function KwitansiPage() {
 
         doc.text('Hormat Kami,', 150, y);
         y += 5;
-        doc.addImage(stempelBase64, 'PNG', 140, y, 30, 30);
-        y += 28;
+        doc.addImage(stempelBase64, 'PNG', 140, y, 60, 60);
+        y += 20;
         doc.text('(Panitia P3K 2025)', 145, y);
 
         doc.save(`kwitansi-${nomor}.pdf`);
