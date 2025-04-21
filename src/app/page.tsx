@@ -34,10 +34,11 @@ export default function Home() {
   }, []);
 
   return (
-    <div
-    className="relative font-montserrat min-h-screen bg-cover bg-center"
-    style={{ backgroundImage: "url('/p3k2025-bg.png')" }}
-  >
+<div
+  className="relative font-montserrat min-h-screen bg-cover bg-center
+             bg-[url('/bg-mobile.png')] md:bg-[url('/bg-desktop.png')]"
+>
+
   
       {/* Konten */}
       <div className="pt-32 px-4 md:px-20 pb-10 flex flex-col md:flex-row items-center justify-between">
