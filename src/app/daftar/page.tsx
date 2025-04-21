@@ -1,12 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LOMBA_LIST } from '@/data/lomba';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useEffect } from 'react';
-
 
 const MotionCard = motion(Card);
 const MotionButton = motion(Button);
@@ -18,9 +16,36 @@ export default function DaftarPage() {
     whatsapp: '',
     kategori: '',
   });
+
   const [lombaDipilih, setLombaDipilih] = useState<Record<string, number>>({});
   const [peserta, setPeserta] = useState<Record<string, string[][]>>({});
+  const [sekolahTerdaftar, setSekolahTerdaftar] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
+
+  // Real-time Error States
+  const [namaSekolahError, setNamaSekolahError] = useState('');
+  const [waError, setWaError] = useState('');
+
+  // Progress Bar State
+  const step = 1 + (Object.keys(lombaDipilih).length > 0 ? 1 : 0);
+
+  useEffect(() => {
+    fetch('https://sheetdb.io/api/v1/l7x727oogr9o3')
+      .then((res) => res.json())
+      .then((data) => {
+        const daftar = data.map((row: any) => normalisasiNamaSekolah(row.nama_sekolah || ''));
+        setSekolahTerdaftar(daftar);
+      })
+      .catch((err) => console.error('Gagal ambil data SheetDB:', err));
+  }, []);
+
+  function normalisasiNamaSekolah(nama: string) {
+    return nama
+      .toLowerCase()
+      .replace(/negeri/g, 'n')
+      .replace(/\s+/g, '')
+      .replace(/[^a-z0-9]/g, '');
+  }
 
   const handleLombaChange = (id: string, jumlahTim: number) => {
     setLombaDipilih((prev) => {
@@ -61,35 +86,19 @@ export default function DaftarPage() {
     return lomba ? acc + lomba.biaya * jumlah : acc;
   }, 0);
 
-  const [sekolahTerdaftar, setSekolahTerdaftar] = useState<string[]>([]);
-
-useEffect(() => {
-  fetch('https://sheetdb.io/api/v1/l7x727oogr9o3')
-    .then((res) => res.json())
-    .then((data) => {
-      const daftar = data.map((row: any) => normalisasiNamaSekolah(row.nama_sekolah || ''));
-      setSekolahTerdaftar(daftar);
-    })
-    .catch((err) => console.error('Gagal ambil data SheetDB:', err));
-}, []);
-
-  function normalisasiNamaSekolah(nama_sekolah: string): string {
-    return nama_sekolah
-      .toLowerCase()
-      .replace(/negeri/g, 'n') // Ubah kata "negeri" ke 'n'
-      .replace(/\s+/g, '')     // Hilangkan semua spasi
-      .replace(/[^a-z0-9]/g, ''); // Hapus simbol/tanda baca
-  }
-
   const validateForm = () => {
     const newErrors: string[] = [];
 
     if (!formSekolah.nama || !formSekolah.pembina || !formSekolah.whatsapp || !formSekolah.kategori) {
       newErrors.push('Lengkapi data sekolah terlebih dahulu.');
     }
-    
-    if (sekolahTerdaftar.includes(normalisasiNamaSekolah(formSekolah.nama))) {
-      newErrors.push('Sekolah ini sudah mendaftar. Silakan gunakan nama sekolah lain.');
+
+    if (sekolahTerdaftar.includes(normalisasiNamaSekolah(formSekolah.nama)) || namaSekolahError) {
+      newErrors.push('Sekolah ini sudah mendaftar.');
+    }
+
+    if (waError) {
+      newErrors.push('Perbaiki nomor WhatsApp terlebih dahulu.');
     }
 
     Object.entries(peserta).forEach(([lombaId, tims]) => {
@@ -124,14 +133,78 @@ useEffect(() => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 pt-28 space-y-10">
+
+      {/* Progress Bar */}
+      <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-red-500 transition-all duration-500"
+          style={{ width: `${step * 50}%` }}
+        ></div>
+      </div>
+
       <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran P3K 2025</h1>
 
       {/* FORM SEKOLAH */}
       <div className="space-y-4 p-4 bg-red-50 rounded border border-red-200">
-        <input type="text" placeholder="Nama Sekolah" value={formSekolah.nama} onChange={(e) => setFormSekolah({ ...formSekolah, nama: e.target.value })} className="w-full border px-2 py-1 rounded" />
-        <input type="text" placeholder="Nama Pembina" value={formSekolah.pembina} onChange={(e) => setFormSekolah({ ...formSekolah, pembina: e.target.value })} className="w-full border px-2 py-1 rounded" />
-        <input type="text" placeholder="Nomor WhatsApp" value={formSekolah.whatsapp} onChange={(e) => setFormSekolah({ ...formSekolah, whatsapp: e.target.value })} className="w-full border px-2 py-1 rounded" />
-        <select value={formSekolah.kategori} onChange={(e) => setFormSekolah({ ...formSekolah, kategori: e.target.value })} className="w-full border px-2 py-1 rounded">
+        {/* NAMA SEKOLAH */}
+        <div>
+          <input
+            type="text"
+            placeholder="Nama Sekolah"
+            value={formSekolah.nama}
+            onChange={(e) => {
+              const nama = e.target.value;
+              setFormSekolah({ ...formSekolah, nama });
+              const normalized = normalisasiNamaSekolah(nama);
+              if (sekolahTerdaftar.includes(normalized)) {
+                setNamaSekolahError('Sekolah ini sudah mendaftar.');
+              } else {
+                setNamaSekolahError('');
+              }
+            }}
+            className={`w-full border px-2 py-1 rounded ${
+              namaSekolahError ? 'border-red-500' : formSekolah.nama ? 'border-green-500' : ''
+            }`}
+          />
+          {namaSekolahError && <p className="text-sm text-red-600 mt-1">{namaSekolahError}</p>}
+        </div>
+
+        <input
+          type="text"
+          placeholder="Nama Pembina"
+          value={formSekolah.pembina}
+          onChange={(e) => setFormSekolah({ ...formSekolah, pembina: e.target.value })}
+          className="w-full border px-2 py-1 rounded"
+        />
+
+        {/* WHATSAPP */}
+        <div>
+          <input
+            type="text"
+            placeholder="Nomor WhatsApp"
+            value={formSekolah.whatsapp}
+            onChange={(e) => {
+              const wa = e.target.value.replace(/\D/g, '');
+              setFormSekolah({ ...formSekolah, whatsapp: wa });
+
+              if (!/^08\d{8,}$/.test(wa)) {
+                setWaError('Nomor WhatsApp tidak valid (harus 08xxxxxxxxxx)');
+              } else {
+                setWaError('');
+              }
+            }}
+            className={`w-full border px-2 py-1 rounded ${
+              waError ? 'border-red-500' : formSekolah.whatsapp ? 'border-green-500' : ''
+            }`}
+          />
+          {waError && <p className="text-sm text-red-600 mt-1">{waError}</p>}
+        </div>
+
+        <select
+          value={formSekolah.kategori}
+          onChange={(e) => setFormSekolah({ ...formSekolah, kategori: e.target.value })}
+          className="w-full border px-2 py-1 rounded"
+        >
           <option value="">Pilih Kategori</option>
           <option value="Wira">Wira</option>
           <option value="Madya">Madya</option>
@@ -169,7 +242,9 @@ useEffect(() => {
                       key={j}
                       type="text"
                       placeholder={`Anggota ${j + 1}`}
-                      className="w-full border px-2 py-1 text-sm rounded"
+                      className={`w-full border px-2 py-1 text-sm rounded ${
+                        !nama.trim() ? 'border-yellow-400' : ''
+                      }`}
                       value={nama}
                       onChange={(e) => handlePesertaChange(lomba.id, i, j, e.target.value)}
                     />

@@ -34,12 +34,16 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative font-montserrat min-h-screen bg-gradient-to-br from-yellow-200 via-orange-100 to-yellow-300 bg-cover bg-center">
+    <div
+    className="relative font-montserrat min-h-screen bg-cover bg-center"
+    style={{ backgroundImage: "url('/p3k2025-bg.png')" }}
+  >
+  
       {/* Konten */}
       <div className="pt-32 px-4 md:px-20 pb-10 flex flex-col md:flex-row items-center justify-between">
         <div className="w-full md:w-1/2 text-left md:text-left z-10">
           <motion.h2
-            className="text-xl md:text-2xl text-orange-900 font-bold drop-shadow-md mb-2"
+            className="text-xl md:text-2xl text-white font-bold drop-shadow-md mb-2"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -53,14 +57,14 @@ export default function Home() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <span className="text-yellow-400">P</span>
-            <span className="text-yellow-400">3</span>
-            <span className="text-yellow-400">K</span>
-            <span className="text-orange-500 ml-3">2025</span>
+            <span className="text-white">P</span>
+            <span className="text-white">3</span>
+            <span className="text-white">K</span>
+            <span className="text-white ml-3">2025</span>
           </motion.h1>
 
           <motion.p
-            className="text-orange-900 text-md md:text-lg mt-4 max-w-xl drop-shadow-sm"
+            className="text-white text-md md:text-lg mt-4 max-w-xl drop-shadow-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1 }}
