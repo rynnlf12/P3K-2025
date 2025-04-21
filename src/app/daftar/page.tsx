@@ -5,6 +5,8 @@ import { LOMBA_LIST } from '@/data/lomba';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useEffect } from 'react';
+
 
 const MotionCard = motion(Card);
 const MotionButton = motion(Button);
@@ -59,15 +61,35 @@ export default function DaftarPage() {
     return lomba ? acc + lomba.biaya * jumlah : acc;
   }, 0);
 
+  const [sekolahTerdaftar, setSekolahTerdaftar] = useState<string[]>([]);
+
+useEffect(() => {
+  fetch('https://sheetdb.io/api/v1/l7x727oogr9o3')
+    .then((res) => res.json())
+    .then((data) => {
+      const daftar = data.map((row: any) => normalisasiNamaSekolah(row.nama_sekolah || ''));
+      setSekolahTerdaftar(daftar);
+    })
+    .catch((err) => console.error('Gagal ambil data SheetDB:', err));
+}, []);
+
+  function normalisasiNamaSekolah(nama_sekolah: string): string {
+    return nama_sekolah
+      .toLowerCase()
+      .replace(/negeri/g, 'n') // Ubah kata "negeri" ke 'n'
+      .replace(/\s+/g, '')     // Hilangkan semua spasi
+      .replace(/[^a-z0-9]/g, ''); // Hapus simbol/tanda baca
+  }
+
   const validateForm = () => {
     const newErrors: string[] = [];
 
     if (!formSekolah.nama || !formSekolah.pembina || !formSekolah.whatsapp || !formSekolah.kategori) {
       newErrors.push('Lengkapi data sekolah terlebih dahulu.');
     }
-
-    if (Object.keys(lombaDipilih).length === 0) {
-      newErrors.push('Pilih minimal satu mata lomba.');
+    
+    if (sekolahTerdaftar.includes(normalisasiNamaSekolah(formSekolah.nama))) {
+      newErrors.push('Sekolah ini sudah mendaftar. Silakan gunakan nama sekolah lain.');
     }
 
     Object.entries(peserta).forEach(([lombaId, tims]) => {
