@@ -22,11 +22,8 @@ export default function DaftarPage() {
   const [sekolahTerdaftar, setSekolahTerdaftar] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
 
-  // Real-time Error States
   const [namaSekolahError, setNamaSekolahError] = useState('');
   const [waError, setWaError] = useState('');
-
-  // Progress Bar State
   const step = 1 + (Object.keys(lombaDipilih).length > 0 ? 1 : 0);
 
   useEffect(() => {
@@ -133,20 +130,13 @@ export default function DaftarPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 pt-28 space-y-10">
-
-      {/* Progress Bar */}
       <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-red-500 transition-all duration-500"
-          style={{ width: `${step * 50}%` }}
-        ></div>
+        <div className="h-full bg-red-500 transition-all duration-500" style={{ width: `${step * 50}%` }}></div>
       </div>
 
       <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran P3K 2025</h1>
 
-      {/* FORM SEKOLAH */}
       <div className="space-y-4 p-4 bg-red-50 rounded border border-red-200">
-        {/* NAMA SEKOLAH */}
         <div>
           <input
             type="text"
@@ -177,7 +167,6 @@ export default function DaftarPage() {
           className="w-full border px-2 py-1 rounded"
         />
 
-        {/* WHATSAPP */}
         <div>
           <input
             type="text"
@@ -186,16 +175,13 @@ export default function DaftarPage() {
             onChange={(e) => {
               const wa = e.target.value.replace(/\D/g, '');
               setFormSekolah({ ...formSekolah, whatsapp: wa });
-
               if (!/^08\d{8,}$/.test(wa)) {
                 setWaError('Nomor WhatsApp tidak valid (harus 08xxxxxxxxxx)');
               } else {
                 setWaError('');
               }
             }}
-            className={`w-full border px-2 py-1 rounded ${
-              waError ? 'border-red-500' : formSekolah.whatsapp ? 'border-green-500' : ''
-            }`}
+            className={`w-full border px-2 py-1 rounded ${waError ? 'border-red-500' : formSekolah.whatsapp ? 'border-green-500' : ''}`}
           />
           {waError && <p className="text-sm text-red-600 mt-1">{waError}</p>}
         </div>
@@ -211,7 +197,6 @@ export default function DaftarPage() {
         </select>
       </div>
 
-      {/* PILIH LOMBA */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {LOMBA_LIST.map((lomba) => (
           <MotionCard key={lomba.id} whileHover={{ scale: 1.02 }} className="border border-red-300">
@@ -221,7 +206,6 @@ export default function DaftarPage() {
                 <span className="text-sm text-red-600">Rp {lomba.biaya.toLocaleString('id-ID')}</span>
               </div>
               <p className="text-sm text-gray-600">{lomba.keterangan}</p>
-
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-700">Jumlah Tim:</label>
                 <input
@@ -233,7 +217,6 @@ export default function DaftarPage() {
                   onChange={(e) => handleLombaChange(lomba.id, parseInt(e.target.value) || 0)}
                 />
               </div>
-
               {peserta[lomba.id]?.map((tim, i) => (
                 <div key={i} className="bg-red-50 p-2 rounded border border-dashed space-y-1">
                   <p className="font-medium text-sm">Tim {i + 1}</p>
@@ -242,9 +225,7 @@ export default function DaftarPage() {
                       key={j}
                       type="text"
                       placeholder={`Anggota ${j + 1}`}
-                      className={`w-full border px-2 py-1 text-sm rounded ${
-                        !nama.trim() ? 'border-yellow-400' : ''
-                      }`}
+                      className={`w-full border px-2 py-1 text-sm rounded ${!nama.trim() ? 'border-yellow-400' : ''}`}
                       value={nama}
                       onChange={(e) => handlePesertaChange(lomba.id, i, j, e.target.value)}
                     />
@@ -256,7 +237,6 @@ export default function DaftarPage() {
         ))}
       </div>
 
-      {/* RINCIAN BIAYA */}
       <div className="bg-red-50 p-4 rounded shadow-sm">
         <h3 className="text-xl font-semibold text-red-700 mb-2">Rincian Biaya</h3>
         <ul className="text-sm text-gray-700 space-y-1">
@@ -272,7 +252,6 @@ export default function DaftarPage() {
         <p className="font-bold mt-2">Total: Rp {totalBayar.toLocaleString('id-ID')}</p>
       </div>
 
-      {/* ERROR */}
       <AnimatePresence>
         {errors.length > 0 && (
           <motion.div
@@ -288,7 +267,6 @@ export default function DaftarPage() {
         )}
       </AnimatePresence>
 
-      {/* BUTTON LANJUT */}
       <div className="mt-6 flex justify-center">
         <MotionButton
           type="button"
