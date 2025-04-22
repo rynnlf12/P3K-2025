@@ -36,7 +36,7 @@ export default function InformasiPage() {
               <p className="mb-4 font-bold">Pekan Perlombaan PMR (P3K) KSR PMI Unit Universitas Suryakancana Tingkat Wira dan Madya Se-Wilayah Provinsi Jawa Barat Tahun 2025</p>
               <p className="mb-2 font-semibold">Tema:</p>
               <p>
-                "Golden Hours, Spread Knowledge and Save Lifes"
+              &quot;&ldquo;Golden Hours, Spread Knowledge and Save Lifes&rdquo;&quot;
               </p>
             </div>
           </Card>
@@ -65,7 +65,7 @@ export default function InformasiPage() {
               <h3 className="text-xl font-semibold text-yellow-600">Pelaksanaan Perlombaan</h3>
             </div>
             <div className="p-4">
-              <p className="mb-2"><strong>Hari 1 - Jum'at, 30 Mei 2025 Pukul 08.00 - 16.30 :</strong></p>
+              <p className="mb-2"><strong>Hari 1 - Jumat, 30 Mei 2025 Pukul 08.00 - 16.30 :</strong></p>
               <ul className="list-disc list-inside mb-4">
                 <li>Daftar Ulang Lomba</li>
                 <li>Pembukaan</li>
