@@ -171,6 +171,7 @@ export default function KwitansiPage() {
       <div style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', maxWidth: 680, textAlign: 'center', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' }}>
         <p style={{ fontSize: 20, fontWeight: 700, marginBottom: 10 }}>🎉 Kwitansi Siap Diunduh</p>
         <p style={{ fontSize: 15, color: '#444' }}>Silakan klik tombol di bawah untuk menyimpan kwitansi sebagai bukti pembayaran.</p>
+        <p style={{ fontSize: 15, color: '#444', fontWeight: 'bold' }}>Tunjukkan Kwitansi ke Panitia saat Daftar Ulang </p>
         {isDownloaded && (
           <p style={{ marginTop: 16, fontSize: 14, color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, animation: 'fadeIn 0.5s ease-in-out' }}>
             ✅ Kwitansi berhasil diunduh!
