@@ -4,7 +4,7 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Info, FileText } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 
 const fadeInUp = {
