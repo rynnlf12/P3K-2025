@@ -43,11 +43,11 @@ export default function Home() {
 
   return (
     <div
-      className="relative font-montserrat min-h-screen bg-cover bg-center bg-fixed
+      className="relative font-montserrat min-h-screen bg-cover bg-center bg-fixed py-5
                  bg-[url('/bg-mobile.png')] md:bg-[url('/bg-desktop.png')]"
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/50 z-0" />
+      <div className="absolute inset-0 bg-yellow-700/50 z-0" />
 
       {/* Content */}
       <div className="relative z-10 pt-28 px-4 md:px-20 pb-16 flex flex-col md:flex-row items-center justify-between gap-10">
@@ -81,17 +81,6 @@ export default function Home() {
             Yuk, tunjukkan semangat dan kemampuan tim kalian!
           </motion.p>
 
-          {/* Tombol "Daftar Sekarang" */}
-          <motion.a
-            href="/daftar"
-            className="mt-8 inline-block w-fit bg-yellow-400 text-black px-8 py-4 rounded-full text-lg font-semibold shadow-md hover:bg-yellow-300 transition"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
-          >
-            Daftar Sekarang
-          </motion.a>
-
           {/* Tombol Informasi - Responsive */}
         <motion.div
           className="mt-4 flex flex-col md:flex-row gap-4 py-5"
@@ -103,7 +92,7 @@ export default function Home() {
           <Button
             asChild
             variant="outline"
-            className="border-yellow-800 text-yellow-800 hover:bg-yellow-400 hover:text-black transition w-full md:w-auto"
+            className="border-yellow-800 text-md text-yellow-800 hover:bg-yellow-400 hover:text-black transition w-full md:w-auto"
           >
             <a href="/informasi" className="flex items-center gap-2">
               <Info className="w-4 h-4 md:mr-1" />

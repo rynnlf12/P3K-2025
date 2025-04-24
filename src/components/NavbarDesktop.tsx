@@ -1,22 +1,21 @@
 'use client';
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
+
+
 export default function NavbarDesktop() {
   const pathname = usePathname();
 
   const navItems = [
-    { label: 'Beranda', href: '/' },
-    { label: 'Daftar', href: '/daftar' },
+    { label: 'BERANDA', href: '/' },
     {
-      label: 'Surat Edaran',
       href: 'https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing',
+      label: 'SURAT EDARAN',
       external: true,
     },
-    
   ];
 
   return (
@@ -24,7 +23,7 @@ export default function NavbarDesktop() {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="hidden md:flex w-full items-center justify-between px-6 py-2 shadow-md bg-white/70 backdrop-blur fixed top-0 left-0 z-50 border-b border-orange-200"
+      className="hidden md:flex w-full items-center justify-between px-10 py-1 fixed top-0 left-0 z-50 bg-white text-white font-bold tracking-wide"
     >
       {/* Logo */}
       <Link href="/">
@@ -37,30 +36,28 @@ export default function NavbarDesktop() {
         />
       </Link>
 
-      {/* Navigation Menu */}
-      <div className="flex gap-8 text-orange-800 font-semibold">
+      {/* Menu */}
+      <div className="flex gap-6 uppercase text-md">
         {navItems.map((item) => (
-          item.external ? (
-            <a
-              key={item.label}
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`hover:underline underline-offset-4 transition duration-300 ${pathname === item.href ? 'text-orange-600' : ''}`}
-            >
-              {item.label}
-            </a>
-          ) : (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`hover:underline underline-offset-4 transition duration-300 ${pathname === item.href ? 'text-orange-600' : ''}`}
-            >
-              {item.label}
-            </Link>
-          )
+          <Link
+            key={item.label}
+            href={item.href}
+            className={`hover:bg-white hover:text-pink-600 transition duration-300 ${
+              pathname === item.href ? 'text-yellow-700' : 'text-yellow-700/90'
+            }`}
+          >
+            {item.label}
+          </Link>
         ))}
       </div>
+
+      {/* CTA Button */}
+      <Link
+        href="/daftar"
+        className="border-3 border-yellow-700 px-4 py-1 text-md uppercase tracking-widest text-yellow-700 hover:bg-white hover:text-pink-600 transition duration-300"
+      >
+        DAFTAR SEKARANG
+      </Link>
     </motion.nav>
   );
 }

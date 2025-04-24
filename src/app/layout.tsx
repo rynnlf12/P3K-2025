@@ -52,7 +52,7 @@ export default function RootLayout({
         {/* Floating Button */}
         <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
           <a
-            href="https://chat.whatsapp.com/LV2Q7IEeT7wDyJCkaZqC7n"
+            href="https://wa.me/6285603105234"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition"

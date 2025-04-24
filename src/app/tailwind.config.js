@@ -20,6 +20,12 @@ module.exports = {
         preflight:false,
       }
     },
+    colors: {
+      pink: {
+        600: '#e6007e', // warna khas twentysix
+      }
+    }
+    
   },
   plugins: [],
 }

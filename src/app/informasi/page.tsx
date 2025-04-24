@@ -30,7 +30,7 @@ export default function InformasiPage() {
         <motion.div variants={fadeInUp}>
           <Card>
             <div className="bg-yellow-100 p-4 rounded-t-lg">
-              <h3 className="text-xl font-semibold text-yellow-600">Nama Kegiatan</h3>
+              <h3 className="text-xl font-semibold text-yellow-600">INFORMASI KEGIATAN</h3>
             </div>
             <div className="p-4">
               <p className="mb-4 font-bold">Pekan Perlombaan PMR (P3K) KSR PMI Unit Universitas Suryakancana Tingkat Wira dan Madya Se-Wilayah Provinsi Jawa Barat Tahun 2025</p>
@@ -46,7 +46,7 @@ export default function InformasiPage() {
         <motion.div variants={fadeInUp}>
           <Card>
             <div className="bg-yellow-100 p-4 rounded-t-lg">
-              <h3 className="text-xl font-semibold text-yellow-600">Technical Meeting</h3>
+              <h3 className="text-xl font-semibold text-yellow-600">TECHNICAL MEETING</h3>
             </div>
             <div className="p-4">
               <div className="flex items-center gap-2 mb-2">
@@ -62,7 +62,7 @@ export default function InformasiPage() {
         <motion.div variants={fadeInUp}>
           <Card>
             <div className="bg-yellow-100 p-4 rounded-t-lg">
-              <h3 className="text-xl font-semibold text-yellow-600">Pelaksanaan Perlombaan</h3>
+              <h3 className="text-xl font-semibold text-yellow-600">JADWAL KEGIATAN</h3>
             </div>
             <div className="p-4">
               <p className="mb-2"><strong>Hari 1 - Jumat, 30 Mei 2025 Pukul 08.00 - 16.30 :</strong></p>
@@ -74,7 +74,7 @@ export default function InformasiPage() {
                 <li>Mojang Jajaka</li>
               </ul>
               <p className="mb-2"><strong>Hari 2 - Sabtu, 31 Mei 2025 Pukul 08.00 - 16.30 :</strong></p>
-              <ul className="list-disc list-inside">
+              <ul className="list-disc list-inside mb-4">
                 <li>Daftar Ulang Lomba</li>
                 <li>Pertolongan Pertama</li>
                 <li>Tandu Putra & Putri</li>
@@ -94,7 +94,7 @@ export default function InformasiPage() {
         <motion.div variants={fadeInUp}>
           <Card>
             <div className="bg-yellow-100 p-4 rounded-t-lg">
-              <h3 className="text-xl font-semibold text-yellow-600">Surat Edaran dan Juklak & Juknis</h3>
+              <h3 className="text-xl font-semibold text-yellow-600">SURAT EDARAN DAN JUKLAK JUKNIS</h3>
             </div>
             <div className="p-4 flex flex-col items-start">
               <Button
@@ -115,6 +115,58 @@ export default function InformasiPage() {
             </div>
           </Card>
         </motion.div>
+
+        <motion.div variants={fadeInUp}>
+          <Card>
+            <div className="bg-yellow-100 p-4 rounded-t-lg">
+              <h3 className="text-xl font-semibold text-yellow-600">GROUP PESERTA P3K 2025</h3>
+            </div>
+            <div className="p-4 flex flex-col items-start">
+              <Button
+                asChild
+                variant="default"
+                className="bg-yellow-700 hover:bg-yellow-600 text-white"
+              >
+                <a
+                  href="https://chat.whatsapp.com/LV2Q7IEeT7wDyJCkaZqC7n"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <FileDown className="w-5 h-5" />
+                  Link Grup Peserta
+                </a>
+              </Button>
+            </div>
+          </Card>
+        </motion.div>
+
+                {/* Juklak Juknis */}
+                <motion.div variants={fadeInUp}>
+          <Card>
+            <div className="bg-yellow-100 p-4 rounded-t-lg">
+              <h3 className="text-xl font-semibold text-yellow-600">BELUM DAFTAR?</h3>
+            </div>
+            <div className="p-4 flex flex-col items-start">
+              <Button
+                asChild
+                variant="default"
+                className="bg-yellow-700 hover:bg-yellow-600 text-white"
+              >
+                <a
+                  href="/daftar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <FileDown className="w-5 h-5" />
+                  Daftar Langsung
+                </a>
+              </Button>
+            </div>
+          </Card>
+        </motion.div>
+
       </motion.div>
     </div>
   );
