@@ -103,7 +103,7 @@ export default function InformasiPage() {
                 className="bg-yellow-700 hover:bg-yellow-600 text-white"
               >
                 <a
-                  href="https://drive.google.com/file/d/1TKDXeFijF1ZPQUV3aFPykbqtdAdatQAA/view?usp=drive_link"
+                  href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2"
