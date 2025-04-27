@@ -170,8 +170,8 @@ export default function PembayaranPage() {
       setLoading(false);
     }
 
- const adminPhone = "6288802017127";
-    const apiKey = "6242351";
+ const adminPhone = "6285603105234";
+    const apiKey = "6705715";
     const pesan = `📢 *Pendaftar Baru!*\n\n🏫 *${sekolah.nama}*\n👤 Pembina: ${sekolah.pembina}\n📱 WA: ${sekolah.whatsapp}\n📎 Bukti: ${buktiUrl}\n👤 Nama Pengirim: ${namaPengirim}\n\nHarap verifikasi pembayaran.`;
     await fetch(`https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodeURIComponent(pesan)}&apikey=${apiKey}`);
   };
