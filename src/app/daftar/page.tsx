@@ -5,6 +5,7 @@ import { LOMBA_LIST } from '@/data/lomba';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { supabase } from '@/lib/supabase';
 
 const MotionCard = motion(Card);
 const MotionButton = motion(Button);
@@ -27,13 +28,21 @@ export default function DaftarPage() {
   const step = 1 + (Object.keys(lombaDipilih).length > 0 ? 1 : 0);
 
   useEffect(() => {
-    fetch('https://sheetdb.io/api/v1/l7x727oogr9o3')
-      .then((res) => res.json())
-      .then((data) => {
-        const daftar = data.map((row: any) => normalisasiNamaSekolah(row.nama_sekolah || ''));
-        setSekolahTerdaftar(daftar);
-      })
-      .catch((err) => console.error('Gagal ambil data SheetDB:', err));
+    const fetchSekolahTerdaftar = async () => {
+      const { data, error } = await supabase
+        .from('pendaftaran')
+        .select('nama_sekolah');
+      
+      if (error) {
+        console.error('Gagal ambil data:', error);
+        return;
+      }
+      
+      const daftar = data.map(row => normalisasiNamaSekolah(row.nama_sekolah || ''));
+      setSekolahTerdaftar(daftar);
+    };
+
+    fetchSekolahTerdaftar();
   }, []);
 
   function normalisasiNamaSekolah(nama: string) {
@@ -90,7 +99,7 @@ export default function DaftarPage() {
       newErrors.push('Lengkapi data sekolah terlebih dahulu.');
     }
 
-    if (sekolahTerdaftar.includes(normalisasiNamaSekolah(formSekolah.nama)) || namaSekolahError) {
+    if (sekolahTerdaftar.includes(normalisasiNamaSekolah(formSekolah.nama))) {
       newErrors.push('Sekolah ini sudah mendaftar.');
     }
 

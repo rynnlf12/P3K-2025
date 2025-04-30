@@ -9,6 +9,11 @@ import Image from 'next/image';
 export default function NavbarDesktop() {
   const pathname = usePathname();
 
+  // Pastikan pathname tidak null sebelum melanjutkan
+  if (!pathname || pathname.includes('/admin')) {
+    return null; // Jangan tampilkan navbar jika berada di halaman admin atau pathname null
+  }
+
   const navItems = [
     { label: 'BERANDA', href: '/' },
     {

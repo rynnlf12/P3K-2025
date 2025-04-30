@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Label } from '@/components/ui/label';
 import { LOMBA_LIST } from '@/data/lomba';
+import { supabase } from '@/lib/supabase';
 
 const MotionButton = motion(Button);
 
@@ -56,7 +57,12 @@ export default function PembayaranPage() {
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
-      setBukti(e.target.files[0]);
+      const file = e.target.files[0];
+      if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+        alert('File harus berupa gambar atau PDF!');
+        return;
+      }
+      setBukti(file);
     }
   };
 
@@ -78,102 +84,99 @@ export default function PembayaranPage() {
 
     setLoading(true);
 
-    let buktiUrl = '';
     try {
-      const formData = new FormData();
-      formData.append('file', bukti);
-      formData.append('upload_preset', 'bukti_pembayaran');
+      // Upload bukti ke Supabase Storage
+      const buktiPath = `bukti/${nomor}_${bukti.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('bukti-pembayaran')
+        .upload(buktiPath, bukti, {
+          cacheControl: '3600',
+          upsert: false,
+        });
 
-      const cloudinaryRes = await fetch('https://api.cloudinary.com/v1_1/dcjpyx1om/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      if (uploadError) throw new Error('Gagal upload bukti: ' + uploadError.message);
 
-      const cloudinaryData = await cloudinaryRes.json();
-      buktiUrl = cloudinaryData.secure_url;
-    } catch (err) {
-      console.error('Gagal upload ke Cloudinary:', err);
-      alert('❌ Gagal upload bukti pembayaran.');
-      setLoading(false);
-      return;
-    }
+      const { data: urlData } = supabase
+        .storage
+        .from('bukti-pembayaran')
+        .getPublicUrl(buktiPath);
 
-    const { peserta, sekolah, lombaDipilih, totalBayar } = dataPendaftaran;
-  
-    const allPeserta: string[] = [];
-    Object.values(peserta).forEach((timList) => {
-      timList.forEach((anggota) => {
-        anggota.forEach((nama) => {
-          allPeserta.push(nama);
+      if (!urlData || !urlData.publicUrl) {
+        throw new Error('Gagal mendapatkan URL bukti.');
+      }
+
+      const buktiUrl = urlData.publicUrl;
+
+
+      // Simpan data pendaftaran
+      const { data: pendaftaranData, error: pendaftaranError } = await supabase
+        .from('pendaftaran')
+        .insert([{
+          nomor,
+          nama_sekolah: dataPendaftaran.sekolah.nama,
+          pembina: dataPendaftaran.sekolah.pembina,
+          whatsapp: dataPendaftaran.sekolah.whatsapp,
+          kategori: dataPendaftaran.sekolah.kategori,
+          ...Object.fromEntries(
+            Object.entries(dataPendaftaran.lombaDipilih).map(([id, jumlah]) =>
+              [id.replace(/-/g, '_'), jumlah]
+            )
+          ),
+          total: dataPendaftaran.totalBayar,
+          bukti: buktiUrl,
+          nama_pengirim: namaPengirim
+        }])
+        .select();
+
+      if (pendaftaranError || !pendaftaranData || pendaftaranData.length === 0) {
+        throw new Error('Gagal menyimpan data pendaftaran.');
+      }
+
+      const pendaftaranId = pendaftaranData[0].id;
+
+      // Simpan data peserta
+      const allPeserta: string[] = [];
+      Object.values(dataPendaftaran.peserta).forEach((timList) => {
+        timList.forEach((anggota) => {
+          anggota.forEach((nama) => {
+            if (nama.trim()) allPeserta.push(nama.trim());
+          });
         });
       });
-    });
 
-    const rows = allPeserta.map((nama, index) => {
-      const isFirst = index === 0;
-      return {
-        nomor: isFirst ? nomor : '',
-        nama_sekolah: isFirst ? sekolah.nama : '',
-        pembina: isFirst ? sekolah.pembina : '',
-        whatsapp: isFirst ? sekolah.whatsapp : '',
-        kategori: isFirst ? sekolah.kategori : '',
-        ...Object.fromEntries(
-          Object.entries(lombaDipilih).map(([id, jumlah]) => [id, isFirst ? jumlah.toString() : ''])
-        ),
-        data_peserta: nama,
-        total: isFirst ? totalBayar.toString() : '',
-        bukti: isFirst ? buktiUrl : '',
-        nama_pengirim: isFirst ? namaPengirim : '',
-        status_verifikasi: isFirst ? 'Menunggu Verifikasi' : '',
-      };
-    });
+      const { error: pesertaError } = await supabase
+        .from('peserta')
+        .insert(allPeserta.map(nama => ({
+          pendaftaran_id: pendaftaranId,
+          nama_sekolah: dataPendaftaran.sekolah.nama,
+          data_peserta: nama
+        })));
 
-    try {
-      const res = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3', {
+      if (pesertaError) throw new Error('Gagal menyimpan data peserta: ' + pesertaError.message);
+
+      await fetch('/api/notifikasi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: rows }),
+        body: JSON.stringify({
+          namaSekolah: dataPendaftaran.sekolah.nama,
+          pembina: dataPendaftaran.sekolah.pembina,
+          whatsapp: dataPendaftaran.sekolah.whatsapp,
+          buktiUrl,
+          namaPengirim,
+        }),
       });
-
-      // Kirim data peserta ke sheet 'peserta'
-      const pesertaRows = allPeserta.map((nama) => ({
-        nama_sekolah: sekolah.nama,
-        data_peserta: nama,
-      }));
-
-      console.log("Mengirim ke sheet peserta:", pesertaRows);
-      try {
-        const resPeserta = await fetch('https://sheetdb.io/api/v1/l7x727oogr9o3?sheet=peserta', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ data: pesertaRows }),
-        });
       
-        const hasil = await resPeserta.json();
-        console.log("Response peserta:", hasil);
-      } catch (err) {
-        console.error("❌ Gagal mengirim ke sheet peserta:", err);
-      }
       
 
-      if (res.ok) {
-        alert('✅ Data berhasil dikirim!');
-        localStorage.setItem('namaPengirim', namaPengirim);
-        router.push('/kwitansi');
-      } else {
-        alert('❌ Gagal mengirim data!');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('❌ Terjadi kesalahan saat mengirim!');
+      alert('✅ Data berhasil dikirim!');
+      localStorage.setItem('namaPengirim', namaPengirim);
+      router.push('/kwitansi');
+    } catch (err: any) {
+      console.error('Error:', err);
+      alert('❌ Gagal mengirim data: ' + err.message);
     } finally {
       setLoading(false);
     }
-
- const adminPhone = "6285603105234";
-    const apiKey = "6705715";
-    const pesan = `📢 *Pendaftar Baru!*\n\n🏫 *${sekolah.nama}*\n👤 Pembina: ${sekolah.pembina}\n📱 WA: ${sekolah.whatsapp}\n📎 Bukti: ${buktiUrl}\n👤 Nama Pengirim: ${namaPengirim}\n\nHarap verifikasi pembayaran.`;
-    await fetch(`https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodeURIComponent(pesan)}&apikey=${apiKey}`);
   };
 
   if (!dataPendaftaran) return <p className="p-6">Memuat data...</p>;
