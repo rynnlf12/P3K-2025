@@ -166,9 +166,10 @@ export default function PembayaranPage() {
             namaPengirim,
           }),
         });
-      } catch (err: any) {
-        console.warn('❗ Gagal kirim notifikasi ke CallMeBot. Lanjut proses...');
+      } catch (e) {
+        console.warn('Gagal kirim notifikasi', e);
       }
+      
       
 
       alert('✅ Data berhasil dikirim!');

@@ -24,9 +24,10 @@ export async function POST(req: Request) {
     }
   
     return NextResponse.json({ success: true });
-  } catch (_) {
-    clearTimeout(timeout);
+  } catch (err) {
+    console.error('Gagal fetch CallMeBot', err);
     return NextResponse.json({ error: 'Gagal fetch CallMeBot' }, { status: 500 });
   }
+  
 }
 
