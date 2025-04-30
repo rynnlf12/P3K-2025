@@ -9,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import * as XLSX from 'xlsx';
 import Link from 'next/link';
 
+export const dynamic = "force-dynamic"; // ⬅️ mencegah pre-render di build time
 type Pendaftar = {
   id: number;
   nomor: string;
