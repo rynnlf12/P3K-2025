@@ -1,40 +1,16 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+// pages/api/pendaftaran.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { supabase } from '@/lib/supabase';
 
-const prisma = new PrismaClient();
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { data, error } = await supabase
+    .from('pendaftaran')
+    .select('*')
+    .order('id', { ascending: false });
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-
-    if (!body?.sekolah || !body?.lombaDipilih || !body?.totalBayar) {
-      return NextResponse.json(
-        { status: 'error', message: 'Data tidak lengkap' },
-        { status: 400 }
-      );
-    }
-
-    const result = await prisma.pendaftaran.create({
-      data: {
-        nama: body.sekolah.nama,
-        pembina: body.sekolah.pembina,
-        whatsapp: body.sekolah.whatsapp,
-        kategori: body.sekolah.kategori,
-        lombaJson: JSON.stringify(body.lombaDipilih),
-        peserta: JSON.stringify(body.peserta || {}),
-        totalBayar: body.totalBayar,
-        buktiUrl: body.buktiNamaFile || '',
-      },
-    });
-
-    return NextResponse.json({ status: 'ok', id: result.id });
-  } catch (err) {
-    console.error('❌ Gagal menyimpan:', err);
-    return NextResponse.json(
-      { status: 'error', message: 'Terjadi kesalahan saat menyimpan' },
-      { status: 500 }
-    );
-  } finally {
-    await prisma.$disconnect();
+  if (error) {
+    return res.status(500).json({ error: error.message });
   }
+
+  return res.status(200).json(data);
 }

@@ -42,20 +42,24 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('pendaftaran')
-      .select('*')
-      .order('id', { ascending: false });
-
-    if (!error && data) {
-      setData(data);
-      setFilteredData(data);
-    } else {
+    try {
+      const response = await fetch('/api/pendaftaran');
+      const result = await response.json();
+      if (response.ok) {
+        setData(result);
+        setFilteredData(result);
+      } else {
+        console.error('Gagal fetch:', result.error);
+      }
+    } catch (error) {
       console.error('Gagal fetch:', error);
     }
-
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   useEffect(() => {
     fetchData();

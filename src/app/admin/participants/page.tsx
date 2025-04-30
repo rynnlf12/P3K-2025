@@ -1,39 +1,25 @@
-// pages/admin/participants.tsx
 'use client';
+
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button'; // Sesuaikan dengan komponen Button yang kamu buat
+import { Button } from '@/components/ui/button';
 import * as XLSX from 'xlsx';
 
-export const dynamic = "force-dynamic";
-const ParticipantsPage = () => {
-  const [participants, setParticipants] = useState<any[]>([]);
+export default function ParticipantsPage() {
+  const [participants, setParticipants] = useState([]);
 
   useEffect(() => {
-    // Mengambil data peserta dari Supabase
-    const fetchParticipants = async () => {
-      const { data, error } = await supabase
-        .from('peserta')
-        .select('*');
-
-      if (error) {
-        console.error('Error fetching participants:', error);
-      } else {
-        setParticipants(data);
-      }
-    };
-
-    fetchParticipants();
+    fetch("/api/participants")
+      .then((res) => res.json())
+      .then((json) => setParticipants(json))
+      .catch((err) => console.error("Failed to fetch participants:", err));
   }, []);
 
-  // Fungsi untuk mengekspor data ke Excel
   const handleExport = () => {
     const ws = XLSX.utils.json_to_sheet(participants);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Peserta');
     XLSX.writeFile(wb, 'peserta.xlsx');
   };
-
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
@@ -47,7 +33,7 @@ const ParticipantsPage = () => {
           </tr>
         </thead>
         <tbody>
-          {participants.map((participant) => (
+          {participants.map((participant: any) => (
             <tr key={participant.id} className="border-t hover:bg-yellow-50">
               <td className="px-4 py-2 border border-black">{participant.nama_sekolah}</td>
               <td className="px-4 py-2 border border-black">{participant.data_peserta}</td>
@@ -57,6 +43,4 @@ const ParticipantsPage = () => {
       </table>
     </div>
   );
-};
-
-export default ParticipantsPage;
+}
