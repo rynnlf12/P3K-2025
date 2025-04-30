@@ -154,24 +154,17 @@ export default function PembayaranPage() {
 
       if (pesertaError) throw new Error('Gagal menyimpan data peserta: ' + pesertaError.message);
       
-      try {
-        await fetch(`${window.location.origin}/api/notifikasi`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            namaSekolah: dataPendaftaran.sekolah.nama,
-            pembina: dataPendaftaran.sekolah.pembina,
-            whatsapp: dataPendaftaran.sekolah.whatsapp,
-            buktiUrl,
-            namaPengirim,
-          }),
-        });
-      } catch (e) {
-        console.warn('Gagal kirim notifikasi', e);
-      }
-      
-      
-      
+      await fetch('/api/notifikasi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          namaSekolah: dataPendaftaran.sekolah.nama,
+          pembina: dataPendaftaran.sekolah.pembina,
+          whatsapp: dataPendaftaran.sekolah.whatsapp,
+          buktiUrl,
+          namaPengirim,
+        })
+      });
 
       alert('✅ Data berhasil dikirim!');
       localStorage.setItem('namaPengirim', namaPengirim);
