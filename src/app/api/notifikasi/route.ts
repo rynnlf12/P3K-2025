@@ -1,41 +1,57 @@
 // app/api/notifikasi/route.ts
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // Gunakan service role key
+);
 
 export async function POST(req: Request) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000); // naikkan timeout jadi 10 detik
+  const timeout = setTimeout(() => controller.abort(), 5000);
 
   try {
     const body = await req.json();
-    console.log('BODY RECEIVED', body);
     const { namaSekolah, pembina, whatsapp, buktiUrl, namaPengirim } = body;
 
-    const adminPhone = "6285603105234";
-    const apiKey = "6705715";
+    const adminPhone = "6288802017127";
+    const apiKey = "6243451";
     const pesan = `📢 *Pendaftar Baru!*\n\n🏫 *${namaSekolah}*\n👤 Pembina: ${pembina}\n📱 WA: ${whatsapp}\n📎 Bukti: ${buktiUrl}\n👤 Nama Pengirim: ${namaPengirim}\n\nHarap verifikasi pembayaran.`;
 
-    const result = await fetch(
-      `https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodeURIComponent(pesan)}&apikey=${apiKey}`,
-      {
-        method: 'GET',
-        signal: controller.signal,
-        headers: {
-          'User-Agent': 'Mozilla/5.0', // optional tapi aman
-        },
-      }
-    );
+    const result = await fetch(`https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodeURIComponent(pesan)}&apikey=${apiKey}`, {
+      signal: controller.signal,
+    });
 
     clearTimeout(timeout);
 
     if (!result.ok) {
-      const text = await result.text();
-      console.error('WhatsApp API error:', text);
-      return NextResponse.json({ error: 'Gagal mengirim WhatsApp', detail: text }, { status: 500 });
+      // Fallback ke Supabase jika gagal
+      await supabase.from('notifikasi_gagal').insert([{
+        nama_sekolah: namaSekolah,
+        pembina,
+        whatsapp,
+        bukti_url: buktiUrl,
+        nama_pengirim: namaPengirim,
+      }]);
+      return NextResponse.json({ fallback: true, message: 'Notifikasi gagal dikirim. Disimpan ke fallback.' }, { status: 200 });
     }
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error('API NOTIFIKASI ERROR', err.name, err.message);
-    return NextResponse.json({ error: 'Gagal fetch CallMeBot', detail: err.message }, { status: 500 });
+  } catch (err) {
+    console.error('API NOTIFIKASI ERROR', err);
+    try {
+      const body = await req.json();
+      await supabase.from('notifikasi_gagal').insert([{
+        nama_sekolah: body.namaSekolah,
+        pembina: body.pembina,
+        whatsapp: body.whatsapp,
+        bukti_url: body.buktiUrl,
+        nama_pengirim: body.namaPengirim,
+      }]);
+    } catch (e) {
+      console.error('Fallback Supabase insert error:', e);
+    }
+    return NextResponse.json({ error: 'Gagal fetch CallMeBot, fallback disimpan' }, { status: 200 });
   }
 }
