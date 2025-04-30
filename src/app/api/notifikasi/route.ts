@@ -15,8 +15,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { namaSekolah, pembina, whatsapp, buktiUrl, namaPengirim } = body;
 
-    const adminPhone = "6288802017127";
-    const apiKey = "6243451";
+    const adminPhone = "6282219244749";
+    const apiKey = "8261365";
     const pesan = `📢 *Pendaftar Baru!*\n\n🏫 *${namaSekolah}*\n👤 Pembina: ${pembina}\n📱 WA: ${whatsapp}\n📎 Bukti: ${buktiUrl}\n👤 Nama Pengirim: ${namaPengirim}\n\nHarap verifikasi pembayaran.`;
 
     const result = await fetch(`https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodeURIComponent(pesan)}&apikey=${apiKey}`, {
