@@ -150,34 +150,12 @@ export default function PembayaranPage() {
 
       if (pesertaError) throw new Error('Gagal menyimpan data peserta: ' + pesertaError.message);
 
-      // Kirim notifikasi ke admin
-      const notifikasi = await fetch('/api/notifikasi', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          namaSekolah: dataPendaftaran.sekolah.nama,
-          pembina: dataPendaftaran.sekolah.pembina,
-          whatsapp: dataPendaftaran.sekolah.whatsapp,
-          buktiUrl,
-          namaPengirim,
-        })
-      });
+  };
 
-      if (!notifikasi.ok) {
-        const text = await notifikasi.text();
-        console.warn('Notifikasi gagal:', text);
-        // Tetap lanjut karena data utama sudah tersimpan
-      }
-
-      alert('✅ Data berhasil dikirim!');
-      localStorage.setItem('namaPengirim', namaPengirim);
-      router.push('/kwitansi');
-    } catch (err: any) {
-      console.error('Error kirim:', err);
-      alert('❌ Gagal mengirim data: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+  const adminPhone = "6285603105234";
+    const apiKey = "6705715";
+    const pesan = `📢 *Pendaftar Baru!*\n\n🏫 *${dataPendaftaran.sekolah.nama}*\n👤 Pembina: ${dataPendaftaran.sekolah.pembina,}\n📱 WA: ${dataPendaftaran.sekolah.whatsapp}\n📎 Bukti: ${bukti}\n👤 Nama Pengirim: ${namaPengirim}\n\nHarap verifikasi pembayaran.`;
+    await fetch(`https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodeURIComponent(pesan)}&apikey=${apiKey}`);
   };
 
   if (!dataPendaftaran) return <p className="p-6">Memuat data...</p>;
