@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button'; // Sesuaikan dengan komponen Button yang kamu buat
 import * as XLSX from 'xlsx';
 
+export const dynamic = "force-dynamic";
 const ParticipantsPage = () => {
   const [participants, setParticipants] = useState<any[]>([]);
 
