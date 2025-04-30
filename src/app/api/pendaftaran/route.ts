@@ -1,16 +1,15 @@
-// pages/api/pendaftaran.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function GET() {
   const { data, error } = await supabase
     .from('pendaftaran')
     .select('*')
     .order('id', { ascending: false });
 
   if (error) {
-    return res.status(500).json({ error: error.message });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return res.status(200).json(data);
+  return NextResponse.json(data);
 }
