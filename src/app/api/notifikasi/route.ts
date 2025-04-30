@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     }
   
     return NextResponse.json({ success: true });
-  } catch (err : any) {
+  } catch (_) {
     clearTimeout(timeout);
     return NextResponse.json({ error: 'Gagal fetch CallMeBot' }, { status: 500 });
   }
