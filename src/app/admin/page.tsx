@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { SearchIcon, CheckIcon, TrashIcon, RefreshIcon, PrinterIcon } from '@heroicons/react/outline';
+import { CheckIcon, TrashIcon, RefreshIcon } from '@heroicons/react/outline';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import * as XLSX from 'xlsx';

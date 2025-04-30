@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button'; // Sesuaikan dengan komponen Button yang kamu buat
 import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
 
 const ParticipantsPage = () => {
   const [participants, setParticipants] = useState<any[]>([]);
