@@ -20,6 +20,11 @@ export default function NavbarMobile() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  // Pastikan pathname tidak null sebelum melanjutkan
+  if (!pathname || pathname.includes('/admin')) {
+    return null; // Jangan tampilkan navbar jika berada di halaman admin atau pathname null
+  }
+  
   return (
     <nav className="md:hidden fixed top-0 left-0 w-full z-50">
       {/* Top bar */}
