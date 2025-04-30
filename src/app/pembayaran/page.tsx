@@ -166,8 +166,8 @@ export default function PembayaranPage() {
             namaPengirim,
           }),
         });
-      } catch (e) {
-        console.warn('Gagal kirim notifikasi', e);
+      } catch {
+        console.warn('Gagal kirim notifikasi');
       }
       
       
