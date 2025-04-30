@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
 
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     }
   
     return NextResponse.json({ success: true });
-  } catch (err) {
+  } catch (err : any) {
     clearTimeout(timeout);
     return NextResponse.json({ error: 'Gagal fetch CallMeBot' }, { status: 500 });
   }
