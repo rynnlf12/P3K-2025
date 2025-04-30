@@ -389,6 +389,11 @@ export default function AdminDashboard() {
           Lihat Tabel Peserta
         </Button>
       </Link>
+      <Link href="/admin/statistik">
+        <Button className="mb-4">
+          Lihat Statistik Pendaftaran
+        </Button>
+      </Link>
       </div>
       <ToastContainer />
     </div>

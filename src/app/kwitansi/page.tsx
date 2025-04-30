@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import jsPDF from 'jspdf';
 import { supabase } from '@/lib/supabase';
-import confetti from 'canvas-confetti';
 
 type DataPendaftaran = {
   sekolah: {
@@ -140,7 +139,6 @@ const handleDownload = async () => {
       });
 
       y += 5;
-      const totalPeserta = Object.values(dataPendaftaran.peserta).reduce((acc, val) => acc + val.length, 0);
       doc.setFont('helvetica', 'bold');
 
       doc.setFillColor(209, 250, 229);
