@@ -26,6 +26,7 @@ type Pendaftar = {
   pmr_cerdas: number;
   total: number;
   bukti: string;
+  kwitansi_url: string;
   nama_pengirim: string;
   status_verifikasi: string;
   created_at: string;
@@ -168,7 +169,7 @@ export default function AdminDashboard() {
   
     // Hapus kolom berdasarkan index: sesuaikan urutannya sesuai struktur tabel kamu
     // Misal: kolom ke-13 = bukti, ke-14 = status_verifikasi, ke-15 = aksi
-    const removeIndexes = [13, 15, 16]; // Index kolom yang ingin dihapus
+    const removeIndexes = [13, 14, 16, 17]; // Index kolom yang ingin dihapus
   
     for (const row of clonedTable.rows) {
       // Hapus dari index paling belakang agar tidak geser index-nya
@@ -294,6 +295,7 @@ export default function AdminDashboard() {
                 <th className="px-4 py-2 border">PMR Cerdas</th>
                 <th className="px-4 py-2 border">Total</th>
                 <th className="px-4 py-2 border">Bukti</th>
+                <th className="px-4 py-2 border">Kwitansi</th>
                 <th className="px-4 py-2 border">Nama Pengirim</th>
                 <th className="px-4 py-2 border">Status Verifikasi</th>
                 <th className="px-4 py-2 border">Aksi</th>
@@ -320,6 +322,20 @@ export default function AdminDashboard() {
                       Lihat
                     </a>
                   </td>
+                  <td className="px-4 py-2 border-b">
+                {row.kwitansi_url ? (
+                  <a
+                    href={row.kwitansi_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500"
+                  >
+                    Lihat Kwitansi
+                  </a>
+                ) : (
+                  'Belum ada kwitansi'
+                )}
+              </td>
                   <td className="px-4 py-2 border">{row.nama_pengirim}</td>
                   <td className="px-4 py-2 border">
                     <span className={`text-sm font-bold ${row.status_verifikasi === 'verified' ? 'text-green-600' : 'text-yellow-600'}`}>

@@ -1,8 +1,9 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import jsPDF from 'jspdf';
+import { supabase } from '@/lib/supabase';
+import confetti from 'canvas-confetti';
 
 type DataPendaftaran = {
   sekolah: {
@@ -67,102 +68,168 @@ export default function KwitansiPage() {
     }
   }, []);
 
-  const handleDownload = async () => {
-    if (!data) return;
+// ...kode lainnya tetap...
 
-    const { nomor, namaPengirim, dataPendaftaran } = data;
-    const doc = new jsPDF('p', 'mm', 'a4');
-    const margin = 20;
-    let y = margin;
+const [progress, setProgress] = useState<number>(0); // NEW
 
-    try {
-      const logoBase64 = await getImageBase64('/desain-p3k.png');
-      const stempelBase64 = await getImageBase64('/Picture1.png');
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const maxLogoWidth = pageWidth - margin * 2;
-      const maxLogoHeight = 40;
+const handleDownload = async () => {
+  if (!data) return;
 
-      const img = new Image();
-      img.src = logoBase64;
-      img.onload = function () {
-        const ratio = img.width / img.height;
-        let logoWidth = maxLogoWidth;
-        let logoHeight = logoWidth / ratio;
-        if (logoHeight > maxLogoHeight) {
-          logoHeight = maxLogoHeight;
-          logoWidth = logoHeight * ratio;
-        }
-        const logoX = (pageWidth - logoWidth) / 2;
-        doc.addImage(logoBase64, 'PNG', logoX, y, logoWidth, logoHeight);
-        y += logoHeight + 8;
+  const { nomor, namaPengirim, dataPendaftaran } = data;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const margin = 20;
+  let y = margin;
 
+  try {
+    const [logoBase64, stempelBase64] = await Promise.all([ 
+      getImageBase64('/desain-p3k.png'),
+      getImageBase64('/Picture1.png')
+    ]);
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const maxLogoHeight = 40;
+
+    const logoImg = new Image();
+    logoImg.src = logoBase64;
+
+    logoImg.onload = async () => {
+      const ratio = logoImg.width / logoImg.height;
+      let logoWidth = pageWidth - margin * 2;
+      let logoHeight = logoWidth / ratio;
+
+      if (logoHeight > maxLogoHeight) {
+        logoHeight = maxLogoHeight;
+        logoWidth = logoHeight * ratio;
+      }
+
+      doc.addImage(logoBase64, 'PNG', (pageWidth - logoWidth) / 2, y, logoWidth, logoHeight);
+      y += logoHeight + 8;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.text('KWITANSI PEMBAYARAN', pageWidth / 2, y, { align: 'center' });
+      y += 8;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text('P3K 2025', pageWidth / 2, y, { align: 'center' });
+      y += 12;
+
+      const addRow = (label: string, value: string) => {
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.text('KWITANSI PEMBAYARAN', pageWidth / 2, y, { align: 'center' });
-        y += 8;
-
-        doc.setFontSize(12);
+        doc.text(`${label}`, margin, y);
         doc.setFont('helvetica', 'normal');
-        doc.text('P3K 2025', pageWidth / 2, y, { align: 'center' });
-        y += 12;
-
-        const addRow = (label: string, value: string) => {
-          doc.setFont('helvetica', 'bold');
-          doc.text(`${label}`, margin, y);
-          doc.setFont('helvetica', 'normal');
-          doc.text(`: ${value}`, margin + 40, y);
-          y += 7;
-        };
-
-        addRow('Nomor Kwitansi', nomor);
-        addRow('Nama Sekolah', dataPendaftaran.sekolah.nama);
-        addRow('Pembina', dataPendaftaran.sekolah.pembina);
-        addRow('WhatsApp', dataPendaftaran.sekolah.whatsapp);
-        addRow('Kategori', dataPendaftaran.sekolah.kategori);
-        addRow('Nama Pengirim', namaPengirim);
-        y += 4;
-
-        doc.setFont('helvetica', 'bold');
-        doc.text('Lomba yang Diikuti:', margin, y);
-        y += 6;
-        doc.setFont('helvetica', 'normal');
-        Object.entries(dataPendaftaran.lombaDipilih).forEach(([nama, jumlah]) => {
-          doc.text(`- ${nama} (${jumlah} tim)`, margin + 5, y);
-          y += 6;
-        });
-
-        y += 5;
-        const totalPeserta = Object.values(dataPendaftaran.peserta).reduce((acc, val) => acc + val.length, 0);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`Total Jumlah Peserta: ${totalPeserta}`, margin, y);
-        y += 10;
-
-        doc.setFillColor(209, 250, 229);
-        doc.setDrawColor(16, 185, 129);
-        doc.setTextColor(6, 95, 70);
-        doc.rect(margin, y, 170, 14, 'FD');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(14);
-        doc.text(`Total Pembayaran: Rp ${dataPendaftaran.totalBayar.toLocaleString('id-ID')}`, margin + 5, y + 9);
-
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(12);
-        y += 26;
-
-        doc.text('Hormat Kami,', 150, y);
-        y += 1;
-        doc.addImage(stempelBase64, 'PNG', 130, 170, 55, 55);
-        y += 30;
-        doc.text('(Panitia P3K 2025)', 145, y);
-        
-
-        doc.save(`kwitansi-${nomor}.pdf`);
-        setIsDownloaded(true);
+        doc.text(`: ${value}`, margin + 40, y);
+        y += 7;
       };
-    } catch (error) {
-      console.error('Gagal membuat kwitansi:', error);
-    }
-  };
+
+      addRow('Nomor Kwitansi', nomor);
+      addRow('Nama Sekolah', dataPendaftaran.sekolah.nama);
+      addRow('Pembina', dataPendaftaran.sekolah.pembina);
+      addRow('WhatsApp', dataPendaftaran.sekolah.whatsapp);
+      addRow('Kategori', dataPendaftaran.sekolah.kategori);
+      addRow('Nama Pengirim', namaPengirim);
+      y += 4;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Lomba yang Diikuti:', margin, y);
+      y += 6;
+      doc.setFont('helvetica', 'normal');
+      Object.entries(dataPendaftaran.lombaDipilih).forEach(([nama, jumlah]) => {
+        doc.text(`- ${nama} (${jumlah} tim)`, margin + 5, y);
+        y += 6;
+      });
+
+      y += 5;
+      const totalPeserta = Object.values(dataPendaftaran.peserta).reduce((acc, val) => acc + val.length, 0);
+      doc.setFont('helvetica', 'bold');
+
+      doc.setFillColor(209, 250, 229);
+      doc.setDrawColor(16, 185, 129);
+      doc.setTextColor(6, 95, 70);
+      doc.rect(margin, y, 170, 14, 'FD');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text(`Total Pembayaran: Rp ${dataPendaftaran.totalBayar.toLocaleString('id-ID')}`, margin + 5, y + 9);
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(12);
+      y += 26;
+      doc.addImage(stempelBase64, 'PNG', 130, 120, 65, 65);
+
+      const blob = doc.output('blob');
+      const filename = `kwitansi/${nomor}.pdf`;
+
+      // Upload kwitansi ke Supabase Storage
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from('kwitansi')
+        .createSignedUploadUrl(filename);
+
+      if (signedUrlError || !signedUrlData?.signedUrl) {
+        console.error('❌ Gagal mendapatkan signed URL:', signedUrlError);
+        alert('Gagal upload kwitansi. Hubungi panitia.');
+        return;
+      }
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', signedUrlData.signedUrl, true);
+      xhr.setRequestHeader('Content-Type', 'application/pdf');
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const percent = (e.loaded / e.total) * 100;
+          setProgress(Math.round(percent));
+        }
+      };
+
+      xhr.onload = async () => {
+        if (xhr.status === 200 || xhr.status === 204) {
+          setProgress(100);
+          setTimeout(async () => {
+            // Dapatkan URL setelah upload selesai
+            const { data: downloadUrlData } = await supabase.storage
+              .from('kwitansi')
+              .getPublicUrl(filename);
+
+            if (downloadUrlData?.publicUrl) {
+              // Simpan URL kwitansi ke tabel pendaftaran
+              const { error } = await supabase
+                .from('pendaftaran')
+                .update({ kwitansi_url: downloadUrlData.publicUrl })
+                .eq('nomor', nomor);
+
+              if (error) {
+                console.error('❌ Gagal menyimpan URL kwitansi:', error);
+                alert('Gagal menyimpan URL kwitansi.');
+                return;
+              }
+
+              doc.save(`kwitansi-${nomor}.pdf`);
+              setIsDownloaded(true);
+              setProgress(0);
+            } else {
+              console.error('❌ Gagal mendapatkan public URL');
+              alert('Gagal mendapatkan URL kwitansi.');
+            }
+          }, 600);
+        } else {
+          alert('Gagal upload kwitansi ke Supabase.');
+        }
+      };
+
+      xhr.onerror = () => {
+        alert('Upload gagal. Periksa koneksi internet.');
+      };
+
+      xhr.send(blob);
+    };
+  } catch (error) {
+    console.error('❌ Gagal membuat kwitansi:', error);
+    alert('Terjadi kesalahan saat membuat kwitansi.');
+  }
+};
+
+
+  
 
   if (!data) return <p style={{ padding: 24 }}>Memuat kwitansi...</p>;
 
@@ -181,6 +248,47 @@ export default function KwitansiPage() {
       <button onClick={handleDownload} style={{ background: 'linear-gradient(to right, #16a34a, #10b981)', color: '#fff', padding: '14px 28px', fontSize: 16, fontWeight: 600, border: 'none', borderRadius: 12, cursor: 'pointer', boxShadow: '0 4px 15px rgba(22, 163, 74, 0.4)', transition: 'all 0.3s ease-in-out' }}>
         📄 Download Kwitansi
       </button>
+      <div style={{
+        marginTop: 16,
+        width: '80%',
+        maxWidth: 400,
+        height: 20,
+        background: '#e5e7eb',
+        borderRadius: 10,
+        overflow: 'hidden',
+        position: 'relative',
+      }}>
+        <div
+          style={{
+            height: '100%',
+            width: `${progress}%`,
+            background: 'linear-gradient(270deg, #10b981, #16a34a, #10b981)',
+            backgroundSize: '400% 400%',
+            animation: 'gradientShift 2s ease infinite',
+            transition: 'width 0.3s ease-in-out',
+          }}
+        />
+        <div style={{
+          position: 'absolute',
+          width: '100%',
+          textAlign: 'center',
+          top: 0,
+          lineHeight: '20px',
+          fontWeight: 600,
+          fontSize: 13,
+        }}>
+          {progress < 100 ? `⏳ Mengunggah ${progress}%` : '🚀 Selesai!'}
+        </div>
+        <style>
+          {`
+            @keyframes gradientShift {
+              0% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+              100% { background-position: 0% 50%; }
+            }
+          `}
+        </style>
+      </div>
     </div>
   );
 }
