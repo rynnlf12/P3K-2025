@@ -85,7 +85,6 @@ export default function PembayaranPage() {
     setLoading(true);
 
     try {
-      // Upload bukti ke Supabase Storage
       const buktiPath = `bukti/${nomor}_${bukti.name}`;
       const { error: uploadError } = await supabase.storage
         .from('bukti-pembayaran')
@@ -101,14 +100,12 @@ export default function PembayaranPage() {
         .from('bukti-pembayaran')
         .getPublicUrl(buktiPath);
 
-      if (!urlData || !urlData.publicUrl) {
+      if (!urlData?.publicUrl) {
         throw new Error('Gagal mendapatkan URL bukti.');
       }
 
       const buktiUrl = urlData.publicUrl;
 
-
-      // Simpan data pendaftaran
       const { data: pendaftaranData, error: pendaftaranError } = await supabase
         .from('pendaftaran')
         .insert([{
@@ -128,13 +125,12 @@ export default function PembayaranPage() {
         }])
         .select();
 
-      if (pendaftaranError || !pendaftaranData || pendaftaranData.length === 0) {
+      if (pendaftaranError || !pendaftaranData?.[0]) {
         throw new Error('Gagal menyimpan data pendaftaran.');
       }
 
       const pendaftaranId = pendaftaranData[0].id;
 
-      // Simpan data peserta
       const allPeserta: string[] = [];
       Object.values(dataPendaftaran.peserta).forEach((timList) => {
         timList.forEach((anggota) => {
@@ -153,8 +149,9 @@ export default function PembayaranPage() {
         })));
 
       if (pesertaError) throw new Error('Gagal menyimpan data peserta: ' + pesertaError.message);
-      
-      await fetch('/api/notifikasi', {
+
+      // Kirim notifikasi ke admin
+      const notifikasi = await fetch('/api/notifikasi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -166,11 +163,17 @@ export default function PembayaranPage() {
         })
       });
 
+      if (!notifikasi.ok) {
+        const text = await notifikasi.text();
+        console.warn('Notifikasi gagal:', text);
+        // Tetap lanjut karena data utama sudah tersimpan
+      }
+
       alert('✅ Data berhasil dikirim!');
       localStorage.setItem('namaPengirim', namaPengirim);
       router.push('/kwitansi');
     } catch (err: any) {
-      console.error('Error:', err);
+      console.error('Error kirim:', err);
       alert('❌ Gagal mengirim data: ' + err.message);
     } finally {
       setLoading(false);
