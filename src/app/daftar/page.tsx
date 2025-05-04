@@ -22,7 +22,8 @@ export default function DaftarPage() {
   const [peserta, setPeserta] = useState<Record<string, string[][]>>({});
   const [sekolahTerdaftar, setSekolahTerdaftar] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
-
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const [namaSekolahError, setNamaSekolahError] = useState('');
   const [waError, setWaError] = useState('');
   const step = 1 + (Object.keys(lombaDipilih).length > 0 ? 1 : 0);
@@ -54,6 +55,13 @@ export default function DaftarPage() {
   }
 
   const handleLombaChange = (id: string, jumlahTim: number) => {
+    const lomba = LOMBA_LIST.find((l) => l.id === id);
+    if (lomba && jumlahTim > 3) {
+      setAlertMessage(`Maksimal 3 tim per lomba ${lomba.nama}.`);
+      setShowAlert(true);
+      return;
+    }
+
     setLombaDipilih((prev) => {
       const updated = { ...prev };
       if (jumlahTim <= 0) {
@@ -64,7 +72,7 @@ export default function DaftarPage() {
       return updated;
     });
 
-    const jumlahPerTim = LOMBA_LIST.find((l) => l.id === id)?.maksPesertaPerTim || 1;
+    const jumlahPerTim = lomba?.maksPesertaPerTim || 1;
 
     setPeserta((prev) => {
       const updated = { ...prev };
@@ -78,6 +86,7 @@ export default function DaftarPage() {
       return updated;
     });
   };
+  
 
   const handlePesertaChange = (lombaId: string, timIndex: number, pesertaIndex: number, value: string) => {
     setPeserta((prev) => {
@@ -139,6 +148,34 @@ export default function DaftarPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 pt-28 space-y-10">
+         {/* Notifikasi Alert */}
+      {showAlert && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 w-96 bg-gradient-to-r from-yellow-400 to-red-500 text-white p-4 rounded-lg shadow-xl flex items-center justify-between space-x-4 transition-all ease-in-out duration-500 animate-pulse">
+          <div className="flex items-center space-x-3">
+          <svg
+  xmlns="http://www.w3.org/2000/svg"
+  className="w-6 h-6 text-white"
+  fill="none"
+  viewBox="0 0 24 24"
+  stroke="currentColor"
+>
+  <path
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth="2"
+    d="M18.364 5.636a9 9 0 10-12.728 12.728 9 9 0 0012.728-12.728zM9 12h6M12 9v6"
+  />
+</svg>
+            <span>{alertMessage}</span>
+          </div>
+          <button
+            className="text-white bg-transparent hover:bg-white hover:text-red-600 rounded-full p-1"
+            onClick={() => setShowAlert(false)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
       <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
         <div className="h-full bg-red-500 transition-all duration-500" style={{ width: `${step * 50}%` }}></div>
       </div>
@@ -216,16 +253,17 @@ export default function DaftarPage() {
               </div>
               <p className="text-sm text-gray-600">{lomba.keterangan}</p>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-700">Jumlah Tim:</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={lomba.maksTim || 3}
-                  className="w-16 px-2 py-1 border rounded text-sm"
-                  value={lombaDipilih[lomba.id] || 0}
-                  onChange={(e) => handleLombaChange(lomba.id, parseInt(e.target.value) || 0)}
-                />
-              </div>
+  <label className="text-sm text-gray-700">Jumlah Tim:</label>
+  <input
+    type="number"
+    min={0}
+    max={3}  // Membatasi jumlah tim maksimal 3
+    className="w-16 px-2 py-1 border rounded text-sm"
+    value={lombaDipilih[lomba.id] || 0}
+    onChange={(e) => handleLombaChange(lomba.id, parseInt(e.target.value) || 0)}
+  />
+</div>
+
               {peserta[lomba.id]?.map((tim, i) => (
                 <div key={i} className="bg-red-50 p-2 rounded border border-dashed space-y-1">
                   <p className="font-medium text-sm">Tim {i + 1}</p>
