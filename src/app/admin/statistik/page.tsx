@@ -1,5 +1,3 @@
-// pages/admin/statistics.tsx
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -75,15 +73,14 @@ export default function Statistics() {
   };
 
   // Warna untuk Pie Chart
-  // Warna untuk Pie Chart: kuning untuk Wira, biru untuk Madya
   const COLORS = ['#FFBB28', '#0088FE']; // Kuning untuk Wira dan Biru untuk Madya
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      <h1 className="text-3xl font-bold mb-6 text-center">📊 Statistik Pendaftaran</h1>
+      <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">📊 Statistik Pendaftaran</h1>
 
-      <div className="flex justify-between space-x-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => toast.info('🔄 Menampilkan Statistik!')}>
+      <div className="flex justify-center space-x-4 mb-6">
+        <Button variant="outline" size="sm" onClick={() => toast.info('🔄 Menampilkan Statistik!')} className="px-6 py-2 bg-blue-500 text-white hover:bg-blue-600">
           Refresh
         </Button>
       </div>
@@ -94,12 +91,12 @@ export default function Statistics() {
         </div>
       ) : (
         <>
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Total Peserta Keseluruhan : {totalParticipants}</h2>
+          <div className="mb-8 text-center">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Total Peserta Keseluruhan : {totalParticipants}</h2>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Total Peserta Per Lomba</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Total Peserta Per Lomba</h2>
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={lombaData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -113,13 +110,10 @@ export default function Statistics() {
           </div>
 
           <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Jumlah Sekolah Berdasarkan Kategori</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Jumlah Sekolah Berdasarkan Kategori</h2>
             <ResponsiveContainer width="100%" height={400}>
               <PieChart>
-                <Pie data={[
-                  { name: 'Wira', value: kategoriCounts.wira },
-                  { name: 'Madya', value: kategoriCounts.madya },
-                ]} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={150} fill="#8884d8" label>
+                <Pie data={[{ name: 'Wira', value: kategoriCounts.wira }, { name: 'Madya', value: kategoriCounts.madya }]} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={150} fill="#8884d8" label>
                   {['Wira', 'Madya'].map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index]} />)}
                 </Pie>
               </PieChart>

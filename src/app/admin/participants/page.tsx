@@ -15,7 +15,12 @@ export default function ParticipantsPage() {
   }, []);
 
   const handleExport = () => {
-    const ws = XLSX.utils.json_to_sheet(participants);
+    const formattedData = participants.map((participant: any) => ({
+      'Nama Sekolah': participant.nama_sekolah,
+      'Nama Peserta': participant.data_peserta,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(formattedData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Peserta');
     XLSX.writeFile(wb, 'peserta.xlsx');
@@ -23,24 +28,31 @@ export default function ParticipantsPage() {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      <h1 className="text-2xl font-bold mb-4">Tabel Peserta</h1>
-      <Button onClick={handleExport}>Export to Excel</Button>
-      <table className="min-w-full table-auto border-collapse border border-black mt-4">
-        <thead className="bg-red-300">
-          <tr>
-            <th className="px-4 py-2 border border-black">Nama Sekolah</th>
-            <th className="px-4 py-2 border border-black">Nama Peserta</th>
-          </tr>
-        </thead>
-        <tbody>
-          {participants.map((participant: any) => (
-            <tr key={participant.id} className="border-t hover:bg-yellow-50">
-              <td className="px-4 py-2 border border-black">{participant.nama_sekolah}</td>
-              <td className="px-4 py-2 border border-black">{participant.data_peserta}</td>
+      <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">Daftar Peserta</h1>
+      <div className="text-center mb-6">
+        <Button onClick={handleExport} className="bg-blue-500 hover:bg-blue-600 text-white">
+          Export ke Excel
+        </Button>
+      </div>
+
+      <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+        <table className="min-w-full table-auto border-collapse border border-gray-300">
+          <thead className="bg-blue-500 text-white">
+            <tr>
+              <th className="px-4 py-2 border-b">Nama Sekolah</th>
+              <th className="px-4 py-2 border-b">Nama Peserta</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {participants.map((participant: any) => (
+              <tr key={participant.id} className="hover:bg-gray-100">
+                <td className="px-4 py-2 border-b">{participant.nama_sekolah}</td>
+                <td className="px-4 py-2 border-b">{participant.data_peserta}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -21,6 +21,7 @@ export default function NavbarDesktop() {
       label: 'SURAT EDARAN',
       external: true,
     },
+
   ];
 
   return (
