@@ -1,11 +1,10 @@
 'use client';
 
-
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Info } from 'lucide-react';
-
+import Link from 'next/link';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -51,7 +50,7 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10 pt-28 px-4 md:px-20 pb-16 flex flex-col md:flex-row items-center justify-between gap-10">
-        <div className="w-full md:w-1/2 text-white">
+        <div className="w-full md:w-1/2 text-white text-center md:text-left">
           <motion.h2
             className="text-xl md:text-2xl font-semibold mb-2 text-yellow-300 tracking-wider"
             initial={{ opacity: 0, y: -10 }}
@@ -62,7 +61,7 @@ export default function Home() {
           </motion.h2>
 
           <motion.h1
-            className="text-5xl md:text-6xl font-extrabold leading-tight mb-4"
+            className="text-4xl md:text-6xl font-extrabold leading-tight mb-4"
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
@@ -71,7 +70,7 @@ export default function Home() {
           </motion.h1>
 
           <motion.p
-            className="text-md md:text-lg max-w-xl text-white/90 drop-shadow-sm"
+            className="text-md md:text-lg max-w-xl text-white/90 drop-shadow-sm mb-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1 }}
@@ -82,23 +81,39 @@ export default function Home() {
           </motion.p>
 
           {/* Tombol Informasi - Responsive */}
-        <motion.div
-          className="mt-4 flex flex-col md:flex-row gap-4 py-5"
+          <motion.div
+            className="mt-4 flex flex-col md:flex-row gap-4 py-5"
+            initial="hidden"
+            animate="show"
+            variants={fadeInUp}
+            transition={{ duration: 1, delay: 0.2 }}
+          >
+            <Button
+              asChild
+              variant="outline"
+              className="border-yellow-800 text-md text-yellow-800 hover:bg-yellow-400 hover:text-black transition w-full md:w-auto"
+            >
+              <a href="/informasi" className="flex items-center gap-2">
+                <Info className="w-4 h-4 md:mr-1" />
+                <span className="md:inline">Informasi Lomba</span>
+              </a>
+            </Button>
+          </motion.div>
+
+          {/* CTA - Daftar Sekarang */}
+          <motion.div
+          className="mt-8"
           initial="hidden"
           animate="show"
           variants={fadeInUp}
-          transition={{ duration: 1, delay: 0.2 }}
+          transition={{ duration: 1, delay: 0.3 }}
         >
-          <Button
-            asChild
-            variant="outline"
-            className="border-yellow-800 text-md text-yellow-800 hover:bg-yellow-400 hover:text-black transition w-full md:w-auto"
+          <Link
+            href="/daftar"
+            className="border-3 border-yellow-700 bg-white px-6 py-3 text-md uppercase tracking-widest text-yellow-700 hover:bg-yellow-700 hover:text-white transition duration-300 w-full md:w-auto text-center"
           >
-            <a href="/informasi" className="flex items-center gap-2">
-              <Info className="w-4 h-4 md:mr-1" />
-              <span className="md:inline">Informasi Lomba</span>
-            </a>
-          </Button>
+            DAFTAR SEKARANG
+          </Link>
         </motion.div>
 
           {/* Countdown */}
