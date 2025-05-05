@@ -6,17 +6,19 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import DetailModal from "./DetailModal";
+import FormModal from "@/components/FormModal";
 import { usePendaftar } from "@/hooks/usePendaftar";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import {supabase} from "@/lib/supabase";
-
+import { supabase } from "@/lib/supabase";
 
 export default function AdminDashboard() {
   const { data, loading, refetch } = usePendaftar();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
+  const [formParticipant, setFormParticipant] = useState<any>(null); // untuk edit
+  const [formOpen, setFormOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -28,37 +30,32 @@ export default function AdminDashboard() {
     const data = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(data, "pendaftar.xlsx");
   };
-  
- // Toggle status verifikasi di Supabase
- const handleToggleStatus = async (id: number, currentStatus: string) => {
-  const newStatus = currentStatus === "verified" ? "waiting" : "verified"; // toggle status
 
-  const { error } = await supabase
-    .from("pendaftaran")
-    .update({ status_verifikasi: newStatus })
-    .eq("id", id);
+  const handleToggleStatus = async (id: number, currentStatus: string) => {
+    const newStatus = currentStatus === "verified" ? "waiting" : "verified";
 
-  if (error) {
-    console.error("Gagal mengubah status:", error.message);
-  } else {
-    // Setelah status diperbarui, refresh data
-    refetch();
-  }
-};
+    const { error } = await supabase
+      .from("pendaftaran")
+      .update({ status_verifikasi: newStatus })
+      .eq("id", id);
 
-// Fungsi Hapus Data
-const handleDelete = async (id: number) => {
-  const { error } = await supabase.from("pendaftaran").delete().eq("id", id);
+    if (error) {
+      console.error("Gagal mengubah status:", error.message);
+    } else {
+      refetch();
+    }
+  };
 
-  if (error) {
-    console.error("Gagal menghapus data:", error.message);
-  } else {
-    // Setelah data dihapus, refresh data
-    refetch();
-  }
-};
+  const handleDelete = async (id: number) => {
+    const { error } = await supabase.from("pendaftaran").delete().eq("id", id);
 
-  // Filter data berdasarkan searchTerm dan selectedCategory
+    if (error) {
+      console.error("Gagal menghapus data:", error.message);
+    } else {
+      refetch();
+    }
+  };
+
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const matchesSearchTerm =
@@ -74,18 +71,17 @@ const handleDelete = async (id: number) => {
   const handlePrint = () => {
     const tableElement = document.querySelector("table")?.outerHTML;
     if (!tableElement) return;
-  
+
     const style = `
-    <style>
-      body { font-family: sans-serif; padding: 20px; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-      th { background-color: #f9f9f9; }
-      .no-print { display: none; }
-    </style>
-  `;
-  
-  
+      <style>
+        body { font-family: sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f9f9f9; }
+        .no-print { display: none; }
+      </style>
+    `;
+
     const printWindow = window.open("", "", "width=900,height=600");
     if (printWindow) {
       printWindow.document.write("<html><head><title>Data Pendaftar</title>");
@@ -100,10 +96,7 @@ const handleDelete = async (id: number) => {
       printWindow.close();
     }
   };
-  
-  
 
-  // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -135,16 +128,12 @@ const handleDelete = async (id: number) => {
         </div>
 
         <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" onClick={refetch}>
-          🔄 Refresh
-        </Button>
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            📤 Export Excel
+          <Button variant="outline" size="sm" onClick={refetch}>🔄 Refresh</Button>
+          <Button variant="outline" size="sm" onClick={handleExport}>📤 Export Excel</Button>
+          <Button variant="outline" size="sm" onClick={handlePrint}>🖨️ Print</Button>
+          <Button variant="default" size="sm" onClick={() => { setFormParticipant(null); setFormOpen(true); }}>
+            ➕ Tambah Data
           </Button>
-          <Button variant="outline" size="sm" onClick={handlePrint}>
-  🖨️ Print
-</Button>
-
         </div>
       </div>
 
@@ -171,6 +160,7 @@ const handleDelete = async (id: number) => {
                 <th className="px-4 py-3">PMR Cerdas</th>
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3 no-print">Bukti</th>
+                <th className="px-4 py-3 no-print">Kwitansi</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Nama Pengirim</th>
                 <th className="px-4 py-3 no-print">Aksi</th>
@@ -193,35 +183,26 @@ const handleDelete = async (id: number) => {
                   <td className="px-4 py-2 no-print">
                     <a href={row.bukti} className="text-blue-600 underline" target="_blank">Lihat</a>
                   </td>
+                  <td className="px-4 py-2 no-print">
+                    <a href={row.kwitansi_url} className="text-blue-600 underline" target="_blank">Lihat</a>
+                  </td>
                   <td className="px-4 py-2">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${
                         row.status_verifikasi === "verified"
                           ? "bg-green-100 text-green-700"
                           : "bg-yellow-100 text-yellow-700"
                       }`}
-                      onClick={() => handleToggleStatus(row.id, row.status_verifikasi)} // Toggle status saat diklik
+                      onClick={() => handleToggleStatus(row.id, row.status_verifikasi)}
                     >
                       {row.status_verifikasi === "verified" ? "Telah Diverifikasi" : "Menunggu Verifikasi"}
                     </span>
                   </td>
                   <td className="px-4 py-2">{row.nama_pengirim}</td>
                   <td className="px-4 py-2 flex flex-wrap gap-1 no-print">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedParticipant(row)}
-                    >
-                      🔍 Detail
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      color="red"
-                      onClick={() => handleDelete(row.id)} // Hapus data
-                    >
-                      🗑️ Hapus
-                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setSelectedParticipant(row)}>🔍 Detail</Button>
+                    <Button variant="outline" size="sm" onClick={() => { setFormParticipant(row); setFormOpen(true); }}>✏️ Edit</Button>
+                    <Button variant="outline" size="sm" color="red" onClick={() => handleDelete(row.id)}>🗑️ Hapus</Button>
                   </td>
                 </tr>
               ))}
@@ -245,10 +226,18 @@ const handleDelete = async (id: number) => {
 
       <ToastContainer />
       {selectedParticipant && (
-        <DetailModal
-          data={selectedParticipant}
-          open={!!selectedParticipant}
-          onClose={() => setSelectedParticipant(null)}
+        <DetailModal data={selectedParticipant} open onClose={() => setSelectedParticipant(null)} />
+      )}
+      {formOpen && (
+        <FormModal
+          open={formOpen}
+          onClose={() => { setFormOpen(false); setFormParticipant(null); }}
+          data={formParticipant}
+          onSuccess={() => {
+            refetch();
+            setFormOpen(false);
+            setFormParticipant(null);
+          }}
         />
       )}
     </div>

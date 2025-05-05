@@ -97,7 +97,7 @@ export default function DetailModal({ open, onClose, data }: DetailModalProps) {
             <Separator />
 
             <div className="space-y-2">
-              <p className="text-muted-foreground">Jumlah Peserta per Lomba</p>
+              <p className="text-muted-foreground">Lomba Yang Diikuti</p>
               <div className="grid grid-cols-2 gap-2">
                 {kegiatan.map((kegiatan) => (
                   <div key={kegiatan.label} className="flex justify-between">
@@ -108,7 +108,7 @@ export default function DetailModal({ open, onClose, data }: DetailModalProps) {
               </div>
               <Separator />
               <div className="flex justify-between mt-2 font-semibold">
-                <span>Total Peserta</span>
+                <span>Total Pembayaran</span>
                 <span>{data.total}</span>
               </div>
             </div>

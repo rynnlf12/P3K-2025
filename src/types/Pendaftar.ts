@@ -16,6 +16,7 @@ export type Pendaftar = {
     pmr_cerdas: boolean;
     total: number;
     bukti: string;
+    kwitansi_url: string;
     nama_pengirim: string;
     status_verifikasi: string;
     created_at: string;

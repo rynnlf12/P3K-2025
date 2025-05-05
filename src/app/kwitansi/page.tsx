@@ -73,7 +73,7 @@ const [progress, setProgress] = useState<number>(0); // NEW
 
 const handleDownload = async () => {
   if (!data) return;
-
+  
   const { nomor, namaPengirim, dataPendaftaran } = data;
   const doc = new jsPDF('p', 'mm', 'a4');
   const margin = 20;
@@ -137,10 +137,11 @@ const handleDownload = async () => {
         doc.text(`- ${nama} (${jumlah} tim)`, margin + 5, y);
         y += 6;
       });
-
       y += 5;
+      const totalPeserta = Object.values(dataPendaftaran.peserta).reduce((acc, val) => acc + val.length, 0);
       doc.setFont('helvetica', 'bold');
-
+      doc.text(`Total Peserta: ${totalPeserta} orang`, margin + 5, y);
+      y += 6;
       doc.setFillColor(209, 250, 229);
       doc.setDrawColor(16, 185, 129);
       doc.setTextColor(6, 95, 70);
@@ -188,26 +189,29 @@ const handleDownload = async () => {
               .from('kwitansi')
               .getPublicUrl(filename);
 
-            if (downloadUrlData?.publicUrl) {
-              // Simpan URL kwitansi ke tabel pendaftaran
-              const { error } = await supabase
-                .from('pendaftaran')
-                .update({ kwitansi_url: downloadUrlData.publicUrl })
-                .eq('nomor', nomor);
-
-              if (error) {
-                console.error('❌ Gagal menyimpan URL kwitansi:', error);
-                alert('Gagal menyimpan URL kwitansi.');
-                return;
+              if (downloadUrlData?.publicUrl) {
+                console.log('📌 Nomor:', nomor);
+                console.log('📌 URL Kwitansi:', downloadUrlData.publicUrl);
+              
+                const { error } = await supabase
+                  .from('pendaftaran')
+                  .update({ kwitansi_url: downloadUrlData.publicUrl })
+                  .eq('nomor', nomor);
+              
+                if (error) {
+                  console.error('❌ Gagal menyimpan URL kwitansi:', error);
+                  alert('Gagal menyimpan URL kwitansi ke database.');
+                  return;
+                }
+              
+                doc.save(`kwitansi-${nomor}.pdf`);
+                setIsDownloaded(true);
+                setProgress(0);
+              } else {
+                console.error('❌ Gagal mendapatkan public URL dari Supabase');
+                alert('Gagal mendapatkan URL publik kwitansi.');
               }
-
-              doc.save(`kwitansi-${nomor}.pdf`);
-              setIsDownloaded(true);
-              setProgress(0);
-            } else {
-              console.error('❌ Gagal mendapatkan public URL');
-              alert('Gagal mendapatkan URL kwitansi.');
-            }
+              
           }, 600);
         } else {
           alert('Gagal upload kwitansi ke Supabase.');
@@ -225,6 +229,7 @@ const handleDownload = async () => {
     alert('Terjadi kesalahan saat membuat kwitansi.');
   }
 };
+
 
 
   
