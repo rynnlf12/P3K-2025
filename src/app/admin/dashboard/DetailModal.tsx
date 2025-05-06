@@ -1,7 +1,7 @@
 // app/admin/dashboard/DetailModal.tsx
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,10 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
+import { supabase } from '@/lib/supabase';
 
 type Pendaftar = {
+  id: string;
   nama_sekolah: string;
   pembina: string;
   whatsapp: string;
@@ -38,6 +40,29 @@ interface DetailModalProps {
 }
 
 export default function DetailModal({ open, onClose, data }: DetailModalProps) {
+  const [pesertaList, setPesertaList] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchPeserta = async () => {
+      if (!data?.id) return;
+
+      const { data: peserta, error } = await supabase
+        .from('peserta')
+        .select('*')
+        .eq('pendaftaran_id', data.id);
+
+      if (error) {
+        console.error('Gagal mengambil data peserta:', error.message);
+      } else {
+        setPesertaList(peserta);
+      }
+    };
+
+    if (open) {
+      fetchPeserta();
+    }
+  }, [open, data]);
+
   if (!data) return null;
 
   const kegiatan = [
@@ -51,8 +76,8 @@ export default function DetailModal({ open, onClose, data }: DetailModalProps) {
   ];
 
   const buktiUrl = data.bukti.startsWith('http')
-  ? data.bukti
-  : `https://llvesnxqpifjjrcecnxj.supabase.co/storage/v1/object/public/bukti-pembayaran/bukti/${data.bukti}`;
+    ? data.bukti
+    : `https://llvesnxqpifjjrcecnxj.supabase.co/storage/v1/object/public/bukti-pembayaran/bukti/${data.bukti}`;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -124,14 +149,31 @@ export default function DetailModal({ open, onClose, data }: DetailModalProps) {
               <p className="text-muted-foreground">Bukti Pembayaran</p>
               {data.bukti ? (
                 <Image
-                src={buktiUrl}
-                alt="Bukti Pembayaran"
-                className="rounded-lg"
-                width={500}
-                height={300}
-              />
+                  src={buktiUrl}
+                  alt="Bukti Pembayaran"
+                  className="rounded-lg"
+                  width={500}
+                  height={300}
+                />
               ) : (
                 <p className="text-sm text-destructive">Tidak ada bukti</p>
+              )}
+            </div>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <p className="text-muted-foreground">Data Peserta</p>
+              {pesertaList.length > 0 ? (
+                <ul className="space-y-2">
+                  {pesertaList.map((peserta) => (
+                    <li key={peserta.id} className="border rounded p-2">
+                      <div><strong>Nama:</strong> {peserta.data_peserta}</div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-gray-500">Belum ada data peserta.</p>
               )}
             </div>
           </div>

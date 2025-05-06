@@ -138,10 +138,6 @@ const handleDownload = async () => {
         y += 6;
       });
       y += 5;
-      const totalPeserta = Object.values(dataPendaftaran.peserta).reduce((acc, val) => acc + val.length, 0);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Total Peserta: ${totalPeserta} orang`, margin + 5, y);
-      y += 6;
       doc.setFillColor(209, 250, 229);
       doc.setDrawColor(16, 185, 129);
       doc.setTextColor(6, 95, 70);

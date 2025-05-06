@@ -131,24 +131,42 @@ export default function PembayaranPage() {
 
       const pendaftaranId = pendaftaranData[0].id;
 
-      const allPeserta: string[] = [];
-      Object.values(dataPendaftaran.peserta).forEach((timList) => {
-        timList.forEach((anggota) => {
-          anggota.forEach((nama) => {
-            if (nama.trim()) allPeserta.push(nama.trim());
-          });
-        });
-      });
+      type PesertaInsert = {
+        pendaftaran_id: string;
+        nama_sekolah: string;
+        lomba: string;
+        data_peserta: string;
+      };
+      
+      const pesertaInsert: PesertaInsert[] = [];
 
-      const { error: pesertaError } = await supabase
-        .from('peserta')
-        .insert(allPeserta.map(nama => ({
-          pendaftaran_id: pendaftaranId,
+for (const [lombaId, timList] of Object.entries(dataPendaftaran.peserta)) {
+  const lombaNama = LOMBA_LIST.find((l) => l.id === lombaId)?.nama ?? lombaId;
+
+  for (const tim of timList) {
+    for (const nama of tim) {
+      if (nama.trim()) {
+        pesertaInsert.push({
+          pendaftaran_id: pendaftaranId,  // pastikan pendaftaranId adalah UUID yang valid
           nama_sekolah: dataPendaftaran.sekolah.nama,
-          data_peserta: nama
-        })));
+          lomba: lombaNama,
+          data_peserta: nama.trim() // pastikan data_peserta berupa string
+        });
+      }
+    }
+  }
+}
 
-      if (pesertaError) throw new Error('Gagal menyimpan data peserta: ' + pesertaError.message);
+const { error: pesertaError } = await supabase
+  .from('peserta')
+  .insert(pesertaInsert);
+
+if (pesertaError) {
+  throw new Error('Gagal menyimpan data peserta: ' + pesertaError.message);
+}
+
+      
+      
 
       // Kirim notifikasi ke admin
       const notifikasi = await fetch('/api/notifikasi', {
@@ -162,7 +180,7 @@ export default function PembayaranPage() {
           namaPengirim,
         })
       });
-      
+
       if (!notifikasi.ok) {
         console.warn('Notifikasi WA gagal total');
       } else {
@@ -170,7 +188,7 @@ export default function PembayaranPage() {
         if (notifResult.fallback) {
           alert('✅ Data berhasil dikirim. Namun notifikasi admin belum terkirim otomatis, akan diproses manual.');
         }
-      }      
+      }
 
       alert('✅ Data berhasil dikirim!');
       localStorage.setItem('namaPengirim', namaPengirim);
