@@ -148,8 +148,28 @@ const handleDownload = async () => {
 
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(12);
-      y += 26;
-      doc.addImage(stempelBase64, 'PNG', 130, 120, 65, 65);
+      const fontSize = 12;
+      const stempelWidth = 60;
+      const stempelHeight = 60;
+      const xRight = pageWidth - margin - 60;
+
+      // Tambahkan jarak vertikal secukupnya sebelum elemen tanda tangan
+      y += 20;
+
+      // Teks “Hormat Kami”
+      doc.setFontSize(fontSize);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Hormat Kami,', xRight, y);
+
+      // Stempel (letakkan sedikit lebih tinggi agar tampak rapi dengan teks atas dan bawah)
+      const stempelY = y - 13;
+      doc.addImage(stempelBase64, 'PNG', xRight - 20, stempelY, stempelWidth, stempelHeight);
+
+      // Teks “Panitia P3K 2025” hanya sedikit di bawah stempel
+      const panitiaY = stempelY + stempelHeight - 5;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Panitia P3K 2025', xRight, panitiaY);
+
 
       const blob = doc.output('blob');
       const filename = `kwitansi/${nomor}.pdf`;

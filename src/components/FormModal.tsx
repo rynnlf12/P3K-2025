@@ -4,7 +4,17 @@ import { useState, useEffect, useMemo } from 'react';
 import { Dialog } from '@headlessui/react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
-import { v4 as uuidv4 } from 'uuid';
+import { LOMBA_LIST } from '@/data/lomba';
+
+const fieldToLombaIdMap: Record<string, string> = {
+  tandu_putra: 'tandu_putra',
+  tandu_putri: 'tandu_putri',
+  pertolongan_pertama: 'pertolongan_pertama',
+  senam_poco_poco: 'senam_poco_poco',
+  mojang_jajaka: 'mojang_jajaka',
+  poster: 'poster',
+  pmr_cerdas: 'pmr_cerdas',
+};
 
 interface FormModalProps {
   open: boolean;
@@ -28,8 +38,8 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
     pmr_cerdas: 0,
     total: 0,
     nama_pengirim: '',
-    kwitansi_url:'',
     bukti: '',
+    status_verifikasi: 'pending',
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -53,31 +63,19 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
         pmr_cerdas: 0,
         total: 0,
         nama_pengirim: '',
-        kwitansi_url: '',
         bukti: '',
+        status_verifikasi: 'pending',
       });
     }
   }, [data]);
 
   const total = useMemo(() => {
-    return (
-      formData.tandu_putra +
-      formData.tandu_putri +
-      formData.pertolongan_pertama +
-      formData.senam_poco_poco +
-      formData.mojang_jajaka +
-      formData.poster +
-      formData.pmr_cerdas
-    );
-  }, [
-    formData.tandu_putra,
-    formData.tandu_putri,
-    formData.pertolongan_pertama,
-    formData.senam_poco_poco,
-    formData.mojang_jajaka,
-    formData.poster,
-    formData.pmr_cerdas,
-  ]);
+    return Object.entries(fieldToLombaIdMap).reduce((acc, [field, lombaId]) => {
+      const jumlah = formData[field as keyof typeof formData] as number;
+      const lomba = LOMBA_LIST.find((l) => l.id === lombaId);
+      return acc + (lomba ? lomba.biaya * jumlah : 0);
+    }, 0);
+  }, [formData]);
 
   useEffect(() => {
     setFormData((prev) => ({ ...prev, total }));
@@ -92,53 +90,91 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0] || null;
-    setFile(selectedFile);
+    const file = e.target.files?.[0];
+    if (file) {
+      setFile(file);
+    }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setUploading(true);
-    let uploadedUrl = formData.bukti;
 
-    if (file) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      const { error: storageError } = await supabase.storage
-        .from('bukti-pembayaran')
-        .upload(fileName, file);
+    const timestamp = Date.now();
+    const nomor = `P3K2025-${formData.nama_sekolah.replace(/\s+/g, '').toUpperCase().slice(0, 10)}-${timestamp}`;
 
-      if (storageError) {
-        console.error('Upload error:', storageError.message);
-        setUploading(false);
-        return;
+    let buktiURL = '';
+
+    try {
+      if (file) {
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('bukti-pembayaran')
+          .upload(`bukti/${nomor}/${file.name}`, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('bukti-pembayaran')
+          .getPublicUrl(uploadData.path);
+
+        buktiURL = urlData.publicUrl;
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from('bukti-pembayaran')
-        .getPublicUrl(fileName);
+      const { error: insertError } = await supabase.from('pendaftaran').insert([
+        {
+          nomor,
+          ...formData,
+          bukti: buktiURL,
+        },
+      ]);
 
-      uploadedUrl = publicUrlData.publicUrl;
-    }
+      if (insertError) throw insertError;
 
-    const payload = { ...formData, bukti: uploadedUrl };
+      const response = await fetch(`/api/generate-kwitansi?nomor=${nomor}`);
 
-    let response;
-    if (data?.id) {
-      response = await supabase
-        .from('pendaftaran')
-        .update(payload)
-        .eq('id', data.id);
-    } else {
-      response = await supabase.from('pendaftaran').insert(payload);
-    }
+      if (!response.ok) throw new Error('Gagal membuat kwitansi');
 
-    if (response.error) {
-      console.error('Error saving data:', response.error.message);
-    } else {
+      const responseData = await response.json();
+
+      if (responseData?.success) {
+        const kwitansiUrl = responseData.kwitansi_url;
+
+        await supabase
+          .from('pendaftaran')
+          .update({ kwitansi_url: kwitansiUrl })
+          .eq('nomor', nomor);
+
+        alert('Data berhasil disimpan dan kwitansi dibuat!');
+      } else {
+        throw new Error('Gagal mendapatkan URL kwitansi');
+      }
+
+      setFormData({
+        nama_sekolah: '',
+        pembina: '',
+        whatsapp: '+62',
+        kategori: '',
+        tandu_putra: 0,
+        tandu_putri: 0,
+        pertolongan_pertama: 0,
+        senam_poco_poco: 0,
+        mojang_jajaka: 0,
+        poster: 0,
+        pmr_cerdas: 0,
+        total: 0,
+        nama_pengirim: '',
+        bukti: '',
+        status_verifikasi: 'pending',
+      });
+      setFile(null);
       onSuccess();
+      onClose();
+    } catch (err) {
+      console.error('Error saving data:', err);
+      alert('Terjadi kesalahan saat menyimpan data.');
+    } finally {
+      setUploading(false);
     }
-
-    setUploading(false);
   };
 
   return (
@@ -151,7 +187,7 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
           </Dialog.Title>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {['nama_sekolah', 'pembina', 'whatsapp', 'nama_pengirim'].map((field) => (
+            {['nama_sekolah', 'pembina', 'whatsapp'].map((field) => (
               <div key={field}>
                 <label className="block text-sm font-medium mb-1">
                   {field.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -180,13 +216,15 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
               </select>
             </div>
 
-            {["tandu_putra", "tandu_putri", "pertolongan_pertama", "senam_poco_poco", "mojang_jajaka", "poster", "pmr_cerdas"].map((name) => (
-              <div key={name}>
-                <label className="block text-sm font-medium mb-1">{name.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}</label>
+            {Object.keys(fieldToLombaIdMap).map((field) => (
+              <div key={field}>
+                <label className="block text-sm font-medium mb-1">
+                  {field.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                </label>
                 <input
                   type="number"
-                  name={name}
-                  value={formData[name as keyof typeof formData]}
+                  name={field}
+                  value={formData[field as keyof typeof formData]}
                   onChange={handleChange}
                   className="w-full border border-gray-300 p-2 rounded-md"
                 />
@@ -194,7 +232,18 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
             ))}
 
             <div>
-              <label className="block text-sm font-medium mb-1">Upload Bukti Pembayaran</label>
+              <label className="block text-sm font-medium mb-1">Nama Pengirim</label>
+              <input
+                type="text"
+                name="nama_pengirim"
+                value={formData.nama_pengirim}
+                onChange={handleChange}
+                className="w-full border border-gray-300 p-2 rounded-md"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Bukti Pembayaran</label>
               <input
                 type="file"
                 onChange={handleFileChange}
@@ -207,17 +256,19 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
                   rel="noopener noreferrer"
                   className="text-sm text-blue-600 underline mt-1 inline-block"
                 >
-                  Lihat bukti sebelumnya
+                  Lihat Bukti Sebelumnya
                 </a>
               )}
             </div>
-          </div>
 
-          <div className="mt-6 flex justify-end gap-4">
-            <Button onClick={onClose} variant="outline" className="w-full sm:w-auto">Batal</Button>
-            <Button onClick={handleSubmit} disabled={uploading} className="w-full sm:w-auto">
-              {uploading ? 'Menyimpan...' : data ? 'Update' : 'Tambah'}
-            </Button>
+            <div className="col-span-2 mt-4">
+              <div className="flex justify-between items-center">
+                <div className="font-semibold text-lg">Total: Rp{formData.total.toLocaleString()}</div>
+                <Button onClick={handleSubmit} disabled={uploading}>
+                  {uploading ? 'Menyimpan...' : data ? 'Update' : 'Tambah'}
+                </Button>
+              </div>
+            </div>
           </div>
         </Dialog.Panel>
       </div>

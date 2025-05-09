@@ -150,6 +150,7 @@ export default function AdminDashboard() {
               <tr className="text-left text-gray-600 text-xs uppercase tracking-wider">
                 <th className="px-4 py-3">Sekolah</th>
                 <th className="px-4 py-3">Pembina</th>
+                <th className="px-4 py-3">Whatsapp</th>
                 <th className="px-4 py-3">Kategori</th>
                 <th className="px-4 py-3">Tandu Putra</th>
                 <th className="px-4 py-3">Tandu Putri</th>
@@ -171,6 +172,16 @@ export default function AdminDashboard() {
                 <tr key={row.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-2">{row.nama_sekolah}</td>
                   <td className="px-4 py-2">{row.pembina}</td>
+                  <td className="px-4 py-2">
+                    <a
+                      href={`https://wa.me/+62${row.whatsapp}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      {row.whatsapp}
+                    </a>
+                  </td>
                   <td className="px-4 py-2">{row.kategori}</td>
                   <td className="px-4 py-2">{row.tandu_putra}</td>
                   <td className="px-4 py-2">{row.tandu_putri}</td>
