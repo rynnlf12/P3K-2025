@@ -196,43 +196,48 @@ const handleDownload = async () => {
         }
       };
 
-      xhr.onload = async () => {
-        if (xhr.status === 200 || xhr.status === 204) {
-          setProgress(100);
-          setTimeout(async () => {
-            // Dapatkan URL setelah upload selesai
-            const { data: downloadUrlData } = await supabase.storage
-              .from('kwitansi')
-              .getPublicUrl(filename);
+xhr.onload = async () => {
+  if (xhr.status === 200 || xhr.status === 204) {
+    setProgress(100);
+    setTimeout(async () => {
+      console.log("Upload sukses, mendapatkan URL...");
+      // Dapatkan URL setelah upload selesai
+      const { data: urlData, } = await supabase.storage
+        .from('kwitansi')
+        .getPublicUrl(filename);
 
-              if (downloadUrlData?.publicUrl) {
-                console.log('📌 Nomor:', nomor);
-                console.log('📌 URL Kwitansi:', downloadUrlData.publicUrl);
-              
-                const { error } = await supabase
-                  .from('pendaftaran')
-                  .update({ kwitansi_url: downloadUrlData.publicUrl })
-                  .eq('nomor', nomor);
-              
-                if (error) {
-                  console.error('❌ Gagal menyimpan URL kwitansi:', error);
-                  alert('Gagal menyimpan URL kwitansi ke database.');
-                  return;
-                }
-              
-                doc.save(`kwitansi-${nomor}.pdf`);
-                setIsDownloaded(true);
-                setProgress(0);
-              } else {
-                console.error('❌ Gagal mendapatkan public URL dari Supabase');
-                alert('Gagal mendapatkan URL publik kwitansi.');
-              }
-              
-          }, 600);
+      if ( !urlData?.publicUrl) {
+        console.error("❌ Gagal mendapatkan public URL:",);
+        alert("Gagal mendapatkan URL kwitansi.");
+        return;
+      }
+
+      const publicUrl = urlData.publicUrl;
+
+      console.log("Public URL:", publicUrl);
+
+      // Update URL kwitansi di tabel pendaftaran
+        const { data, error } = await supabase
+          .from('pendaftaran')
+          .update({ kwitansi_url: publicUrl })
+          .eq('nomor', nomor)
+          .select();
+
+        if (error) {
+          console.error('Update error:', error);
         } else {
-          alert('Gagal upload kwitansi ke Supabase.');
+          console.log('Data terupdate:', data);
         }
-      };
+        
+      doc.save(`kwitansi-${nomor}.pdf`);
+      setIsDownloaded(true);
+      setProgress(0);
+    }, 600);
+  } else {
+    alert('Gagal upload kwitansi ke Supabase.');
+  }
+};
+
 
       xhr.onerror = () => {
         alert('Upload gagal. Periksa koneksi internet.');

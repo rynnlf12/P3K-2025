@@ -144,8 +144,8 @@ export default function AdminDashboard() {
       ) : filteredData.length === 0 ? (
         <p className="text-center text-gray-500">Tidak ada data pendaftar.</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg shadow bg-white">
-          <table className="min-w-full text-sm text-gray-700">
+        <div className="overflow-x-auto">
+         <table className="min-w-full text-sm text-gray-700">
             <thead className="sticky top-0 bg-white border-b border-gray-200 z-10">
               <tr className="text-left text-gray-600 text-xs uppercase tracking-wider">
                 <th className="px-4 py-3">Sekolah</th>

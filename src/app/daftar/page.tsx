@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { LOMBA_LIST } from '@/data/lomba';
 import { AnimatePresence, motion } from 'framer-motion';
+import { AiOutlineWarning } from "react-icons/ai";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase';
@@ -101,50 +102,67 @@ export default function DaftarPage() {
     return lomba ? acc + lomba.biaya * jumlah : acc;
   }, 0);
 
-  const validateForm = () => {
-    const newErrors: string[] = [];
 
-    if (!formSekolah.nama || !formSekolah.pembina || !formSekolah.whatsapp || !formSekolah.kategori) {
-      newErrors.push('Lengkapi data sekolah terlebih dahulu.');
-    }
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
 
-    if (sekolahTerdaftar.includes(normalisasiNamaSekolah(formSekolah.nama))) {
-      newErrors.push('Sekolah ini sudah mendaftar.');
-    }
+  
+const handleLanjut = () => {
+  const formErrors: string[] = [];
 
-    if (waError) {
-      newErrors.push('Perbaiki nomor WhatsApp terlebih dahulu.');
-    }
+  if (!formSekolah.nama || !formSekolah.pembina || !formSekolah.whatsapp || !formSekolah.kategori) {
+    formErrors.push('Lengkapi data sekolah terlebih dahulu.');
+  }
 
-    Object.entries(peserta).forEach(([lombaId, tims]) => {
-      const { maksPesertaPerTim } = LOMBA_LIST.find((l) => l.id === lombaId)!;
-      tims.forEach((anggota, i) => {
-        if (anggota.some((nama) => nama.trim() === '')) {
-          newErrors.push(`Semua nama peserta harus diisi untuk ${lombaId}, tim ${i + 1}.`);
-        }
-        if (anggota.length !== maksPesertaPerTim) {
-          newErrors.push(`Jumlah anggota tim di ${lombaId} harus ${maksPesertaPerTim} orang.`);
-        }
-      });
+  if (sekolahTerdaftar.includes(normalisasiNamaSekolah(formSekolah.nama))) {
+    formErrors.push('Sekolah ini sudah mendaftar.');
+  }
+
+  if (waError) {
+    formErrors.push('Perbaiki nomor WhatsApp terlebih dahulu.');
+  }
+
+  const pesertaKosong: string[] = [];
+
+  Object.entries(peserta).forEach(([lombaId, tims]) => {
+    const { maksPesertaPerTim } = LOMBA_LIST.find((l) => l.id === lombaId)!;
+    tims.forEach((anggota, i) => {
+      if (anggota.some((nama) => nama.trim() === '')) {
+        pesertaKosong.push(`${lombaId} - Tim ${i + 1}`);
+      }
+      if (anggota.length !== maksPesertaPerTim) {
+        pesertaKosong.push(`${lombaId} - Tim ${i + 1}`);
+      }
     });
+  });
 
-    setErrors(newErrors);
-    return newErrors.length === 0;
+  if (formErrors.length > 0) {
+    setErrors(formErrors);
+    return;
+  }
+
+  if (pesertaKosong.length > 0) {
+    // hanya warning, tidak block
+    setConfirmMessage(`Beberapa tim belum lengkap:\n${pesertaKosong.join('\n')}\nTetap lanjut ke pembayaran?`);
+    setShowConfirmModal(true); // <--- INI WAJIB ADA
+    return;
+  }
+
+  lanjutKePembayaran();
+};
+
+
+const lanjutKePembayaran = () => {
+  const data = {
+    sekolah: formSekolah,
+    lombaDipilih,
+    peserta,
+    totalBayar,
   };
 
-  const handleLanjut = () => {
-    if (!validateForm()) return;
-
-    const data = {
-      sekolah: formSekolah,
-      lombaDipilih,
-      peserta,
-      totalBayar,
-    };
-
-    localStorage.setItem('formPendaftaran', JSON.stringify(data));
-    window.location.href = '/pembayaran';
-  };
+  localStorage.setItem('formPendaftaran', JSON.stringify(data));
+  window.location.href = '/pembayaran';
+};
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 pt-28 space-y-10">
@@ -313,6 +331,54 @@ export default function DaftarPage() {
           </motion.div>
         )}
       </AnimatePresence>
+     <AnimatePresence>
+  {showConfirmModal && (
+    <motion.div
+      key="modal"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="bg-white rounded-2xl shadow-xl max-w-md w-[90%] p-6 relative"
+      >
+        <div className="flex items-start gap-4">
+          <AiOutlineWarning className="text-yellow-500 mt-1 w-6 h-6 flex-shrink-0" />
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold text-gray-800">Tim Belum Lengkap</h2>
+            <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">
+              {confirmMessage || 'Beberapa tim belum memiliki jumlah anggota yang lengkap.\nApakah kamu yakin ingin tetap melanjutkan ke pembayaran?'}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={() => setShowConfirmModal(false)}
+            className="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-sm"
+          >
+            Kembali
+          </button>
+          <button
+            onClick={() => {
+              setShowConfirmModal(false);
+              lanjutKePembayaran();
+            }}
+            className="px-4 py-2 rounded-md bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium"
+          >
+            Ya, Tetap Lanjut
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
 
       <div className="mt-6 flex justify-center">
         <MotionButton
@@ -326,5 +392,6 @@ export default function DaftarPage() {
         </MotionButton>
       </div>
     </div>
+    
   );
 }
