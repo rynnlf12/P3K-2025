@@ -10,6 +10,34 @@ import 'react-toastify/dist/ReactToastify.css';
 export default function Statistics() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalIncome, setTotalIncome] = useState(0);
+
+    useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const { data: pendaftar, error } = await supabase
+          .from('pendaftaran')
+          .select('id, kategori, tandu_putra, tandu_putri, pertolongan_pertama, senam_poco_poco, mojang_jajaka, poster, pmr_cerdas, total'); // Tambahkan kolom total
+
+        if (error) throw error;
+
+        setData(pendaftar);
+        
+        // Hitung total uang masuk
+        const income = pendaftar.reduce((sum: number, item: any) => sum + (item.total || 0), 0);
+        setTotalIncome(income);
+
+      } catch (error) {
+        console.error('Gagal fetch:', error);
+        toast.error('❌ Gagal mengambil data statistik!');
+      }
+      setLoading(false);
+    };
+
+    fetchData();
+  }, []);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,9 +119,24 @@ export default function Statistics() {
         </div>
       ) : (
         <>
+          {/* Tambahkan section total uang masuk di sini */}
+          <div className="mb-8 text-center">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Total Uang Masuk: {' '}
+              <span className="text-green-600">
+                {new Intl.NumberFormat('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                  minimumFractionDigits: 0
+                }).format(totalIncome)}
+              </span>
+            </h2>
+          </div>
+
           <div className="mb-8 text-center">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Total Peserta Keseluruhan : {totalParticipants}</h2>
           </div>
+
 
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Total Peserta Per Lomba</h2>
