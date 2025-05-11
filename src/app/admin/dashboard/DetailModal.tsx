@@ -118,6 +118,7 @@ export default function DetailModal({ open, onClose, data }: DetailModalProps) {
                 </Badge>
               </div>
             </div>
+            
 
             <Separator />
 
@@ -176,6 +177,7 @@ export default function DetailModal({ open, onClose, data }: DetailModalProps) {
                 <p className="text-sm text-gray-500">Belum ada data peserta.</p>
               )}
             </div>
+            
           </div>
         </ScrollArea>
       </DialogContent>
