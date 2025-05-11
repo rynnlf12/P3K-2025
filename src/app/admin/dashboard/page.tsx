@@ -233,6 +233,8 @@ export default function AdminDashboard() {
       <div className="mt-6 flex flex-wrap gap-3">
         <Link href="/admin/participants"><Button>Lihat Peserta</Button></Link>
         <Link href="/admin/statistik"><Button>Lihat Statistik</Button></Link>
+        <Link href="/admin/input-juara"><Button>Input Daftar Juara</Button></Link>
+        <Link href="/admin/leaderboard"><Button>Lihat Peringkat</Button></Link>
       </div>
 
       <ToastContainer />

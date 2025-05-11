@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,6 +7,11 @@
 
 @import "tailwindcss";
 @import "tw-animate-css";
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
 
 .font-digital {
   font-family: 'Share Tech Mono', monospace;
@@ -145,3 +151,6 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+

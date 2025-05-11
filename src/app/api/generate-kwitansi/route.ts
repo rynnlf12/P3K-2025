@@ -134,10 +134,14 @@ export async function GET(request: Request) {
       throw new Error(uploadError.message);
     }
 
-    const { data: urlData } = supabase.storage.from('kwitansi').getPublicUrl(filename);
+    const { data: urlData } = supabase.storage
+    .from('kwitansi')
+    .getPublicUrl(filename);
     const publicUrl = urlData.publicUrl;
 
-    await supabase.from('pendaftaran').update({ kwitansi_url: publicUrl }).eq('nomor', nomor);
+    await supabase.from('pendaftaran')
+    .update({ kwitansi_url: publicUrl })
+    .eq('nomor', nomor);
 
     return NextResponse.json({ success: true, kwitansi_url: publicUrl });
   } catch (err: any) {

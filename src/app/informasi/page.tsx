@@ -94,7 +94,7 @@ export default function InformasiPage() {
         <motion.div variants={fadeInUp}>
           <Card>
             <div className="bg-yellow-100 p-4 rounded-t-lg">
-              <h3 className="text-xl font-semibold text-yellow-600">SURAT EDARAN DAN JUKLAK JUKNIS</h3>
+              <h3 className="text-xl font-semibold text-yellow-600">JUJU HASIL TECHNICAL MEETING DAN LIST ISI TAS PP</h3>
             </div>
             <div className="p-4 flex flex-col items-start">
               <Button
@@ -109,7 +109,7 @@ export default function InformasiPage() {
                   className="flex items-center gap-2"
                 >
                   <FileDown className="w-5 h-5" />
-                  Download Juklak & Juknis
+                  Download JUJU dan Isi Tas PP
                 </a>
               </Button>
             </div>

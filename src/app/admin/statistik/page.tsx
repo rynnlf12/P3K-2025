@@ -37,7 +37,7 @@ export default function Statistics() {
     tandu_putra: 2,
     tandu_putri: 2,
     pertolongan_pertama: 4,
-    senam_poco_poco: 7,
+    senam_poco_poco: 10,
     mojang_jajaka: 2,
     poster: 3,
     pmr_cerdas: 2,
