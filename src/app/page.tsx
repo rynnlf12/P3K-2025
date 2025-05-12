@@ -137,17 +137,18 @@ return (
             }
           }}
         >
-          <motion.div variants={slideUp}>
-            <Button
-              asChild
-              className="group h-12 px-8 bg-gradient-to-r from-[#B8860B] to-[#FFD700] hover:from-[#FFD700] hover:to-[#B8860B] text-black font-bold rounded-xl transition-all shadow-lg shadow-amber-500/30"
-            >
-              <Link href="/daftar" className="flex items-center gap-2">
-                Daftar Sekarang
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-          </motion.div>
+          {/* Untuk tampilan mobile saja */}
+        <motion.div variants={slideUp} className="lg:hidden">
+          <Button
+            asChild
+            className="group h-12 px-8 bg-gradient-to-r from-[#B8860B] to-[#FFD700] hover:from-[#FFD700] hover:to-[#B8860B] text-black font-bold rounded-xl transition-all shadow-lg shadow-amber-500/30"
+          >
+            <Link href="/daftar" className="flex items-center gap-2">
+              Daftar Sekarang
+              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </Button>
+        </motion.div>
 
           <motion.div variants={slideUp}>
             <Button
