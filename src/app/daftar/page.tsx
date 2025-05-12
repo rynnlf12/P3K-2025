@@ -23,12 +23,10 @@ export default function DaftarPage() {
   const [peserta, setPeserta] = useState<Record<string, string[][]>>({});
   const [sekolahTerdaftar, setSekolahTerdaftar] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
   const [namaSekolahError, setNamaSekolahError] = useState('');
   const [waError, setWaError] = useState('');
   const step = 1 + (Object.keys(lombaDipilih).length > 0 ? 1 : 0);
-
+  
   useEffect(() => {
     const fetchSekolahTerdaftar = async () => {
       const { data, error } = await supabase
@@ -57,9 +55,8 @@ export default function DaftarPage() {
 
   const handleLombaChange = (id: string, jumlahTim: number) => {
     const lomba = LOMBA_LIST.find((l) => l.id === id);
-    if (lomba && jumlahTim > 5) {
-      setAlertMessage(`Maksimal 3 tim per lomba ${lomba.nama}.`);
-      setShowAlert(true);
+    if (lomba && jumlahTim > 3) {
+      setErrors([`Maksimal 3 tim per lomba ${lomba.nama}.`]);
       return;
     }
 
@@ -87,7 +84,6 @@ export default function DaftarPage() {
       return updated;
     });
   };
-  
 
   const handlePesertaChange = (lombaId: string, timIndex: number, pesertaIndex: number, value: string) => {
     setPeserta((prev) => {
@@ -102,296 +98,328 @@ export default function DaftarPage() {
     return lomba ? acc + lomba.biaya * jumlah : acc;
   }, 0);
 
-
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState('');
 
-  
-const handleLanjut = () => {
-  const formErrors: string[] = [];
+  const handleLanjut = () => {
+    setErrors([]);
+    const formErrors: string[] = [];
 
-  if (!formSekolah.nama || !formSekolah.pembina || !formSekolah.whatsapp || !formSekolah.kategori) {
-    formErrors.push('Lengkapi data sekolah terlebih dahulu.');
-  }
+    if (!formSekolah.nama || !formSekolah.pembina || !formSekolah.whatsapp || !formSekolah.kategori) {
+      formErrors.push('Lengkapi data sekolah terlebih dahulu.');
+    }
 
-  if (sekolahTerdaftar.includes(normalisasiNamaSekolah(formSekolah.nama))) {
-    formErrors.push('Sekolah ini sudah mendaftar.');
-  }
+    if (sekolahTerdaftar.includes(normalisasiNamaSekolah(formSekolah.nama))) {
+      formErrors.push('Sekolah ini sudah mendaftar.');
+    }
 
-  if (waError) {
-    formErrors.push('Perbaiki nomor WhatsApp terlebih dahulu.');
-  }
+    if (!/^08\d{8,}$/.test(formSekolah.whatsapp)) {
+      formErrors.push('Format nomor WhatsApp tidak valid.');
+    }
 
-  const pesertaKosong: string[] = [];
+    const pesertaKosong: string[] = [];
 
-  Object.entries(peserta).forEach(([lombaId, tims]) => {
-    const { maksPesertaPerTim } = LOMBA_LIST.find((l) => l.id === lombaId)!;
-    tims.forEach((anggota, i) => {
-      if (anggota.some((nama) => nama.trim() === '')) {
-        pesertaKosong.push(`${lombaId} - Tim ${i + 1}`);
-      }
-      if (anggota.length !== maksPesertaPerTim) {
-        pesertaKosong.push(`${lombaId} - Tim ${i + 1}`);
-      }
+    Object.entries(peserta).forEach(([lombaId, tims]) => {
+      const lomba = LOMBA_LIST.find((l) => l.id === lombaId)!;
+      tims.forEach((anggota, i) => {
+        if (anggota.some((nama) => nama.trim() === '')) {
+          pesertaKosong.push(`${lomba.nama} - Tim ${i + 1}`);
+        }
+      });
     });
-  });
 
-  if (formErrors.length > 0) {
-    setErrors(formErrors);
-    return;
-  }
+    if (formErrors.length > 0) {
+      setErrors(formErrors);
+      return;
+    }
 
-  if (pesertaKosong.length > 0) {
-    // hanya warning, tidak block
-    setConfirmMessage(`Beberapa tim belum lengkap:\n${pesertaKosong.join('\n')}\nTetap lanjut ke pembayaran?`);
-    setShowConfirmModal(true); // <--- INI WAJIB ADA
-    return;
-  }
+    if (pesertaKosong.length > 0) {
+      setConfirmMessage(`Beberapa tim belum lengkap:\n${pesertaKosong.join('\n')}\nTetap lanjut ke pembayaran?`);
+      setShowConfirmModal(true);
+      return;
+    }
 
-  lanjutKePembayaran();
-};
-
-
-const lanjutKePembayaran = () => {
-  const data = {
-    sekolah: formSekolah,
-    lombaDipilih,
-    peserta,
-    totalBayar,
+    lanjutKePembayaran();
   };
 
-  localStorage.setItem('formPendaftaran', JSON.stringify(data));
-  window.location.href = '/pembayaran';
-};
+  const lanjutKePembayaran = () => {
+    const data = {
+      sekolah: formSekolah,
+      lombaDipilih,
+      peserta,
+      totalBayar,
+    };
 
-  return (
-    <div className="max-w-5xl mx-auto px-4 py-10 pt-28 space-y-10">
-         {/* Notifikasi Alert */}
-      {showAlert && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 w-96 bg-gradient-to-r from-yellow-400 to-red-500 text-white p-4 rounded-lg shadow-xl flex items-center justify-between space-x-4 transition-all ease-in-out duration-500 animate-pulse">
-          <div className="flex items-center space-x-3">
-          <svg
-  xmlns="http://www.w3.org/2000/svg"
-  className="w-6 h-6 text-white"
-  fill="none"
-  viewBox="0 0 24 24"
-  stroke="currentColor"
->
-  <path
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth="2"
-    d="M18.364 5.636a9 9 0 10-12.728 12.728 9 9 0 0012.728-12.728zM9 12h6M12 9v6"
-  />
-</svg>
-            <span>{alertMessage}</span>
+    localStorage.setItem('formPendaftaran', JSON.stringify(data));
+    window.location.href = '/pembayaran';
+  };
+
+   return (
+    <div className="max-w-5xl mx-auto px-4 py-10 pt-28 space-y-8">
+      {/* Progress Bar */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm text-gray-600">
+          <span>Langkah {step} dari 2</span>
+          <span>{Math.round((step/2)*100)}% Terselesaikan</span>
+        </div>
+        <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
+          <motion.div 
+            className="h-full bg-gradient-to-r from-yellow-600 to-red-600"
+            initial={{ width: 0 }}
+            animate={{ width: `${step * 50}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+      </div>
+
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-red-600 bg-clip-text text-transparent">
+          Formulir Pendaftaran P3K 2025
+        </h1>
+        <p className="text-gray-600">Isi data dengan lengkap dan benar</p>
+      </div>
+
+      {/* Form Sekolah */}
+      <div className="space-y-6 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Nama Sekolah</label>
+            <input
+              type="text"
+              placeholder="Contoh: SMAN 1 Cianjur"
+              value={formSekolah.nama}
+              onChange={(e) => {
+                const nama = e.target.value;
+                setFormSekolah({ ...formSekolah, nama });
+                const normalized = normalisasiNamaSekolah(nama);
+                setNamaSekolahError(
+                  sekolahTerdaftar.includes(normalized) 
+                    ? 'Sekolah ini sudah terdaftar' 
+                    : ''
+                );
+              }}
+              className={`w-full px-4 py-2 rounded-lg border ${
+                namaSekolahError ? 'border-red-500' : 'border-gray-200'
+              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+            />
+            {namaSekolahError && (
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                <AiOutlineWarning className="flex-shrink-0" /> {namaSekolahError}
+              </p>
+            )}
           </div>
-          <button
-            className="text-white bg-transparent hover:bg-white hover:text-red-600 rounded-full p-1"
-            onClick={() => setShowAlert(false)}
-          >
-            ✕
-          </button>
-        </div>
-      )}
-      <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
-        <div className="h-full bg-red-500 transition-all duration-500" style={{ width: `${step * 50}%` }}></div>
-      </div>
 
-      <h1 className="text-3xl font-bold mb-6 text-center text-red-700">Pendaftaran P3K 2025</h1>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Nama Pembina</label>
+              <input
+                type="text"
+                placeholder="Nama lengkap pembina"
+                value={formSekolah.pembina}
+                onChange={(e) => setFormSekolah({ ...formSekolah, pembina: e.target.value })}
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
 
-      <div className="space-y-4 p-4 bg-red-50 rounded border border-red-200">
-        <div>
-          <input
-            type="text"
-            placeholder="Nama Sekolah"
-            value={formSekolah.nama}
-            onChange={(e) => {
-              const nama = e.target.value;
-              setFormSekolah({ ...formSekolah, nama });
-              const normalized = normalisasiNamaSekolah(nama);
-              if (sekolahTerdaftar.includes(normalized)) {
-                setNamaSekolahError('Sekolah ini sudah mendaftar.');
-              } else {
-                setNamaSekolahError('');
-              }
-            }}
-            className={`w-full border px-2 py-1 rounded ${
-              namaSekolahError ? 'border-red-500' : formSekolah.nama ? 'border-green-500' : ''
-            }`}
-          />
-          {namaSekolahError && <p className="text-sm text-red-600 mt-1">{namaSekolahError}</p>}
-        </div>
-
-        <input
-          type="text"
-          placeholder="Nama Pembina"
-          value={formSekolah.pembina}
-          onChange={(e) => setFormSekolah({ ...formSekolah, pembina: e.target.value })}
-          className="w-full border px-2 py-1 rounded"
-        />
-
-        <div>
-          <input
-            type="text"
-            placeholder="Nomor WhatsApp"
-            value={formSekolah.whatsapp}
-            onChange={(e) => {
-              const wa = e.target.value.replace(/\D/g, '');
-              setFormSekolah({ ...formSekolah, whatsapp: wa });
-              if (!/^08\d{8,}$/.test(wa)) {
-                setWaError('Nomor WhatsApp tidak valid (harus 08xxxxxxxxxx)');
-              } else {
-                setWaError('');
-              }
-            }}
-            className={`w-full border px-2 py-1 rounded ${waError ? 'border-red-500' : formSekolah.whatsapp ? 'border-green-500' : ''}`}
-          />
-          {waError && <p className="text-sm text-red-600 mt-1">{waError}</p>}
-        </div>
-
-        <select
-          value={formSekolah.kategori}
-          onChange={(e) => setFormSekolah({ ...formSekolah, kategori: e.target.value })}
-          className="w-full border px-2 py-1 rounded"
-        >
-          <option value="">Pilih Kategori</option>
-          <option value="Wira">Wira</option>
-          <option value="Madya">Madya</option>
-        </select>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {LOMBA_LIST.map((lomba) => (
-          <MotionCard key={lomba.id} whileHover={{ scale: 1.02 }} className="border border-red-300">
-            <CardContent className="p-4 space-y-2">
-              <div className="flex justify-between items-center">
-                <h2 className="font-semibold text-red-800">{lomba.nama}</h2>
-                <span className="text-sm text-red-600">Rp {lomba.biaya.toLocaleString('id-ID')}</span>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Nomor WhatsApp</label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  placeholder="08123456789"
+                  value={formSekolah.whatsapp}
+                  onChange={(e) => {
+                    const wa = e.target.value.replace(/\D/g, '');
+                    setFormSekolah({ ...formSekolah, whatsapp: wa });
+                    setWaError(/^08\d{8,}$/.test(wa) ? '' : 'Format nomor tidak valid');
+                  }}
+                  className={`w-full pl-12 pr-4 py-2 rounded-lg border ${
+                    waError ? 'border-red-500' : 'border-gray-200'
+                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
               </div>
-              <p className="text-sm text-gray-600">{lomba.keterangan}</p>
-              <div className="flex items-center gap-2">
-  <label className="text-sm text-gray-700">Jumlah Tim:</label>
-  <input
-    type="number"
-    min={0}
-    max={5}  // Membatasi jumlah tim maksimal 3
-    className="w-16 px-2 py-1 border rounded text-sm"
-    value={lombaDipilih[lomba.id] || 0}
-    onChange={(e) => handleLombaChange(lomba.id, parseInt(e.target.value) || 0)}
-  />
-</div>
+              {waError && (
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                  <AiOutlineWarning className="flex-shrink-0" /> {waError}
+                </p>
+              )}
+            </div>
 
-              {peserta[lomba.id]?.map((tim, i) => (
-                <div key={i} className="bg-red-50 p-2 rounded border border-dashed space-y-1">
-                  <p className="font-medium text-sm">Tim {i + 1}</p>
-                  {tim.map((nama, j) => (
-                    <input
-                      key={j}
-                      type="text"
-                      placeholder={`Anggota ${j + 1}`}
-                      className={`w-full border px-2 py-1 text-sm rounded ${!nama.trim() ? 'border-yellow-400' : ''}`}
-                      value={nama}
-                      onChange={(e) => handlePesertaChange(lomba.id, i, j, e.target.value)}
-                    />
-                  ))}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Kategori</label>
+              <select
+                value={formSekolah.kategori}
+                onChange={(e) => setFormSekolah({ ...formSekolah, kategori: e.target.value })}
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Pilih Kategori</option>
+                <option value="Wira">Wira</option>
+                <option value="Madya">Madya</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Daftar Lomba */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {LOMBA_LIST.map((lomba) => (
+          <MotionCard
+            key={lomba.id}
+            whileHover={{ y: -2 }}
+            className="border border-gray-200 rounded-xl overflow-hidden"
+          >
+            <CardContent className="p-0">
+              <div className="bg-gradient-to-r from-yellow-100 to-red-50 p-4 border-b">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold text-gray-900">{lomba.nama}</h3>
+                  <span className="text-sm font-bold bg-red-200 text-red-800 px-2 py-1 rounded">
+                    Rp {lomba.biaya.toLocaleString('id-ID')}
+                  </span>
                 </div>
-              ))}
+                <p className="text-sm text-gray-600 mt-1">{lomba.keterangan}</p>
+              </div>
+
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-700">Jumlah Tim</span>
+                  <div className="flex items-center gap-2">
+                  <input
+                      type="number"
+                      min={0}
+                      max={3}
+                      value={lombaDipilih[lomba.id] || 0}
+                      onChange={(e) => handleLombaChange(lomba.id, Math.min(3, parseInt(e.target.value) || 0))}
+                      className="w-20 px-3 py-1 border border-gray-200 rounded text-center focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {peserta[lomba.id]?.map((tim, i) => (
+                  <div key={i} className="bg-gray-50 p-3 rounded-lg space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Tim {i + 1}</span>
+                      <span className="text-xs text-gray-500">
+                        {tim.filter(Boolean).length}/{lomba.maksPesertaPerTim} anggota
+                      </span>
+                    </div>
+                    
+                    {tim.map((nama, j) => (
+                      <input
+                        key={j}
+                        type="text"
+                        placeholder={`Anggota ${j + 1}`}
+                        value={nama}
+                        onChange={(e) => handlePesertaChange(lomba.id, i, j, e.target.value)}
+                        className={`w-full px-3 py-1 text-sm rounded border ${
+                          !nama.trim() ? 'border-yellow-400' : 'border-gray-200'
+                        } focus:ring-1 focus:ring-blue-500`}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </MotionCard>
         ))}
       </div>
 
-      <div className="bg-red-50 p-4 rounded shadow-sm">
-        <h3 className="text-xl font-semibold text-red-700 mb-2">Rincian Biaya</h3>
-        <ul className="text-sm text-gray-700 space-y-1">
+      {/* Ringkasan Pembayaran */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Ringkasan Pembayaran</h3>
+        <div className="space-y-3">
           {Object.entries(lombaDipilih).map(([id, jumlah]) => {
             const lomba = LOMBA_LIST.find((l) => l.id === id);
             return lomba ? (
-              <li key={id}>
-                {lomba.nama} x {jumlah} tim = Rp {(lomba.biaya * jumlah).toLocaleString('id-ID')}
-              </li>
+              <div key={id} className="flex justify-between text-sm">
+                <span>{lomba.nama} (x{jumlah})</span>
+                <span>Rp {(lomba.biaya * jumlah).toLocaleString('id-ID')}</span>
+              </div>
             ) : null;
           })}
-        </ul>
-        <p className="font-bold mt-2">Total: Rp {totalBayar.toLocaleString('id-ID')}</p>
+          <div className="border-t pt-3 mt-3">
+            <div className="flex justify-between font-semibold">
+              <span>Total Pembayaran</span>
+              <span className="bg-red-200 text-red-800 px-2 py-1 rounded">Rp {totalBayar.toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
+      {/* Error Messages */}
       <AnimatePresence>
         {errors.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded"
+            className="p-4 bg-red-50 border border-red-200 rounded-lg"
           >
             {errors.map((error, idx) => (
-              <p key={idx}>⚠️ {error}</p>
+              <div key={idx} className="flex items-center gap-2 text-red-600">
+                <AiOutlineWarning className="flex-shrink-0" />
+                <span>{error}</span>
+              </div>
             ))}
           </motion.div>
         )}
       </AnimatePresence>
-     <AnimatePresence>
-  {showConfirmModal && (
-    <motion.div
-      key="modal"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="bg-white rounded-2xl shadow-xl max-w-md w-[90%] p-6 relative"
-      >
-        <div className="flex items-start gap-4">
-          <AiOutlineWarning className="text-yellow-500 mt-1 w-6 h-6 flex-shrink-0" />
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-gray-800">Tim Belum Lengkap</h2>
-            <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">
-              {confirmMessage || 'Beberapa tim belum memiliki jumlah anggota yang lengkap.\nApakah kamu yakin ingin tetap melanjutkan ke pembayaran?'}
-            </p>
-          </div>
-        </div>
 
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            onClick={() => setShowConfirmModal(false)}
-            className="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-sm"
+      {/* Konfirmasi Modal */}
+      <AnimatePresence>
+        {showConfirmModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
           >
-            Kembali
-          </button>
-          <button
-            onClick={() => {
-              setShowConfirmModal(false);
-              lanjutKePembayaran();
-            }}
-            className="px-4 py-2 rounded-md bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium"
-          >
-            Ya, Tetap Lanjut
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl"
+            >
+              <div className="flex items-start gap-3">
+                <AiOutlineWarning className="text-yellow-500 mt-1 w-6 h-6 flex-shrink-0" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Perhatian</h3>
+                  <p className="text-gray-600 mt-2 whitespace-pre-line">
+                    {confirmMessage}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mt-6 flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowConfirmModal(false)}
+                >
+                  Kembali ke Form
+                </Button>
+                <Button
+                  onClick={lanjutKePembayaran}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Lanjutkan Pembayaran
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-
-      <div className="mt-6 flex justify-center">
+      {/* Tombol Aksi */}
+      <div className="flex justify-center">
         <MotionButton
-          type="button"
-          onClick={handleLanjut}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="bg-red-600 text-white hover:bg-red-700 px-6 py-2 rounded"
+          onClick={handleLanjut}
+          className="bg-gradient-to-r from-yellow-600 to-red-600 text-white px-8 py-3 rounded-lg font-semibold"
         >
           Lanjut ke Pembayaran
         </MotionButton>
       </div>
     </div>
-    
   );
 }

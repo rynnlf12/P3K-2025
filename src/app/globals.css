@@ -12,6 +12,10 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+:root {
+  --primary-color: 245, 158, 11;
+  --danger-color: 185, 28, 28;
+}
 
 .font-digital {
   font-family: 'Share Tech Mono', monospace;

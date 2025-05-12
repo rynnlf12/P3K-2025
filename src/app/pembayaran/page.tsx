@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Label } from '@/components/ui/label';
 import { LOMBA_LIST } from '@/data/lomba';
 import { supabase } from '@/lib/supabase';
+import Image from 'next/image';
 
 const MotionButton = motion(Button);
 
@@ -201,73 +201,168 @@ if (pesertaError) {
     }
   };
 
-  if (!dataPendaftaran) return <p className="p-6">Memuat data...</p>;
+   if (!dataPendaftaran) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="animate-pulse text-gray-600">
+        Memuat data pendaftaran...
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-100 to-orange-100 px-4 py-8 pt-28 text-orange-900">
-      <div className="max-w-3xl mx-auto bg-white/80 border p-6 rounded-lg shadow space-y-6">
-        <h1 className="text-2xl font-bold text-orange-700 text-center">Konfirmasi Pembayaran</h1>
-
-        <div className="text-center text-sm text-gray-600 font-mono mb-4">
-          <span className="text-orange-700 font-bold">Nomor:</span> {nomor}
+    <div className="min-h-screen bg-gray-50 py-32 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto space-y-8">
+        {/* Header Section */}
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-600 rounded-full mx-auto">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900">Konfirmasi Pembayaran</h1>
+          <div className="text-sm font-mono bg-gray-100 px-4 py-2 rounded-lg inline-block">
+            Nomor Registrasi: <span className="text-yellow-600">{nomor}</span>
+          </div>
         </div>
 
-        <div className="space-y-1 text-sm">
-          <p><strong>Nama Sekolah:</strong> {dataPendaftaran.sekolah.nama}</p>
-          <p><strong>Pembina:</strong> {dataPendaftaran.sekolah.pembina}</p>
-          <p><strong>WhatsApp:</strong> {dataPendaftaran.sekolah.whatsapp}</p>
-          <p><strong>Kategori:</strong> {dataPendaftaran.sekolah.kategori}</p>
-        </div>
+        {/* Main Card */}
+        <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 space-y-8">
+          {/* School Info */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Informasi Sekolah</h2>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div className="space-y-1">
+                <dt className="text-gray-500">Nama Sekolah</dt>
+                <dd className="font-medium">{dataPendaftaran.sekolah.nama}</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-gray-500">Nama Pembina</dt>
+                <dd className="font-medium">{dataPendaftaran.sekolah.pembina}</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-gray-500">Nomor WhatsApp</dt>
+                <dd className="font-medium">{dataPendaftaran.sekolah.whatsapp}</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-gray-500">Kategori</dt>
+                <dd className="font-medium">{dataPendaftaran.sekolah.kategori}</dd>
+              </div>
+            </dl>
+          </div>
 
-        <div className="bg-orange-50 border border-orange-300 rounded p-4 text-sm">
-          <h3 className="font-semibold text-orange-700 mb-2">Rincian Biaya:</h3>
-          <ul className="space-y-1">
-            {Object.entries(dataPendaftaran.lombaDipilih).map(([id, jumlah]) => {
-              const lomba = LOMBA_LIST.find((l) => l.id === id);
-              return (
-                <li key={id}>
-                  {lomba?.nama || id} × {jumlah} tim = <strong>Rp {(jumlah * (lomba?.biaya ?? 0)).toLocaleString('id-ID')}</strong>
-                </li>
-              );
-            })}
-          </ul>
-          <p className="mt-2 font-bold text-orange-800">Total: Rp {dataPendaftaran.totalBayar.toLocaleString('id-ID')}</p>
-        </div>
+          {/* Payment Details */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Rincian Pembayaran</h2>
+            <div className="space-y-3">
+              {Object.entries(dataPendaftaran.lombaDipilih).map(([id, jumlah]) => {
+                const lomba = LOMBA_LIST.find((l) => l.id === id);
+                return (
+                  <div key={id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                    <div>
+                      <p className="font-medium">{lomba?.nama || id}</p>
+                      <p className="text-sm text-gray-500">{jumlah} tim</p>
+                    </div>
+                    <span className="font-medium">
+                      Rp {(jumlah * (lomba?.biaya ?? 0)).toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                );
+              })}
+              <div className="flex justify-between items-center pt-4 border-t">
+                <span className="font-semibold">Total Pembayaran</span>
+                <span className="text-xl font-bold text-red-600">
+                  Rp {dataPendaftaran.totalBayar.toLocaleString('id-ID')}
+                </span>
+              </div>
+            </div>
+          </div>
 
-        <div className="bg-yellow-50 border border-yellow-400 p-4 rounded-md">
-          <p className="text-sm font-semibold text-yellow-800">Silakan transfer ke rekening berikut:</p>
-          <p className="mt-1">Bank <strong>BCA</strong></p>
-          <p>No. Rekening: <strong>4020701434</strong></p>
-          <p>Atas Nama: <strong>Kayla Andini Putri</strong></p>
-        </div>
+          {/* Bank Transfer */}
+          <div className="bg-yellow-50 p-6 rounded-xl space-y-3">
+            <h3 className="font-semibold text-red-600">Instruksi Pembayaran</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-3 bg-white p-4 rounded-lg">
+                <Image 
+                  src="/bca-logo.png" 
+                  alt="BCA" 
+                  width={80} 
+                  height={32}
+                  className="h-8 w-auto"
+                />
+                <div>
+                  <p className="font-medium">Bank Central Asia (BCA)</p>
+                  <div className="mt-1 space-y-1">
+                    <p>Nomor Rekening: <span className="font-mono">4020 7014 34</span></p>
+                    <p>Atas Nama: <span className="font-medium">Kayla Andini Putri</span></p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-white rounded-lg">
+                <p className="text-red-600 font-medium">✱ Pastikan jumlah transfer sesuai total pembayaran</p>
+                <p className="text-gray-600 mt-2">Upload bukti transfer dalam format JPG/PNG/PDF (maks. 5MB)</p>
+              </div>
+            </div>
+          </div>
 
-        <div>
-          <Label className="block mb-1 font-medium">Nama Pengirim Transfer</Label>
-          <Input
-            type="text"
-            placeholder="Contoh: Ryan Alfaridzy"
-            value={namaPengirim}
-            onChange={(e) => setNamaPengirim(e.target.value)}
-            className="bg-white border"
-          />
-        </div>
+          {/* Form Section */}
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Nama Pengirim Transfer
+                <Input
+                  type="text"
+                  placeholder="Nama sesuai rekening pengirim"
+                  value={namaPengirim}
+                  onChange={(e) => setNamaPengirim(e.target.value)}
+                  className="mt-1"
+                />
+              </label>
+              
+              <label className="block text-sm font-medium text-gray-700">
+                Upload Bukti Transfer
+                <div className="mt-1 flex items-center justify-center w-full">
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <p className="mt-1 text-sm text-gray-600">
+                        {bukti ? bukti.name : 'Klik untuk memilih file'}
+                      </p>
+                    </div>
+                    <Input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={handleUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </label>
+            </div>
 
-        <div>
-          <Label className="block mb-1 font-medium">Upload Bukti Pembayaran</Label>
-          <Input type="file" accept="image/*,application/pdf" onChange={handleUpload} className="bg-white border" />
-          {bukti && <p className="text-sm text-green-700 mt-1">📎 {bukti.name}</p>}
+            <MotionButton
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={loading}
+              onClick={handleSubmit}
+              className="w-full py-3 bg-gradient-to-r from-yellow-600 to-red-600 text-whitehover:from-yellow-700 hover:to-red-700 transition-all text-white font-medium"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Mengirim Data...
+                </div>
+              ) : (
+                'Konfirmasi Pembayaran'
+              )}
+            </MotionButton>
+          </div>
         </div>
-
-        <MotionButton
-          type="button"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          disabled={loading}
-          onClick={handleSubmit}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3"
-        >
-          {loading ? 'Mengirim...' : 'Kirim & Selesai'}
-        </MotionButton>
       </div>
     </div>
   );

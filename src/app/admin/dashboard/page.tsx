@@ -115,11 +115,11 @@ export default function AdminDashboard() {
   }, [filteredData, currentPage]);
 
   return (
-     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mx-auto max-w-7xl">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="mx-auto max-w-9xl">
         <div className="mb-8 space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">DATABASE PENDAFTARAN</h1>
-    
+
         </div>
 
         {/* Control Panel */}
@@ -153,7 +153,7 @@ export default function AdminDashboard() {
                 <FileDown className="h-4 w-4" />
                 Export
               </Button>
-               <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
+              <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
                 <FileDown className="h-4 w-4" />
                 Print
               </Button>
@@ -175,121 +175,121 @@ export default function AdminDashboard() {
             No participants found
           </div>
         ) : (
-           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-  <table className="w-full text-xs"> {/* Perkecil ukuran font */}
-    <thead className="bg-gray-50">
-      <tr className="text-left text-gray-500">
-        <th className="px-3 py-2 font-medium">Sekolah</th>
-        <th className="px-3 py-2 font-medium">Pembina</th>
-        <th className="px-3 py-2 font-medium">WA</th>
-        <th className="px-3 py-2 font-medium">Kategori</th>
-        <th className="px-3 py-2 font-medium text-center">T. Putra</th>
-        <th className="px-3 py-2 font-medium text-center">T. Putri</th>
-        <th className="px-3 py-2 font-medium text-center">PP</th>
-        <th className="px-3 py-2 font-medium text-center">Poco</th>
-        <th className="px-3 py-2 font-medium text-center">MJ</th>
-        <th className="px-3 py-2 font-medium text-center">Poster</th>
-        <th className="px-3 py-2 font-medium text-center">PMR</th>
-        <th className="px-3 py-2 font-medium">Total</th>
-        <th className="px-3 py-2 font-medium no-print">Bukti</th>
-        <th className="px-3 py-2 font-medium no-print">Kwitansi</th>
-        <th className="px-3 py-2 font-medium">Status</th>
-        <th className="px-3 py-2 font-medium">Pengirim</th>
-        <th className="px-3 py-2 font-medium no-print">Aksi</th>
-      </tr>
-    </thead>
-    <tbody className="divide-y divide-gray-200">
-      {paginatedData.map((row) => (
-        <tr key={row.id} className="hover:bg-gray-50">
-          {/* Kolom Data */}
-          <td className="px-3 py-2 truncate max-w-[120px]">{row.nama_sekolah}</td>
-          <td className="px-3 py-2 truncate max-w-[100px]">{row.pembina}</td>
-          <td className="px-3 py-2">
-            <a href={`https://wa.me/+62${row.whatsapp}`} className="text-blue-600 hover:underline">
-              {row.whatsapp}
-            </a>
-          </td>
-          <td className="px-3 py-2">
-            <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
-              {row.kategori}
-            </span>
-          </td>
-          
-          {/* Kolom Numerik */}
-          {[
-            row.tandu_putra,
-            row.tandu_putri,
-            row.pertolongan_pertama,
-            row.senam_poco_poco,
-            row.mojang_jajaka,
-            row.poster,
-            row.pmr_cerdas
-          ].map((val, idx) => (
-            <td key={idx} className="px-3 py-2 text-center">{val}</td>
-          ))}
+          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr className="text-left text-gray-500">
+                  <th className="px-6 py-2 font-medium">Sekolah</th>
+                  <th className="px-6 py-2 font-medium">Pembina</th>
+                  <th className="px-6 py-2 font-medium">WA</th>
+                  <th className="px-6 py-2 font-medium">Kategori</th>
+                  <th className="px-6 py-2 font-medium text-center">T. Putra</th>
+                  <th className="px-6 py-2 font-medium text-center">T. Putri</th>
+                  <th className="px-6 py-2 font-medium text-center">PP</th>
+                  <th className="px-6 py-2 font-medium text-center">Poco</th>
+                  <th className="px-6 py-2 font-medium text-center">MJ</th>
+                  <th className="px-6 py-2 font-medium text-center">Poster</th>
+                  <th className="px-6 py-2 font-medium text-center">PMR</th>
+                  <th className="px-6 py-2 font-medium">Total</th>
+                  <th className="px-2 py-2 font-medium no-print">Bukti</th>
+                  <th className="px-2 py-2 font-medium no-print">Kwitansi</th>
+                  <th className="px-6 py-2 font-medium">Status</th>
+                  <th className="px-6 py-2 font-medium">Pengirim</th>
+                  <th className="px-6 py-2 font-medium no-print">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {paginatedData.map((row) => (
+                  <tr key={row.id} className="hover:bg-gray-50">
+                    {/* Kolom Data */}
+                    <td className="px-1 py-2 truncate max-w-[120px]">{row.nama_sekolah}</td>
+                    <td className="px-1 py-2 truncate max-w-[100px]">{row.pembina}</td>
+                    <td className="px-6 py-2">
+                      <a href={`https://wa.me/+62${row.whatsapp}`} className="text-blue-600 hover:underline">
+                        {row.whatsapp}
+                      </a>
+                    </td>
+                    <td className="px-6 py-2">
+                      <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                        {row.kategori}
+                      </span>
+                    </td>
 
-          <td className="px-3 py-2 font-medium">Rp{row.total?.toLocaleString("id-ID")}</td>
-          
-          {/* Kolom Dokumen */}
-          <td className="px-3 py-2 no-print">
-            <a href={row.bukti} className="text-blue-600 hover:underline flex items-center gap-1">
-              <FileText className="h-3 w-3"/>
-            </a>
-          </td>
-          <td className="px-3 py-2 no-print">
-            <a href={row.kwitansi_url} className="text-blue-600 hover:underline flex items-center gap-1">
-              <FileText className="h-3 w-3"/>
-            </a>
-          </td>
+                    {/* Kolom Numerik */}
+                    {[
+                      row.tandu_putra,
+                      row.tandu_putri,
+                      row.pertolongan_pertama,
+                      row.senam_poco_poco,
+                      row.mojang_jajaka,
+                      row.poster,
+                      row.pmr_cerdas
+                    ].map((val, idx) => (
+                      <td key={idx} className="px-3 py-2 text-center">{val}</td>
+                    ))}
 
-          {/* Status */}
-          <td className="px-3 py-2">
-            <div className="flex items-center gap-1">
-              <div className={`h-2 w-2 rounded-full ${row.status_verifikasi === "verified" ? "bg-green-500" : "bg-yellow-500"}`}/>
-              <span className="cursor-pointer" onClick={() => handleToggleStatus(row.id, row.status_verifikasi)}>
-                {row.status_verifikasi === "verified" ? "✓" : "⌛"}
-              </span>
-            </div>
-          </td>
+                    <td className="px-3 py-2 font-medium">Rp{row.total?.toLocaleString("id-ID")}</td>
 
-          <td className="px-3 py-2 truncate max-w-[100px]">{row.nama_pengirim}</td>
+                    {/* Kolom Dokumen */}
+                    <td className="px-1 py-2 no-print">
+                      <a href={row.bukti} className="text-blue-600 hover:underline flex items-center gap-1">
+                        <FileText className="h-3 w-3" />
+                      </a>
+                    </td>
+                    <td className="px-1 py-2 no-print">
+                      <a href={row.kwitansi_url} className="text-blue-600 hover:underline flex items-center gap-1">
+                        <FileText className="h-3 w-3" />
+                      </a>
+                    </td>
 
-          {/* Aksi */}
-          <td className="px-3 py-2 no-print">
-  <div className="flex items-center gap-1">
-    <Button
-      variant="ghost"
-      size="sm" // Ganti 'xs' dengan 'sm'
-      className="h-8 w-8 p-0" // Tambahkan ini untuk ukuran compact
-      onClick={() => setSelectedParticipant(row)}
-    >
-      <Eye className="h-3.5 w-3.5" />
-    </Button>
-    
-    <Button
-      variant="ghost"
-      size="sm"
-      className="h-8 w-8 p-0"
-      onClick={() => { setFormParticipant(row); setFormOpen(true); }}
-    >
-      <Pencil className="h-3.5 w-3.5" />
-    </Button>
-    
-    <Button
-      variant="ghost"
-      size="sm"
-      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-      onClick={() => handleDelete(row.id)}
-    >
-      <Trash2 className="h-3.5 w-3.5" />
-    </Button>
-  </div>
-</td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
+                    {/* Status */}
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-1">
+                        <div className={`h-2 w-2 rounded-full ${row.status_verifikasi === "verified" ? "bg-green-500" : "bg-yellow-500"}`} />
+                        <span className="cursor-pointer" onClick={() => handleToggleStatus(row.id, row.status_verifikasi)}>
+                          {row.status_verifikasi === "verified" ? "✓" : "⌛"}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="px-3 py-2 truncate max-w-[100px]">{row.nama_pengirim}</td>
+
+                    {/* Aksi */}
+                    <td className="px-3 py-2 no-print">
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm" // Ganti 'xs' dengan 'sm'
+                          className="h-8 w-8 p-0" // Tambahkan ini untuk ukuran compact
+                          onClick={() => setSelectedParticipant(row)}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => { setFormParticipant(row); setFormOpen(true); }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                          onClick={() => handleDelete(row.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {/* Pagination */}
