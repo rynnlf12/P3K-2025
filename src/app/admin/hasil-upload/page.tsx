@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 import { useToast } from '@/components/ui/use-toast';
+import { Trophy, School, Hash, UploadCloud } from 'lucide-react';
 
 const lombaList = [
   'Tandu Putra',
@@ -24,7 +25,7 @@ const HasilUploadPage = () => {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
 
-  const { showToast } = useToast(); // ✅ tanpa argumen
+  const { showToast } = useToast();
 
  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const selectedFile = e.target.files?.[0] || null;
@@ -137,84 +138,143 @@ const handleUpload = async () => {
   setLoading(false);
 };
 
-
-
-
-
-  return (
-    <div className="max-w-xl mx-auto px-4 py-8 bg-white shadow rounded-lg">
-      <h1 className="text-2xl font-semibold mb-6">Upload Hasil Akhir</h1>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Mata Lomba</label>
-          <select
-            value={mata_lomba}
-            onChange={(e) => setLomba(e.target.value)}
-            className="mt-1 w-full p-2 border border-gray-300 rounded-md"
-            required
-          >
-            <option value="">Pilih lomba</option>
-            {lombaList.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Nama Sekolah</label>
-          <input
-            type="text"
-            value={nama_sekolah}
-            onChange={(e) => setNamaSekolah(e.target.value)}
-            className="mt-1 w-full p-2 border border-gray-300 rounded-md"
-            placeholder="Contoh: SMAN 1 Bandung"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Nomor Urut Peserta</label>
-          <input
-            type="text"
-            value={nomor_urut}
-            onChange={(e) => setNomorUrut(e.target.value)}
-            className="mt-1 w-full p-2 border border-gray-300 rounded-md"
-            placeholder="Contoh: 12"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Unggah Foto</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="mt-1"
-            required
-          />
-        </div>
-
-        {preview && (
-          <div className="mt-4">
-            <p className="text-sm text-gray-500 mb-2">Preview:</p>
-            <Image
-            src={preview}
-            alt={`Preview of file for ${mata_lomba} - ${nama_sekolah} (${nomor_urut})`}
-            width={500}
-            height={300}
-            className="rounded-md border"
-            />
+return (
+    <div className="min-h-screen bg-gradient-to-br from-black via-[#7A1F1F] to-[#3A1C1C]">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/10 shadow-2xl">
+          {/* Header Section */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm px-6 py-2 rounded-full border border-white/10 mb-4">
+              <Trophy className="h-5 w-5 text-yellow-400" />
+              <span className="text-sm font-medium text-gray-200">P3K 2025</span>
+            </div>
+            
+            <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#B8860B] mb-2">
+              Upload Hasil Akhir
+            </h1>
+            <p className="text-gray-300 text-sm md:text-base">Unggah hasil karya peserta sesuai ketentuan lomba</p>
           </div>
-        )}
 
-        <div className="pt-4 text-right">
-          <Button onClick={handleUpload} disabled={loading}>
-            {loading ? 'Mengunggah...' : 'Upload'}
-          </Button>
+          {/* Form Section */}
+          <div className="space-y-6">
+            {/* Mata Lomba */}
+            <div className="group">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Mata Lomba</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                  <Trophy className="h-5 w-5" />
+                </div>
+                <select
+                  value={mata_lomba}
+                  onChange={(e) => setLomba(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-white/20 bg-red-900/50 text-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20"
+                  required
+                >
+                  <option value="">Pilih Mata Lomba</option>
+                  {lombaList.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Nama Sekolah */}
+            <div className="group">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Nama Sekolah</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                  <School className="h-5 w-5" />
+                </div>
+                <input
+                  type="text"
+                  value={nama_sekolah}
+                  onChange={(e) => setNamaSekolah(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-white/20 bg-red-900/50 text-gray-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20"
+                  placeholder=" Masukkan nama sekolah"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Nomor Urut */}
+            <div className="group">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Nomor Urut</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                  <Hash className="h-5 w-5" />
+                </div>
+                <input
+                  type="text"
+                  value={nomor_urut}
+                  onChange={(e) => setNomorUrut(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-white/20 bg-red-900/50 text-gray-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20"
+                  placeholder="Contoh: 12"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* File Upload */}
+            <div className="group">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Unggah Karya</label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="file-upload"
+                  required
+                />
+                <label 
+                  htmlFor="file-upload"
+                  className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-white/20 rounded-xl bg-white/5 hover:border-yellow-400 transition-colors cursor-pointer"
+                >
+                  <UploadCloud className="h-8 w-8 text-gray-400 mb-2" />
+                  <span className="text-gray-300 text-sm">
+                    {file_path ? file_path.name : 'Pilih file gambar'}
+                  </span>
+                  <span className="text-gray-400 text-xs mt-1">(Max. 5MB)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Preview */}
+            {preview && (
+              <div className="mt-4">
+                <p className="text-sm text-gray-300 mb-2">Preview:</p>
+                <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-white/10">
+                  <Image
+                    src={preview}
+                    alt={`Preview karya ${nama_sekolah}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <div className="pt-6">
+              <Button 
+                onClick={handleUpload} 
+                disabled={loading}
+                className="w-full py-6 text-lg bg-gradient-to-r from-yellow-600 to-amber-700 hover:from-yellow-700 hover:to-amber-800 rounded-xl transition-all"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Mengunggah...
+                  </span>
+                ) : (
+                  'Upload Sekarang'
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

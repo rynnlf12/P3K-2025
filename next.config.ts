@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
+
 module.exports = {
   images: {
-    domains: ['https://llvesnxqpifjjrcecnxj.supabase.co'],
+    domains: ['llvesnxqpifjjrcecnxj.supabase.co'], // Ganti dengan URL Supabase Anda
   },
-}
+};
 const nextConfig = {
   experimental: {
     turbo: {
