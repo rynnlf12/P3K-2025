@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Trophy, Award, School, Sparkles } from "lucide-react";
 
 const kategoriOptions = ["Wira", "Madya"];
 const mataLombaOptions = [
@@ -65,95 +65,114 @@ export default function InputJuara() {
     }
   };
 
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-200 via-orange-300 to-pink-300 flex items-center justify-center px-4 py-10 relative overflow-hidden">
-      {/* Animated background sparkle */}
+    <div className="min-h-screen bg-gradient-to-br from-black via-[#7A1F1F] to-[#3A1C1C] py-28 px-4 flex items-center justify-center relative overflow-hidden">
+      {/* Animated background element */}
       <motion.div
-        className="absolute top-10 right-10 text-orange-400 opacity-30"
+        className="absolute top-20 -right-20 text-amber-400/10"
         animate={{ rotate: 360 }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
       >
-        <Sparkles size={100} />
+        <Sparkles size={400} />
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 80 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: "easeOut" }}
-        className="relative z-10 bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-5xl p-10 space-y-8"
+        className="relative z-10 bg-white/5 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl w-full max-w-4xl p-8 space-y-8"
       >
-        <h1 className="text-4xl font-extrabold text-center text-gray-800 tracking-tight">
-          ✨ Input Data Juara
-        </h1>
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center gap-2 bg-amber-400/10 px-6 py-2 rounded-full border border-amber-400/20 mb-4">
+            <Trophy className="h-6 w-6 text-amber-400" />
+            <span className="text-sm font-medium text-amber-300">P3K 2025</span>
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">
+            Input Data Juara
+          </h1>
+          <p className="text-gray-300">Masukkan hasil penilaian final peserta</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Dropdown */}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Dropdown Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-1 font-medium text-gray-700">Kategori</label>
-              <select
-                value={kategori}
-                onChange={(e) => setKategori(e.target.value)}
-                required
-                className="w-full p-3 text-lg rounded-xl border border-gray-300 focus:outline-none focus:ring-4 focus:ring-yellow-400"
-              >
-                <option value="">Pilih Kategori</option>
-                {kategoriOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
+            <div className="group">
+              <label className="block mb-3 font-medium text-amber-300">Kategori</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-400">
+                  <School className="h-5 w-5" />
+                </div>
+                <select
+                  value={kategori}
+                  onChange={(e) => setKategori(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 border-white/20 bg-yellow-600/30 text-amber-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                >
+                  <option value="">Pilih Kategori</option>
+                  {kategoriOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div>
-              <label className="block mb-1 font-medium text-gray-700">Mata Lomba</label>
-              <select
-                value={mataLomba}
-                onChange={(e) => setMataLomba(e.target.value)}
-                required
-                className="w-full p-3 text-lg rounded-xl border border-gray-300 focus:outline-none focus:ring-4 focus:ring-pink-300"
-              >
-                <option value="">Pilih Mata Lomba</option>
-                {mataLombaOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
+            <div className="group">
+              <label className="block mb-3 font-medium text-amber-300">Mata Lomba</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-400">
+                  <Award className="h-5 w-5" />
+                </div>
+                <select
+                  value={mataLomba}
+                  onChange={(e) => setMataLomba(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 border-white/20 bg-yellow-600/30 text-amber-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                >
+                  <option value="">Pilih Mata Lomba</option>
+                  {mataLombaOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Input Sekolah */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Input Sekolah Section */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {juaraData.map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
+                className="group"
               >
-                <label className="block text-md font-semibold text-gray-700 mb-1">
+                <label className="block mb-2 text-sm font-medium text-amber-300">
                   {item.juaraKe}
                 </label>
-                <input
-                  type="text"
-                  value={item.namaSekolah}
-                  onChange={(e) => handleChange(index, e.target.value)}
-                  placeholder="Nama Sekolah"
-                  className="w-full p-3 text-lg rounded-xl border border-gray-300 focus:ring-4 focus:ring-orange-300 focus:outline-none shadow-lg"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={item.namaSekolah}
+                    onChange={(e) => handleChange(index, e.target.value)}
+                    placeholder="Nama Sekolah"
+                    className="w-full pl-4 pr-4 py-3 rounded-xl border-2 border-white/20 bg-white/5 text-gray-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 placeholder-gray-400"
+                  />
+                </div>
               </motion.div>
             ))}
           </div>
 
+          {/* Submit Button */}
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             type="submit"
-            className="w-full py-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xl font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all"
+            className="w-full py-4 bg-gradient-to-r from-amber-600 to-yellow-700 text-lg font-semibold text-white rounded-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
           >
-            🚀 Simpan Data Juara
+            <Trophy className="w-5 h-5" />
+            Simpan Data Juara
           </motion.button>
         </form>
       </motion.div>

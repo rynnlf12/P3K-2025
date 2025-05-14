@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
-import { RefreshCwIcon, SearchIcon, ChevronDownIcon, FileText } from "lucide-react"; // TrophyIcon dihapus
+import { RefreshCwIcon, SearchIcon, ChevronDownIcon, Trophy, School, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import Link from "next/link";
 
 interface Juara {
   mata_lomba: string;
@@ -33,38 +33,38 @@ const normalizeSchoolName = (name: string): string => {
 };
 
 const StatCard = ({ label, value }: { label: string; value: number }) => (
-  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-100 dark:border-gray-700">
-    <div className="text-sm text-gray-500 dark:text-gray-400">{label}</div>
-    <div className="text-2xl font-semibold text-gray-900 dark:text-white mt-1">{value}</div>
+  <div className="p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-lg">
+    <div className="text-sm text-amber-300">{label}</div>
+    <div className="text-2xl font-bold text-amber-400 mt-1">{value}</div>
   </div>
 );
 
 const RankingCard = ({ school, rank }: { school: SchoolRanking; rank: number }) => (
   <motion.div
-    className="group bg-white dark:bg-gray-800 rounded-xl p-4 shadow-xs hover:shadow-sm transition-shadow border border-gray-100 dark:border-gray-700"
+    className="group bg-white/5 backdrop-blur-sm rounded-xl p-4 hover:border-amber-400/30 transition-all border border-white/10"
     whileHover={{ y: -2 }}
   >
     <div className="flex items-start justify-between">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
-          <span className="text-amber-600 dark:text-amber-400 font-medium">{rank}</span>
+        <div className="w-8 h-8 rounded-full bg-amber-400/10 flex items-center justify-center">
+          <span className="text-amber-400 font-medium">{rank}</span>
         </div>
-        <h3 className="text-base font-medium text-gray-900 dark:text-white truncate">
+        <h3 className="text-base font-medium text-white truncate">
           {school.nama_sekolah}
         </h3>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-4">
         <div className="text-center">
-          <div className="font-semibold text-amber-600 dark:text-amber-400">{school.total_juara_1}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">J1</div>
+          <div className="font-semibold text-amber-400">{school.total_juara_1}</div>
+          <div className="text-xs text-amber-300">J1</div>
         </div>
         <div className="text-center">
-          <div className="font-semibold text-amber-600 dark:text-amber-400">{school.total_juara_2}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">J2</div>
+          <div className="font-semibold text-amber-400">{school.total_juara_2}</div>
+          <div className="text-xs text-amber-300">J2</div>
         </div>
         <div className="text-center">
-          <div className="font-semibold text-amber-600 dark:text-amber-400">{school.total_juara_3}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">J3</div>
+          <div className="font-semibold text-amber-400">{school.total_juara_3}</div>
+          <div className="text-xs text-amber-300">J3</div>
         </div>
       </div>
     </div>
@@ -81,17 +81,17 @@ const CompetitionAccordion = ({ title, results, category }: {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+    <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
       <button
-        className="w-full flex items-center justify-between p-3"
+        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="text-left">
-          <h3 className="font-medium text-gray-900 dark:text-white text-sm">{title}</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{category}</p>
+          <h3 className="font-medium text-white text-sm">{title}</h3>
+          <p className="text-xs text-amber-300 mt-0.5">{category}</p>
         </div>
         <ChevronDownIcon
-          className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 text-amber-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
       
@@ -103,17 +103,17 @@ const CompetitionAccordion = ({ title, results, category }: {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="p-3 pt-0">
+            <div className="p-4 pt-0">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {JUARA_ORDER.map((juaraKe) => {
                   const peserta = results.find((j) => j.juara_ke === juaraKe);
                   return (
                     <div
                       key={juaraKe}
-                      className="p-2 text-xs bg-gray-50 dark:bg-gray-700 rounded-md"
+                      className="p-3 text-sm bg-white/5 rounded-lg border border-white/10"
                     >
-                      <div className="font-medium text-gray-500 dark:text-gray-300">{juaraKe}</div>
-                      <div className="text-gray-900 dark:text-white truncate">
+                      <div className="font-medium text-amber-300">{juaraKe}</div>
+                      <div className="text-white truncate">
                         {peserta?.nama_sekolah || "-"}
                       </div>
                     </div>
@@ -164,13 +164,6 @@ const Leaderboard = () => {
   useEffect(() => {
     fetchJuara();
   }, []);
-
-  
-  const handleViewFormClick = () => {
-    // Tambahkan logika untuk melihat form penilaian
-    console.log("Navigasi ke halaman form penilaian");
-    // atau tampilkan modal/form
-  };
 
 
   const groupBySchool = (kategori: string) => {
@@ -235,30 +228,39 @@ if (loading) {
   }
 
     return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+    <div className="min-h-screen bg-gradient-to-br from-black via-[#7A1F1F] to-[#3A1C1C] py-28 px-4 md:px-8">
+            <motion.div
+              className="absolute top-20 -right-20 text-amber-400/10"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+            >
+              <Sparkles size={400} />
+            </motion.div>
+  <div className="max-w-6xl mx-auto space-y-8">
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-              Leaderboard P3K 2025
+            <div className="inline-flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-full border border-white/10 mb-2">
+              <Trophy className="h-5 w-5 text-amber-400" />
+              <span className="text-sm text-gray-200">P3K 2025</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#B8860B]">
+              Papan Skor Perlombaan
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Hasil kompetisi real-time
-            </p>
           </div>
+          
           <div className="flex items-center gap-2">
-          <button
-            onClick={handleViewFormClick}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm"
-          >
-            <FileText className="w-5 h-5" />
-            <span className="text-sm font-medium">Lihat Form Penilaian</span>
-          </button>
+            <Link
+              href="/admin/hasil-akhir"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-600 to-yellow-700 hover:from-amber-700 hover:to-yellow-800 text-white rounded-xl transition-all shadow-lg"
+            >
+              <School className="w-5 h-5" />
+              <span className="text-sm font-medium">Lihat Form Penilaian Seluruh Peserta</span>
+            </Link>
             <button
               onClick={fetchJuara}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
             >
-              <RefreshCwIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <RefreshCwIcon className="w-5 h-5 text-amber-400" />
             </button>
           </div>
         </header>
@@ -269,7 +271,7 @@ if (loading) {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <StatCard label="Total Penghargaan" value={data.length} />
           <StatCard label="Sekolah Berpartisipasi" value={Object.keys(groupBySchool("Wira")).length} />
         </div>
@@ -277,10 +279,10 @@ if (loading) {
         {kategoriList.map((kategori) => (
           <section key={kategori} className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-medium text-gray-900 dark:text-white">Kategori {kategori}</h2>
+              <h2 className="font-medium text-[#FFD700] dark:text-white">Kategori {kategori}</h2>
               <button
                 onClick={() => setExpandedCategory(expandedCategory === kategori ? null : kategori)}
-                className="text-sm text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                className="text-sm text-[#FFD700] hover:text-amber-700 flex items-center gap-1"
               >
                 {expandedCategory === kategori ? 'Sembunyikan' : 'Lihat'}
               </button>
@@ -303,13 +305,15 @@ if (loading) {
           </section>
         ))}
 
-        <section className="space-y-4">
+         <section className="space-y-4">
           <div className="relative">
-            <SearchIcon className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+              <SearchIcon className="w-5 h-5 text-amber-400" />
+            </div>
             <input
               type="text"
               placeholder="Cari mata lomba..."
-              className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+              className="w-full pl-10 pr-4 py-3 text-sm rounded-xl border-2 border-white/20 bg-white/5 text-white placeholder-gray-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
