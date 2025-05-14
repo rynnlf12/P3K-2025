@@ -5,8 +5,15 @@ const nextConfig = {
       enabled: true, // Fix for turbo experimental setting
     },
   },
-  images: {
-    domains: ['llvesnxqpifjjrcecnxj.supabase.co'],
+   images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'llvesnxqpifjjrcecnxj.supabase.co', // ganti sesuai domain gambarmu
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,

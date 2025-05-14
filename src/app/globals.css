@@ -21,6 +21,8 @@ body {
   font-family: 'Share Tech Mono', monospace;
 }
 
+
+
 @keyframes slide-in-left {
   from {
     transform: translateX(-100%);
@@ -156,5 +158,54 @@ body {
   }
 }
 
+@layer utilities {
+  @keyframes fadeIn {
+    from { opacity: 0 }
+    to { opacity: 1 }
+  }
 
+  @keyframes fadeOut {
+    from { opacity: 1 }
+    to { opacity: 0 }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -60%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+    to {
+      opacity: 0;
+      transform: translate(-50%, -60%);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.2s ease-out forwards;
+  }
+
+  .animate-fadeOut {
+    animation: fadeOut 0.15s ease-in forwards;
+  }
+
+  .animate-slideIn {
+    animation: slideIn 0.25s ease-out forwards;
+  }
+
+  .animate-slideOut {
+    animation: slideOut 0.2s ease-in forwards;
+  }
+
+}
 

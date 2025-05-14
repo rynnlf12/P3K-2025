@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
+import { Toaster } from 'sonner';
 
 import NavbarMobile from "@/components/NavbarMobile";
 import NavbarDesktop from "@/components/NavbarDesktop";
 import { FaWhatsapp, FaInstagram } from 'react-icons/fa';
-
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +32,6 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-  
   children,
 }: {
   children: React.ReactNode;
@@ -43,7 +42,6 @@ export default function RootLayout({
       className={`${montserrat.variable} ${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="antialiased bg-gradient-to-br from-yellow-100 via-orange-100 to-pink-100 min-h-screen">
-        {/* Navbar Global */}
         <NavbarDesktop />
         <NavbarMobile />
 
@@ -71,10 +69,11 @@ export default function RootLayout({
             <FaInstagram className="w-6 h-6" />
           </a>
         </div>
+
+        <Toaster />
         <Analytics />
         <SpeedInsights />
       </body>
     </html>
   );
-  
 }

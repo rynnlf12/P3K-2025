@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { X, Home, FileText, UserPlus, Trophy } from 'lucide-react';
+import { X, Home, FileText, UserPlus, Trophy, Info } from 'lucide-react';
 
 export default function NavbarMobile() {
   const pathname = usePathname();
@@ -37,11 +37,17 @@ export default function NavbarMobile() {
       icon: <Trophy className="w-5 h-5" />
     },
     {
+      href: '/informasi',
+      label: 'Informasi Lomba',
+      icon: <Info className="w-5 h-5" />
+    },
+    {
       href: 'https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing',
       label: 'Surat Edaran',
       external: true,
       icon: <FileText className="w-5 h-5" />
     },
+    
   ];
 
   return (

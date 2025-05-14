@@ -224,7 +224,7 @@ if (loading) {
   }
 
     return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 py-25">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-4xl mx-auto space-y-8">
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
