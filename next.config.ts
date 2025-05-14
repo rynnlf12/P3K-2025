@@ -1,4 +1,9 @@
 /** @type {import('next').NextConfig} */
+module.exports = {
+  images: {
+    domains: ['https://llvesnxqpifjjrcecnxj.supabase.co'],
+  },
+}
 const nextConfig = {
   experimental: {
     turbo: {

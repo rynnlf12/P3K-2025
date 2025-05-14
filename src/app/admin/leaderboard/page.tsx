@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
-import { RefreshIcon, SearchIcon, ChevronDownIcon } from "@/components/Icons"; // TrophyIcon dihapus
+import { RefreshCwIcon, SearchIcon, ChevronDownIcon, FileText } from "lucide-react"; // TrophyIcon dihapus
 import { Skeleton } from "@/components/ui/skeleton";
+
 
 interface Juara {
   mata_lomba: string;
@@ -69,6 +70,8 @@ const RankingCard = ({ school, rank }: { school: SchoolRanking; rank: number }) 
     </div>
   </motion.div>
 );
+
+
 
 const CompetitionAccordion = ({ title, results, category }: { 
   title: string; 
@@ -162,6 +165,14 @@ const Leaderboard = () => {
     fetchJuara();
   }, []);
 
+  
+  const handleViewFormClick = () => {
+    // Tambahkan logika untuk melihat form penilaian
+    console.log("Navigasi ke halaman form penilaian");
+    // atau tampilkan modal/form
+  };
+
+
   const groupBySchool = (kategori: string) => {
     const schools: Record<string, SchoolRanking> = {};
     data
@@ -235,12 +246,21 @@ if (loading) {
               Hasil kompetisi real-time
             </p>
           </div>
+          <div className="flex items-center gap-2">
           <button
-            onClick={fetchJuara}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            onClick={handleViewFormClick}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm"
           >
-            <RefreshIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            <FileText className="w-5 h-5" />
+            <span className="text-sm font-medium">Lihat Form Penilaian</span>
           </button>
+            <button
+              onClick={fetchJuara}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            >
+              <RefreshCwIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            </button>
+          </div>
         </header>
 
         {error && (
