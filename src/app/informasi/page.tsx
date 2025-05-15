@@ -113,13 +113,6 @@ export default function InformasiPage() {
 
                 <DocumentButton 
                   icon={<Download className="w-5 h-5" />}
-                  title="Download Format Kartu Luka PP"
-                  description="Format Kartu Luka PP"
-                  href="/KARTU_LUKA.docx"
-                />
-
-                <DocumentButton 
-                  icon={<Download className="w-5 h-5" />}
                   title="Download Daftar Isi Tas PP"
                   description=" List Isi Tas PP"
                   href="/TAS_PP.pdf"

@@ -486,8 +486,6 @@ export default function AdminDashboard() {
             { href: "/admin/participants", label: "Data Peserta" },
             { href: "/admin/statistik", label: "Statistik Pendaftaran" },
             { href: "/admin/input-juara", label: "Input Daftar Juara" },
-            { href: "/admin/leaderboard", label: "Leaderboard Lomba" },
-            { href: "/admin/hasil-akhir", label: "Lihat Form Penilaian Peserta" },
             { href: "/admin/hasil-upload", label: "Upload Form Penilaian Peserta" },
           ].map((link) => (
             <Link
