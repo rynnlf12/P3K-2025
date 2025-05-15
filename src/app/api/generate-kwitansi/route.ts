@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
+import { LOMBA_LIST } from '@/data/lomba';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -38,88 +39,154 @@ export async function GET(request: Request) {
     const margin = 20;
     let y = margin;
     const pageWidth = doc.internal.pageSize.getWidth();
-
-    const logoWidth = 55;
-    const logoHeight = 30;
-    doc.addImage(logoBase64, 'PNG', (pageWidth - logoWidth) / 2, y, logoWidth, logoHeight);
-    y += logoHeight + 8;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text('KWITANSI PEMBAYARAN', pageWidth / 2, y, { align: 'center' });
-    y += 8;
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text('P3K 2025', pageWidth / 2, y, { align: 'center' });
-    y += 12;
-
-    const addRow = (label: string, value: string) => {
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${label}`, margin, y);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`: ${value}`, margin + 40, y);
-      y += 7;
-    };
-
-    addRow('Nomor Kwitansi', nomor);
-    addRow('Nama Sekolah', pendaftaran.nama_sekolah);
-    addRow('Pembina', pendaftaran.pembina);
-    addRow('WhatsApp', pendaftaran.whatsapp);
-    addRow('Kategori', pendaftaran.kategori);
-    addRow('Nama Pengirim', pendaftaran.nama_pengirim);
-    y += 4;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Lomba yang Diikuti:', margin, y);
-    y += 6;
-    doc.setFont('helvetica', 'normal');
-    const lombaFields = [
-      ['Tandu Putra', pendaftaran.tandu_putra],
-      ['Tandu Putri', pendaftaran.tandu_putri],
-      ['Pertolongan Pertama', pendaftaran.pertolongan_pertama],
-      ['Senam Poco-poco', pendaftaran.senam_poco_poco],
-      ['Mojang Jajaka', pendaftaran.mojang_jajaka],
-      ['Poster', pendaftaran.poster],
-      ['PMR Cerdas', pendaftaran.pmr_cerdas],
-    ];
-
-    lombaFields.forEach(([nama, jumlah]) => {
-      if (jumlah && jumlah > 0) {
-        doc.text(`- ${nama} (${jumlah} tim)`, margin + 5, y);
-        y += 6;
-      }
-    });
-
-    y += 5;
-    doc.setFillColor(209, 250, 229);
-    doc.setDrawColor(16, 185, 129);
-    doc.setTextColor(6, 95, 70);
-    doc.rect(margin, y, 170, 14, 'FD');
+    
+    // Header Section
+    const logoWidth = 40;
+    doc.addImage(logoBase64, 'PNG', margin, y, logoWidth, 25);
+    
+    // Organization Info
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text(`Total Pembayaran: Rp ${Number(pendaftaran.total).toLocaleString('id-ID')}`, margin + 5, y + 9);
-    doc.setTextColor(0, 0, 0);
+    doc.text('PEKAN PERLOMBAAN PMR (P3K) 2025', margin + logoWidth + 10, y + 8);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('KSR PMI Unit Universitas Suryakancana', margin + logoWidth + 10, y + 14);
+    doc.text('Jl. Pasir Gede Raya, Cianjur, Jawa Barat', margin + logoWidth + 10, y + 20);
+    
+    // Divider
+    y += 30;
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 10;
 
-    const fontSize = 12;
-    const stempelWidth = 60;
-    const stempelHeight = 60;
-    const xRight = pageWidth - margin - 60;
-    
-    // Posisi awal teks
-    y += 20;
-    doc.setFontSize(fontSize);
-    doc.text('Hormat Kami,', xRight, y);
-    
-    // Geser sedikit ke bawah dari teks (sekitar 3pt)
-    const stempelY = y - 13;
-    doc.addImage(`data:image/png;base64,${stempelBase64}`, 'PNG', xRight, stempelY, stempelWidth, stempelHeight);
-    
-    // Setelah stempel, langsung taruh teks “Panitia…” hanya 5pt di bawahnya
-    const panitiaY = stempelY + stempelHeight - 5;
+    // Title
     doc.setFont('helvetica', 'bold');
-    doc.text('Panitia P3K 2025.', xRight, panitiaY);
-    
+    doc.setFontSize(18);
+    doc.text('BUKTI PEMBAYARAN RESMI', pageWidth / 2, y, { align: 'center' });
+    y += 10;
 
+    // Transaction Info
+    const infoColumns = [
+      {
+        title: 'Informasi Pembayaran',
+        content: [
+          `Nomor Kwitansi: ${nomor}`,
+          `Tanggal: ${new Date().toLocaleDateString('id-ID')}`,
+          `Metode Pembayaran: Transfer Bank BCA`
+        ]
+      },
+      {
+        title: 'Informasi Sekolah',
+        content: [
+          `Nama Sekolah: ${pendaftaran.nama_sekolah}`,
+          `Pembina: ${pendaftaran.pembina}`,
+          `WhatsApp: ${pendaftaran.whatsapp}`
+        ]
+      }
+    ];
+
+    // Render columns
+    const columnWidth = (pageWidth - margin * 2 - 10) / 2;
+    infoColumns.forEach((col, idx) => {
+      const x = margin + (columnWidth + 10) * idx;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text(col.title, x, y);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      col.content.forEach((text, i) => {
+        doc.text(text, x, y + 8 + (i * 5));
+      });
+    });
+    y += 35;
+
+    // Competition Details
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Detail Perlombaan:', margin, y);
+    y += 7;
+
+    // Table
+    const headers = ['Nama Lomba', 'Jumlah Tim', 'Biaya'];
+    const rows = LOMBA_LIST
+      .filter(lomba => pendaftaran[lomba.id.replace(/-/g, '_')] > 0)
+      .map(lomba => [
+        lomba.nama,
+        pendaftaran[lomba.id.replace(/-/g, '_')].toString(),
+        `Rp ${(lomba.biaya * pendaftaran[lomba.id.replace(/-/g, '_')]).toLocaleString('id-ID')}`
+      ]);
+
+    const colWidths = [90, 30, 50];
+    const rowHeight = 8;
+    
+    // Table Header
+    doc.setFillColor(23, 37, 84);
+    doc.setTextColor(255, 255, 255);
+    let x = margin;
+    headers.forEach((header, i) => {
+      doc.rect(x, y, colWidths[i], rowHeight, 'F');
+      doc.text(header, x + 3, y + 5);
+      x += colWidths[i];
+    });
+    y += rowHeight;
+
+    // Table Rows
+    doc.setTextColor(0, 0, 0);
+    rows.forEach(row => {
+      x = margin;
+      row.forEach((cell, i) => {
+        doc.setFont('helvetica', i === 2 ? 'bold' : 'normal');
+        doc.text(cell, x + 3, y + 5);
+        doc.rect(x, y, colWidths[i], rowHeight);
+        x += colWidths[i];
+      });
+      y += rowHeight;
+    });
+    y += 10;
+
+    // Total Payment
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text(`Total Pembayaran: Rp ${pendaftaran.total.toLocaleString('id-ID')}`, 
+      pageWidth - margin - 80, y, { align: 'right' });
+    y += 15;
+
+    // Stamp Section
+    const stampWidth = 65;
+    const stampHeight = 65;
+    const stampX = pageWidth - margin - stampWidth;
+    const startY = y;
+    const dateText = 'Cianjur, ' + new Date().toLocaleDateString('id-ID');
+
+    // Date text
+    doc.setFontSize(12);
+    const dateX = stampX + (stampWidth/2) - (doc.getTextWidth(dateText)/2);
+    doc.text(dateText, dateX, startY);
+
+    // Stamp image
+    const stampY = startY - 15;
+    doc.addImage(stempelBase64, 'PNG', stampX, stampY, stampWidth, stampHeight);
+
+    // Panitia text
+    const panitiaText = 'Panitia P3K 2025';
+    doc.setFontSize(12);
+    const panitiaX = stampX + (stampWidth/2) - (doc.getTextWidth(panitiaText)/2);
+    const panitiaY = stampY + stampHeight - 9;
+    doc.setFont('helvetica', 'bold');
+    doc.text(panitiaText, panitiaX, panitiaY);
+
+    // Footer
+    y = doc.internal.pageSize.getHeight() - margin;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(100, 100, 100);
+    doc.text('Kwitansi ini merupakan bukti pembayaran yang sah, tunjukkan kwitansi ini saat daftar ulang', 
+      pageWidth / 2, y, { align: 'center' });
+    doc.text('Contact: ksrunitunsur@gmail.com | Telp: (+628) 5603-1052-34', 
+      pageWidth / 2, y + 5, { align: 'center' });
+
+    // Save to Supabase Storage
     const pdfBuffer = doc.output('arraybuffer');
     const filename = `kwitansi/${nomor}.pdf`;
 
@@ -135,17 +202,24 @@ export async function GET(request: Request) {
     }
 
     const { data: urlData } = supabase.storage
-    .from('kwitansi')
-    .getPublicUrl(filename);
-    const publicUrl = urlData.publicUrl;
+      .from('kwitansi')
+      .getPublicUrl(filename);
 
+    // Update database with kwitansi URL
     await supabase.from('pendaftaran')
-    .update({ kwitansi_url: publicUrl })
-    .eq('nomor', nomor);
+      .update({ kwitansi_url: urlData.publicUrl })
+      .eq('nomor', nomor);
 
-    return NextResponse.json({ success: true, kwitansi_url: publicUrl });
+    return NextResponse.json({ 
+      success: true, 
+      kwitansi_url: urlData.publicUrl 
+    });
+
   } catch (err: any) {
     console.error(err);
-    return NextResponse.json({ error: 'Gagal membuat kwitansi' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Gagal membuat kwitansi',
+      details: err.message 
+    }, { status: 500 });
   }
 }

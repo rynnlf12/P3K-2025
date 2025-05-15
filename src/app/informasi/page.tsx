@@ -3,7 +3,7 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { CalendarDays, Download, FileText, Info, Link2, ListChecks, Users, ClipboardList } from 'lucide-react';
+import { CalendarDays, Download, FileText, Info, Link2, Users, ClipboardList } from 'lucide-react';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -112,10 +112,17 @@ export default function InformasiPage() {
                 />
 
                 <DocumentButton 
-                  icon={<ListChecks className="w-5 h-5" />}
-                  title="Daftar Perlengkapan"
-                  description="Isi Tas Pertolongan Pertama"
-                  href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo"
+                  icon={<Download className="w-5 h-5" />}
+                  title="Download Format Kartu Luka PP"
+                  description="Format Kartu Luka PP"
+                  href="/KARTU_LUKA.docx"
+                />
+
+                <DocumentButton 
+                  icon={<Download className="w-5 h-5" />}
+                  title="Download Daftar Isi Tas PP"
+                  description=" List Isi Tas PP"
+                  href="/TAS_PP.pdf"
                 />
               </div>
             </div>
