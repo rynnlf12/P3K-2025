@@ -96,28 +96,36 @@ export default function InformasiPage() {
 
         {/* Dokumen Section */}
         <motion.div variants={fadeInUp}>
-          <Card className="rounded-xl border border-gray-200/70 bg-white">
-            <div className="p-6 space-y-4">
+          <Card className="rounded-xl border border-gray-200/70 bg-white w-full max-w-5xl mx-auto">
+
+            <div className="p-8 space-y-4">
               <div className="flex items-center gap-3 text-purple-600">
                 <FileText className="w-6 h-6" />
                 <h2 className="text-xl font-semibold">Dokumen Penting</h2>
               </div>
               
-              <div className="grid gap-3 md:grid-cols-2">
+             <div className="grid gap-3 md:grid-cols-3 w-full items-start justify-start">
                 <DocumentButton 
                   icon={<Download className="w-5 h-5" />}
-                  title="Panduan Lomba Hasil Technical Meeting"
+                  title="JUJU Hasil TM"
                   description="Download Juklak & Juknis"
                   href="https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo"
                 />
-
+                
                 <DocumentButton 
                   icon={<Download className="w-5 h-5" />}
                   title="Download Daftar Isi Tas PP"
                   description=" List Isi Tas PP"
                   href="/TAS_PP.pdf"
                 />
-              </div>
+              
+                <DocumentButton 
+                  icon={<Download className="w-5 h-5" />}
+                  title="Download Kartu Luka PP"
+                  description="Kartu Luka PP"
+                  href="/KARTU_LUKA"
+                />
+                </div>
             </div>
           </Card>
         </motion.div>
@@ -180,24 +188,27 @@ const DocumentButton = ({ icon, title, description, href }: any) => (
   <Button
     asChild
     variant="outline"
-    className="h-auto p-4 text-left hover:bg-gray-50 transition-colors"
+    className="w-full h-auto p-4 text-left hover:bg-gray-50 transition-colors"
   >
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-start gap-4"
+      className="flex items-start gap-4 text-left w-full"
     >
-      <div className={`p-2 rounded-lg bg-blue-100 text-blue-600`}>
+      <div className="p-2 rounded-lg bg-blue-100 text-blue-600 mt-1">
         {icon}
       </div>
-      <div>
+      <div className="flex flex-col text-left">
         <p className="font-medium text-gray-900">{title}</p>
         <p className="text-sm text-gray-500 mt-1">{description}</p>
       </div>
     </a>
   </Button>
 );
+
+
+
 
 // Link Button Component
 const LinkButton = ({ icon, title, description, href }: any) => (
