@@ -113,18 +113,21 @@ export default function InformasiPage() {
                 />
                 
                 <DocumentButton 
-                  icon={<Download className="w-5 h-5" />}
-                  title="Download Daftar Isi Tas PP"
-                  description=" List Isi Tas PP"
-                  href="/TAS_PP.pdf"
-                />
-              
-                <DocumentButton 
-                  icon={<Download className="w-5 h-5" />}
-                  title="Download Kartu Luka PP"
-                  description="Kartu Luka PP"
-                  href="/KARTU_LUKA"
-                />
+                icon={<Download className="w-5 h-5" />}
+                title="Download Daftar Isi Tas PP"
+                description="List Isi Tas PP"
+                href="/TAS_PP.pdf"
+                download={true}
+              />
+
+              <DocumentButton 
+                icon={<Download className="w-5 h-5" />}
+                title="Kartu Luka"
+                description="Download Kartu Luka"
+                href="/KARTU_LUKA.docx"
+                download={true}
+              />
+
                 </div>
             </div>
           </Card>
@@ -184,7 +187,7 @@ const TimelineItem = ({ date, time, title, items, accent = 'blue' }: any) => (
 );
 
 // Document Button Component
-const DocumentButton = ({ icon, title, description, href }: any) => (
+const DocumentButton = ({ icon, title, description, href, download }: any) => (
   <Button
     asChild
     variant="outline"
@@ -195,6 +198,7 @@ const DocumentButton = ({ icon, title, description, href }: any) => (
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-start gap-4 text-left w-full"
+      {...(download ? { download: '' } : {})} // hanya tambahkan jika `download` = true
     >
       <div className="p-2 rounded-lg bg-blue-100 text-blue-600 mt-1">
         {icon}
@@ -206,7 +210,6 @@ const DocumentButton = ({ icon, title, description, href }: any) => (
     </a>
   </Button>
 );
-
 
 
 
