@@ -55,7 +55,7 @@ export default function DaftarPage() {
 
   const handleLombaChange = (id: string, jumlahTim: number) => {
     const lomba = LOMBA_LIST.find((l) => l.id === id);
-    if (lomba && jumlahTim > 3) {
+    if (lomba && jumlahTim > 5) {
       setErrors([`Maksimal 3 tim per lomba ${lomba.nama}.`]);
       return;
     }
@@ -288,9 +288,9 @@ export default function DaftarPage() {
                   <input
                       type="number"
                       min={0}
-                      max={3}
+                      max={5}
                       value={lombaDipilih[lomba.id] || 0}
-                      onChange={(e) => handleLombaChange(lomba.id, Math.min(3, parseInt(e.target.value) || 0))}
+                      onChange={(e) => handleLombaChange(lomba.id, Math.min(5, parseInt(e.target.value) || 0))}
                       className="w-20 px-3 py-1 border border-gray-200 rounded text-center focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
