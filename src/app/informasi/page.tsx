@@ -119,15 +119,6 @@ export default function InformasiPage() {
                 href="/TAS_PP.pdf"
                 download={true}
               />
-
-              <DocumentButton 
-                icon={<Download className="w-5 h-5" />}
-                title="Kartu Luka"
-                description="Download Kartu Luka"
-                href="/KARTU_LUKA.docx"
-                download={true}
-              />
-
                 </div>
             </div>
           </Card>
