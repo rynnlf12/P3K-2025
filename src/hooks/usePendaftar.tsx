@@ -16,6 +16,7 @@ export function usePendaftar() {
   
       if (!error && data) setData(data as Pendaftar[]);
       setLoading(false);
+      
     };
   
     useEffect(() => {

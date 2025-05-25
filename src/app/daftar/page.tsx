@@ -1,424 +1,700 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LOMBA_LIST } from '@/data/lomba';
+import { LOMBA_LIST } from '@/data/lomba'; // Pastikan path ini benar
 import { AnimatePresence, motion } from 'framer-motion';
-import { AiOutlineWarning } from "react-icons/ai";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  AlertCircle,
+  PartyPopper,
+  School,      // Ikon untuk Data Sekolah
+  Swords,      // Ikon untuk Pilih Lomba
+  Users,       // Ikon untuk Data Peserta
+  ListChecks,  // Ikon untuk Ringkasan
+  CheckCircle2,// Ikon check yang lebih modern
+  Phone,       // Ikon untuk WA
+  User,        // Ikon untuk Pembina/Peserta
+  Building2,   // Ikon lain untuk Sekolah
+  Wallet,      // Ikon untuk Biaya
+  PlusCircle,  // Ikon tambah
+  MinusCircle, // Ikon kurang
+  Check,       // Ikon check sederhana
+  HelpCircle,  // Ikon untuk modal
+} from 'lucide-react';
+
+// Shadcn/UI Components
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { supabase } from '@/lib/supabase';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge'; // Tambahkan Badge untuk status
+
+import { supabase } from '@/lib/supabase'; // Pastikan path ini benar
 
 const MotionCard = motion(Card);
 const MotionButton = motion(Button);
+const steps = [
+    { label: 'Data Sekolah', icon: School },
+    { label: 'Pilih Lomba', icon: Swords },
+    { label: 'Data Peserta', icon: Users },
+    { label: 'Ringkasan', icon: ListChecks },
+];
+
+// Helper untuk format Rupiah
+const formatRupiah = (number: number) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(number);
+};
+
+// Varian Animasi untuk List
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1, // Jeda antar item
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+        type: 'spring',
+        stiffness: 100,
+    }
+  },
+};
+
+// Varian untuk Input Focus
+const inputFocusVariants = {
+    rest: { scale: 1 },
+    focus: { scale: 1.02, transition: { duration: 0.1 } },
+};
 
 export default function DaftarPage() {
+  const [currentStep, setCurrentStep] = useState(0);
   const [formSekolah, setFormSekolah] = useState({
     nama: '',
     pembina: '',
     whatsapp: '',
     kategori: '',
   });
-
   const [lombaDipilih, setLombaDipilih] = useState<Record<string, number>>({});
   const [peserta, setPeserta] = useState<Record<string, string[][]>>({});
   const [sekolahTerdaftar, setSekolahTerdaftar] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
-  const [namaSekolahError, setNamaSekolahError] = useState('');
-  const [waError, setWaError] = useState('');
-  const step = 1 + (Object.keys(lombaDipilih).length > 0 ? 1 : 0);
-  
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // --- LOGIKA UTAMA (TIDAK DIUBAH, KECUALI PERBAIKAN KECIL) ---
   useEffect(() => {
-    const fetchSekolahTerdaftar = async () => {
+    const fetchSekolah = async () => {
       const { data, error } = await supabase
         .from('pendaftaran')
         .select('nama_sekolah');
-      
-      if (error) {
-        console.error('Gagal ambil data:', error);
-        return;
+      if (!error && data) {
+        setSekolahTerdaftar(data.map((r) => normalize(r.nama_sekolah || '')));
       }
-      
-      const daftar = data.map(row => normalisasiNamaSekolah(row.nama_sekolah || ''));
-      setSekolahTerdaftar(daftar);
     };
-
-    fetchSekolahTerdaftar();
+    fetchSekolah();
   }, []);
 
-  function normalisasiNamaSekolah(nama: string) {
-    return nama
+  const normalize = (str: string) =>
+    str
       .toLowerCase()
       .replace(/negeri/g, 'n')
       .replace(/\s+/g, '')
       .replace(/[^a-z0-9]/g, '');
-  }
 
-  const handleLombaChange = (id: string, jumlahTim: number) => {
+  const handleLombaChange = (id: string, jumlah: number) => {
     const lomba = LOMBA_LIST.find((l) => l.id === id);
-    if (lomba && jumlahTim > 5) {
-      setErrors([`Maksimal 3 tim per lomba ${lomba.nama}.`]);
-      return;
-    }
+    if (!lomba) return;
+    const newJumlah = Math.max(0, Math.min(jumlah, 5)); // Maks 5 tim
 
     setLombaDipilih((prev) => {
       const updated = { ...prev };
-      if (jumlahTim <= 0) {
-        delete updated[id];
-      } else {
-        updated[id] = jumlahTim;
-      }
+      if (newJumlah <= 0) delete updated[id];
+      else updated[id] = newJumlah;
       return updated;
     });
 
-    const jumlahPerTim = lomba?.maksPesertaPerTim || 1;
-
     setPeserta((prev) => {
       const updated = { ...prev };
-      if (jumlahTim <= 0) {
-        delete updated[id];
-      } else {
-        updated[id] = Array.from({ length: jumlahTim }, (_, i) =>
-          Array.from({ length: jumlahPerTim }, (_, j) => prev[id]?.[i]?.[j] || '')
+      if (newJumlah <= 0) delete updated[id];
+      else {
+        const perTim = lomba.maksPesertaPerTim;
+        // Pertahankan data yang ada jika jumlah tim berkurang atau bertambah
+        const currentTeams = prev[id] || [];
+        updated[id] = Array.from({ length: newJumlah }, (_, i) =>
+            currentTeams[i] || Array(perTim).fill('')
         );
       }
       return updated;
     });
   };
 
-  const handlePesertaChange = (lombaId: string, timIndex: number, pesertaIndex: number, value: string) => {
+  const handlePesertaChange = (
+    lombaId: string,
+    timIndex: number,
+    pesertaIndex: number,
+    value: string
+  ) => {
     setPeserta((prev) => {
       const updated = { ...prev };
-      updated[lombaId][timIndex][pesertaIndex] = value;
+      // Pastikan array ada sebelum diakses
+      if (updated[lombaId] && updated[lombaId][timIndex]) {
+        updated[lombaId][timIndex][pesertaIndex] = value;
+      }
       return updated;
     });
   };
 
-  const totalBayar = Object.entries(lombaDipilih).reduce((acc, [id, jumlah]) => {
+  const totalBayar = Object.entries(lombaDipilih).reduce((acc, [id, jml]) => {
     const lomba = LOMBA_LIST.find((l) => l.id === id);
-    return lomba ? acc + lomba.biaya * jumlah : acc;
+    return lomba ? acc + lomba.biaya * jml : acc;
   }, 0);
 
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [confirmMessage, setConfirmMessage] = useState('');
-
-  const handleLanjut = () => {
+  const next = () => {
     setErrors([]);
-    const formErrors: string[] = [];
+    const errs : string[] = [];
 
-    if (!formSekolah.nama || !formSekolah.pembina || !formSekolah.whatsapp || !formSekolah.kategori) {
-      formErrors.push('Lengkapi data sekolah terlebih dahulu.');
+    if (currentStep === 0) {
+      const { nama, pembina, whatsapp, kategori } = formSekolah;
+      if (!nama) errs.push('Nama sekolah wajib diisi.');
+      if (!pembina) errs.push('Nama pembina wajib diisi.');
+      if (!whatsapp) errs.push('Nomor WhatsApp wajib diisi.');
+      if (!kategori) errs.push('Kategori sekolah wajib dipilih.');
+      if (sekolahTerdaftar.includes(normalize(nama)))
+        errs.push('Sekolah ini sudah terdaftar sebelumnya.');
+      // Memastikan validasi WA dimulai dengan 08 dan memiliki panjang total 10-15 digit
+      if (whatsapp && !/^08\d{8,13}$/.test(formSekolah.whatsapp))
+        errs.push('Format Nomor WhatsApp tidak valid (contoh: 081234567890).');
     }
 
-    if (sekolahTerdaftar.includes(normalisasiNamaSekolah(formSekolah.nama))) {
-      formErrors.push('Sekolah ini sudah mendaftar.');
+    if (currentStep === 1 && Object.keys(lombaDipilih).length === 0) {
+      errs.push('Anda harus memilih minimal satu lomba untuk diikuti.');
     }
 
-    if (!/^08\d{8,}$/.test(formSekolah.whatsapp)) {
-      formErrors.push('Format nomor WhatsApp tidak valid.');
-    }
-
-    const pesertaKosong: string[] = [];
-
-    Object.entries(peserta).forEach(([lombaId, tims]) => {
-      const lomba = LOMBA_LIST.find((l) => l.id === lombaId)!;
-      tims.forEach((anggota, i) => {
-        if (anggota.some((nama) => nama.trim() === '')) {
-          pesertaKosong.push(`${lomba.nama} - Tim ${i + 1}`);
-        }
+    if (currentStep === 2) {
+      const kosong: string[] = [];
+      Object.entries(peserta).forEach(([id, teams]) => {
+        const namaL = LOMBA_LIST.find((l) => l.id === id)?.nama;
+        teams.forEach((team, i) => {
+          if (team.some((n) => !n.trim()))
+            kosong.push(`- ${namaL}, Tim ${i + 1}`);
+        });
       });
-    });
-
-    if (formErrors.length > 0) {
-      setErrors(formErrors);
-      return;
+      if (kosong.length) {
+        setConfirmMessage(
+          `Beberapa data peserta tim belum lengkap:\n${kosong.join(
+            '\n'
+          )}\n\nApakah Anda yakin ingin melanjutkan? Anda bisa melengkapinya nanti.`
+        );
+        setShowConfirmModal(true);
+        return;
+      }
     }
 
-    if (pesertaKosong.length > 0) {
-      setConfirmMessage(`Beberapa tim belum lengkap:\n${pesertaKosong.join('\n')}\nTetap lanjut ke pembayaran?`);
-      setShowConfirmModal(true);
-      return;
-    }
+    if (errs.length) return setErrors(errs);
 
-    lanjutKePembayaran();
+    setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+  };
+
+  const prev = () => {
+    setErrors([]);
+    setCurrentStep((s) => Math.max(s - 1, 0));
   };
 
   const lanjutKePembayaran = () => {
-    const data = {
-      sekolah: formSekolah,
-      lombaDipilih,
-      peserta,
-      totalBayar,
-    };
-
+    setIsSubmitting(true);
+    setShowConfirmModal(false);
+    const data = { sekolah: formSekolah, lombaDipilih, peserta, totalBayar };
     localStorage.setItem('formPendaftaran', JSON.stringify(data));
-    window.location.href = '/pembayaran';
+    setTimeout(() => {
+        window.location.href = '/pembayaran';
+    }, 500);
   };
 
-   return (
-    <div className="max-w-5xl mx-auto px-4 py-10 pt-28 space-y-8">
-      {/* Progress Bar */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm text-gray-600">
-          <span>Langkah {step} dari 2</span>
-          <span>{Math.round((step/2)*100)}% Terselesaikan</span>
-        </div>
-        <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
-          <motion.div 
-            className="h-full bg-gradient-to-r from-yellow-600 to-red-600"
-            initial={{ width: 0 }}
-            animate={{ width: `${step * 50}%` }}
-            transition={{ duration: 0.5 }}
-          />
-        </div>
-      </div>
+  const submit = () => lanjutKePembayaran();
+  // --- AKHIR LOGIKA UTAMA ---
 
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-red-600 bg-clip-text text-transparent">
-          Formulir Pendaftaran P3K 2025
-        </h1>
-        <p className="text-gray-600">Isi data dengan lengkap dan benar</p>
-      </div>
-
-      {/* Form Sekolah */}
-      <div className="space-y-6 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Nama Sekolah</label>
-            <input
-              type="text"
-              placeholder="Contoh: SMAN 1 Cianjur"
-              value={formSekolah.nama}
-              onChange={(e) => {
-                const nama = e.target.value;
-                setFormSekolah({ ...formSekolah, nama });
-                const normalized = normalisasiNamaSekolah(nama);
-                setNamaSekolahError(
-                  sekolahTerdaftar.includes(normalized) 
-                    ? 'Sekolah ini sudah terdaftar' 
-                    : ''
-                );
-              }}
-              className={`w-full px-4 py-2 rounded-lg border ${
-                namaSekolahError ? 'border-red-500' : 'border-gray-200'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            />
-            {namaSekolahError && (
-              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                <AiOutlineWarning className="flex-shrink-0" /> {namaSekolahError}
-              </p>
-            )}
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Nama Pembina</label>
-              <input
-                type="text"
-                placeholder="Nama lengkap pembina"
-                value={formSekolah.pembina}
-                onChange={(e) => setFormSekolah({ ...formSekolah, pembina: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Nomor WhatsApp</label>
-              <div className="relative">
-                <input
-                  type="tel"
-                  placeholder="08123456789"
-                  value={formSekolah.whatsapp}
-                  onChange={(e) => {
-                    const wa = e.target.value.replace(/\D/g, '');
-                    setFormSekolah({ ...formSekolah, whatsapp: wa });
-                    setWaError(/^08\d{8,}$/.test(wa) ? '' : 'Format nomor tidak valid');
-                  }}
-                  className={`w-full pl-12 pr-4 py-2 rounded-lg border ${
-                    waError ? 'border-red-500' : 'border-gray-200'
-                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                />
-              </div>
-              {waError && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <AiOutlineWarning className="flex-shrink-0" /> {waError}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Kategori</label>
-              <select
-                value={formSekolah.kategori}
-                onChange={(e) => setFormSekolah({ ...formSekolah, kategori: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Pilih Kategori</option>
-                <option value="Wira">Wira</option>
-                <option value="Madya">Madya</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Daftar Lomba */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {LOMBA_LIST.map((lomba) => (
-          <MotionCard
-            key={lomba.id}
-            whileHover={{ y: -2 }}
-            className="border border-gray-200 rounded-xl overflow-hidden"
+  // --- Fungsi Render ---
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <motion.div
+            key="step0"
+            initial={{ x: -50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -50, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
           >
-            <CardContent className="p-0">
-              <div className="bg-gradient-to-r from-yellow-100 to-red-50 p-4 border-b">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-semibold text-gray-900">{lomba.nama}</h3>
-                  <span className="text-sm font-bold bg-red-200 text-red-800 px-2 py-1 rounded">
-                    Rp {lomba.biaya.toLocaleString('id-ID')}
-                  </span>
+            <Card className="shadow-lg border-t-4 border-t-yellow-500 overflow-hidden">
+              <CardHeader className="bg-yellow-50/50">
+                <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                  <School className="text-yellow-600"/> Data Sekolah & Pembina
+                </CardTitle>
+                <CardDescription>
+                  Lengkapi informasi dasar mengenai asal sekolah dan penanggung jawab.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6 p-6">
+                <div className="space-y-2">
+                  <Label htmlFor="nama-sekolah" className="font-semibold flex items-center gap-1"><Building2 size={16}/> Nama Sekolah</Label>
+                  <motion.div variants={inputFocusVariants} initial="rest" whileHover="focus" whileFocus="focus">
+                  <Input id="nama-sekolah" type="text" placeholder="Contoh: SMAN 1 Indonesia" value={formSekolah.nama}
+                    onChange={(e) => setFormSekolah({ ...formSekolah, nama: e.target.value })}
+                    className="py-6 text-base" />
+                  </motion.div>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">{lomba.keterangan}</p>
-              </div>
-
-              <div className="p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">Jumlah Tim</span>
-                  <div className="flex items-center gap-2">
-                  <input
-                      type="number"
-                      min={0}
-                      max={5}
-                      value={lombaDipilih[lomba.id] || 0}
-                      onChange={(e) => handleLombaChange(lomba.id, Math.min(5, parseInt(e.target.value) || 0))}
-                      className="w-20 px-3 py-1 border border-gray-200 rounded text-center focus:ring-2 focus:ring-blue-500"
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="nama-pembina" className="font-semibold flex items-center gap-1"><User size={16}/> Nama Pembina/Pelatih</Label>
+                    <motion.div variants={inputFocusVariants} initial="rest" whileHover="focus" whileFocus="focus">
+                    <Input id="nama-pembina" type="text" placeholder="Budi Santoso" value={formSekolah.pembina}
+                      onChange={(e) => setFormSekolah({ ...formSekolah, pembina: e.target.value })}
+                      className="py-6 text-base" />
+                    </motion.div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp" className="font-semibold flex items-center gap-1"><Phone size={16}/> Nomor WhatsApp</Label>
+                    <motion.div variants={inputFocusVariants} initial="rest" whileHover="focus" whileFocus="focus">
+                    <Input id="whatsapp" type="tel" placeholder="81234567890" value={formSekolah.whatsapp}
+                      onChange={(e) => setFormSekolah({ ...formSekolah, whatsapp: e.target.value.replace(/\D/g, ' '), })}
+                      className="py-6 text-base" />
+                    </motion.div>
                   </div>
                 </div>
-
-                {peserta[lomba.id]?.map((tim, i) => (
-                  <div key={i} className="bg-gray-50 p-3 rounded-lg space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Tim {i + 1}</span>
-                      <span className="text-xs text-gray-500">
-                        {tim.filter(Boolean).length}/{lomba.maksPesertaPerTim} anggota
-                      </span>
+                <div className="space-y-2">
+                    <Label htmlFor="kategori" className="font-semibold">Kategori Sekolah</Label>
+                    <Select value={formSekolah.kategori} onValueChange={(value) => setFormSekolah({ ...formSekolah, kategori: value })}>
+                        <SelectTrigger id="kategori" className="py-6 text-base">
+                            <SelectValue placeholder="Pilih Kategori Sekolah (Wira/Madya)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Wira">Wira (SMA/SMK Sederajat)</SelectItem>
+                            <SelectItem value="Madya">Madya (SMP Sederajat)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+      case 1:
+        return (
+          <motion.div
+            key="step1"
+            initial={{ x: 50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -50, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          >
+            <Card className="shadow-lg border-t-4 border-t-green-500 overflow-hidden">
+              <CardHeader className="bg-green-50/50">
+                <CardTitle className="text-2xl font-bold flex items-center gap-2"><Swords className="text-green-600"/> Pilih Mata Lomba</CardTitle>
+                <CardDescription>
+                  Pilih lomba yang akan diikuti. Anda bisa mendaftarkan hingga 5 tim per lomba.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <motion.div
+                    className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                >
+                  {LOMBA_LIST.map((lomba) => (
+                    <motion.div key={lomba.id} variants={itemVariants}>
+                      <MotionCard
+                        whileHover={{ scale: 1.03, boxShadow: "0px 10px 20px rgba(0,0,0,0.1)" }}
+                        transition={{ type: 'spring', stiffness: 300 }}
+                        className={`border-2 rounded-xl overflow-hidden cursor-pointer h-full flex flex-col justify-between
+                                    ${lombaDipilih[lomba.id] > 0
+                                        ? 'border-green-500 bg-green-50/30 ring-2 ring-green-300'
+                                        : 'border-gray-200 hover:border-gray-300'}`
+                                  }
+                      >
+                         <CardHeader className="p-4 border-b">
+                              <div className="flex justify-between items-start">
+                                  <h3 className="font-bold text-lg">{lomba.nama}</h3>
+                                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 flex items-center gap-1">
+                                      <Wallet size={12}/>{formatRupiah(lomba.biaya)}
+                                  </Badge>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1">{lomba.keterangan}</p>
+                         </CardHeader>
+                        <CardContent className="p-6 flex-grow">
+                            <Label htmlFor={`lomba-${lomba.id}`} className="flex flex-col sm:flex-row justify-between items-center text-sm font-medium">
+                              <span className="mb-2 sm:mb-0">Jumlah Tim (Maks. 5):</span>
+                              <div className="flex items-center gap-2">
+                                  <Button
+                                      variant="outline" size="icon" className="h-9 w-9 rounded-full"
+                                      onClick={() => handleLombaChange(lomba.id, (lombaDipilih[lomba.id] || 0) - 1)}
+                                  > <MinusCircle size={16}/> </Button>
+                                  <Input id={`lomba-${lomba.id}`} type="number" min={0} max={5} value={lombaDipilih[lomba.id] || 0}
+                                    onChange={(e) => handleLombaChange(lomba.id, parseInt(e.target.value) || 0)}
+                                    className="w-16 h-9 text-center text-xl font-bold border-gray-300 focus:ring-green-500 focus:border-green-500"
+                                  />
+                                   <Button
+                                      variant="outline" size="icon" className="h-9 w-9 rounded-full"
+                                      onClick={() => handleLombaChange(lomba.id, (lombaDipilih[lomba.id] || 0) + 1)}
+                                  > <PlusCircle size={16}/> </Button>
+                              </div>
+                            </Label>
+                        </CardContent>
+                         {lombaDipilih[lomba.id] > 0 && (
+                            <div className="p-2 bg-green-600 text-white text-xs font-bold text-center flex items-center justify-center gap-1">
+                                <CheckCircle2 size={14}/> TERPILIH ({lombaDipilih[lomba.id]} Tim)
+                            </div>
+                        )}
+                      </MotionCard>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+      case 2:
+        return (
+          <motion.div
+            key="step2"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -50, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          >
+             <Card className="shadow-lg border-t-4 border-t-blue-500 overflow-hidden">
+                 <CardHeader className="bg-blue-50/50">
+                    <CardTitle className="text-2xl font-bold flex items-center gap-2"><Users className="text-blue-600"/> Input Data Peserta</CardTitle>
+                    <CardDescription>
+                        Masukkan nama lengkap anggota tim. Jika belum ada, isi sementara dan hubungi panitia untuk update.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                    {Object.keys(peserta).length === 0 ? (
+                        <div className="text-center py-10 px-6 bg-gray-50 rounded-lg">
+                            <Users size={48} className="mx-auto text-gray-400 mb-4" />
+                            <h3 className="text-lg font-semibold text-gray-700">Belum Ada Lomba Dipilih</h3>
+                            <p className="text-sm text-gray-500">Silakan kembali ke langkah sebelumnya untuk memilih lomba terlebih dahulu.</p>
+                            <Button variant="outline" className="mt-4" onClick={prev}>
+                                <ChevronLeft className="mr-2 h-4 w-4"/> Kembali Pilih Lomba
+                            </Button>
+                        </div>
+                    ) : (
+                        <Accordion type="multiple" className="w-full space-y-4">
+                            {Object.entries(peserta).map(([id, teams]) => {
+                                 const lomba = LOMBA_LIST.find((l) => l.id === id);
+                                 if (!lomba) return null;
+                                return (
+                                    <AccordionItem key={id} value={id} className="border rounded-lg shadow-sm bg-white overflow-hidden">
+                                        <AccordionTrigger className="p-4 font-semibold text-lg hover:no-underline bg-white hover:bg-gray-50 transition-colors">
+                                            <div className="flex justify-between items-center w-full">
+                                                <span>{lomba.nama}</span>
+                                                <Badge variant="outline">{teams.length} Tim</Badge>
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="p-4 border-t bg-gray-50/50">
+                                            <motion.div
+                                                className="space-y-6"
+                                                variants={containerVariants}
+                                                initial="hidden"
+                                                animate="visible"
+                                            >
+                                                {teams.map((team, ti) => (
+                                                    <motion.div key={ti} variants={itemVariants} className="p-4 border rounded-md bg-white shadow-xs">
+                                                        <div className="flex justify-between items-center mb-3">
+                                                            <h5 className="font-medium text-gray-800">Tim {ti + 1}</h5>
+                                                            <Badge variant={team.filter(Boolean).length === lomba.maksPesertaPerTim ? "default" : "secondary"} className="text-xs">
+                                                                {team.filter(Boolean).length} / {lomba.maksPesertaPerTim} Anggota
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                            {team.map((name, j) => (
+                                                                <div key={j} className="space-y-1">
+                                                                    <Label htmlFor={`peserta-${id}-${ti}-${j}`} className="text-xs text-gray-600 flex items-center gap-1">
+                                                                        <User size={12}/> Anggota {j + 1}
+                                                                    </Label>
+                                                                    <motion.div variants={inputFocusVariants} initial="rest" whileHover="focus" whileFocus="focus">
+                                                                    <Input id={`peserta-${id}-${ti}-${j}`} type="text" placeholder={`Nama Anggota ${j + 1}`} value={name}
+                                                                        onChange={(e) => handlePesertaChange(id, ti, j, e.target.value)}
+                                                                        className="py-5" />
+                                                                    </motion.div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </motion.div>
+                                                ))}
+                                            </motion.div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                 )
+                            })}
+                        </Accordion>
+                    )}
+                </CardContent>
+             </Card>
+          </motion.div>
+        );
+      case 3:
+        return (
+          <motion.div
+            key="step3"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          >
+             <Card className="shadow-lg border-t-4 border-t-purple-500 overflow-hidden">
+                <CardHeader className="text-center bg-purple-50/50">
+                    <PartyPopper className="mx-auto h-12 w-12 text-purple-600 animate-bounce"/>
+                    <CardTitle className="text-2xl font-bold mt-2 flex items-center justify-center gap-2">
+                       <ListChecks className="text-purple-600"/> Ringkasan Pendaftaran
+                    </CardTitle>
+                    <CardDescription>
+                        Satu langkah lagi! Periksa kembali data Anda sebelum finalisasi.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                    <div className="p-4 border rounded-lg bg-gray-50 shadow-inner">
+                        <h4 className="font-semibold mb-3 text-gray-800 flex items-center gap-2"><School size={16}/> Data Sekolah</h4>
+                        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                            <div className="flex flex-col"><dt className="font-medium text-gray-500">Nama Sekolah:</dt><dd className="text-gray-900">{formSekolah.nama || '-'}</dd></div>
+                            <div className="flex flex-col"><dt className="font-medium text-gray-500">Nama Pembina:</dt><dd className="text-gray-900">{formSekolah.pembina || '-'}</dd></div>
+                             <div className="flex flex-col"><dt className="font-medium text-gray-500">No. WhatsApp:</dt><dd className="text-gray-900">{formSekolah.whatsapp ? `${formSekolah.whatsapp}` : '-'}</dd></div>
+                             <div className="flex flex-col"><dt className="font-medium text-gray-500">Kategori:</dt><dd className="text-gray-900 font-medium">{formSekolah.kategori || '-'}</dd></div>
+                        </dl>
                     </div>
-                    
-                    {tim.map((nama, j) => (
-                      <input
-                        key={j}
-                        type="text"
-                        placeholder={`Anggota ${j + 1}`}
-                        value={nama}
-                        onChange={(e) => handlePesertaChange(lomba.id, i, j, e.target.value)}
-                        className={`w-full px-3 py-1 text-sm rounded border ${
-                          !nama.trim() ? 'border-yellow-400' : 'border-gray-200'
-                        } focus:ring-1 focus:ring-blue-500`}
-                      />
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </MotionCard>
-        ))}
-      </div>
 
-      {/* Ringkasan Pembayaran */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Ringkasan Pembayaran</h3>
-        <div className="space-y-3">
-          {Object.entries(lombaDipilih).map(([id, jumlah]) => {
-            const lomba = LOMBA_LIST.find((l) => l.id === id);
-            return lomba ? (
-              <div key={id} className="flex justify-between text-sm">
-                <span>{lomba.nama} (x{jumlah})</span>
-                <span>Rp {(lomba.biaya * jumlah).toLocaleString('id-ID')}</span>
-              </div>
-            ) : null;
-          })}
-          <div className="border-t pt-3 mt-3">
-            <div className="flex justify-between font-semibold">
-              <span>Total Pembayaran</span>
-              <span className="bg-red-200 text-red-800 px-2 py-1 rounded">Rp {totalBayar.toLocaleString('id-ID')}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+                    <div className="p-4 border rounded-lg bg-white shadow-sm">
+                        <h4 className="font-semibold mb-4 text-gray-800 flex items-center gap-2"><Wallet size={16}/> Rincian Biaya</h4>
+                        <div className="space-y-3">
+                        {Object.entries(lombaDipilih).map(([id, j]) => {
+                            const l = LOMBA_LIST.find((x) => x.id === id);
+                            return l ? (
+                            <motion.div
+                                key={id}
+                                className="flex justify-between items-center text-sm border-b pb-3 last:border-b-0"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.1 * Object.keys(lombaDipilih).indexOf(id) }}
+                            >
+                                <div>
+                                    <p className="font-medium text-gray-900">{l.nama}</p>
+                                    <p className="text-xs text-gray-500">({j} tim x {formatRupiah(l.biaya)})</p>
+                                </div>
+                                <span className="font-medium text-gray-900">{formatRupiah(l.biaya * j)}</span>
+                            </motion.div>
+                            ) : null;
+                        })}
+                         {Object.keys(lombaDipilih).length === 0 && (
+                            <p className="text-center text-gray-500 py-4">Belum ada lomba yang dipilih.</p>
+                        )}
+                        <div className="border-t-2 border-dashed pt-4 mt-4 flex justify-between font-bold text-xl text-purple-700">
+                            <span>TOTAL</span>
+                            <span>{formatRupiah(totalBayar)}</span>
+                        </div>
+                        </div>
+                    </div>
+                </CardContent>
+             </Card>
+          </motion.div>
+        );
+      default:
+        return null;
+    }
+  };
 
-      {/* Error Messages */}
-      <AnimatePresence>
-        {errors.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
+  return (
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto space-y-12">
+        <motion.div
+            className="text-center pt-16"
+            initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="p-4 bg-red-50 border border-red-200 rounded-lg"
-          >
-            {errors.map((error, idx) => (
-              <div key={idx} className="flex items-center gap-2 text-red-600">
-                <AiOutlineWarning className="flex-shrink-0" />
-                <span>{error}</span>
-              </div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Konfirmasi Modal */}
-      <AnimatePresence>
-        {showConfirmModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl"
-            >
-              <div className="flex items-start gap-3">
-                <AiOutlineWarning className="text-yellow-500 mt-1 w-6 h-6 flex-shrink-0" />
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Perhatian</h3>
-                  <p className="text-gray-600 mt-2 whitespace-pre-line">
-                    {confirmMessage}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="mt-6 flex gap-3 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowConfirmModal(false)}
-                >
-                  Kembali ke Form
-                </Button>
-                <Button
-                  onClick={lanjutKePembayaran}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Lanjutkan Pembayaran
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Tombol Aksi */}
-      <div className="flex justify-center">
-        <MotionButton
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleLanjut}
-          className="bg-gradient-to-r from-yellow-600 to-red-600 text-white px-8 py-3 rounded-lg font-semibold"
+            transition={{ duration: 0.5 }}
         >
-          Lanjut ke Pembayaran
-        </MotionButton>
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                Formulir Pendaftaran Lomba
+            </h1>
+            <p className="mt-4 text-lg leading-6 text-gray-600">
+                Ikuti 4 langkah mudah untuk mendaftarkan kontingen sekolah Anda.
+            </p>
+        </motion.div>
+
+        {/* Stepper */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center p-4 bg-white rounded-full shadow-md border">
+          {steps.map((step, i) => (
+            <React.Fragment key={i}>
+              <div className="flex items-center space-x-3 sm:space-x-0 sm:flex-1 sm:flex-col sm:items-center text-center p-2 rounded-full transition-all duration-300">
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300
+                    ${
+                      i < currentStep
+                        ? 'bg-green-600 text-white border-green-600'
+                        : i === currentStep
+                        ? 'bg-yellow-500 text-white border-yellow-600 scale-110 shadow-lg'
+                        : 'bg-gray-100 text-gray-500 border-gray-300'
+                    }`}
+                >
+                  {i < currentStep ? <Check size={24} /> : <step.icon size={20} />}
+                </div>
+                <p
+                  className={`text-xs sm:text-sm mt-0 sm:mt-2 transition-all duration-300 ${
+                    i <= currentStep ? 'font-semibold text-gray-900' : 'text-gray-500'
+                  }`}
+                >
+                  {step.label}
+                </p>
+              </div>
+              {i < steps.length - 1 && (
+                 <div className={`flex-1 h-1 sm:h-0.5 my-auto ${ i < currentStep ? 'bg-green-500' : 'bg-gray-300'} rounded-full transition-all duration-500 ease-in-out`}>
+                </div>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Konten Langkah */}
+        <div className="bg-white p-4 sm:p-8 rounded-2xl shadow-xl border border-gray-100 min-h-[450px]">
+            <AnimatePresence mode="wait">
+                 {renderStepContent()}
+            </AnimatePresence>
+        </div>
+
+        {/* Error Messages */}
+        {errors.length > 0 && (
+             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <Alert variant="destructive" className="shadow-md border-l-4 border-l-red-600">
+                    <AlertCircle className="h-5 w-5" />
+                    <AlertTitle>Oops! Perlu Perhatian</AlertTitle>
+                    <AlertDescription>
+                        <ul className="list-disc pl-5 space-y-1">
+                            {errors.map((e, i) => (
+                                <li key={i}>{e}</li>
+                            ))}
+                        </ul>
+                    </AlertDescription>
+                </Alert>
+            </motion.div>
+        )}
+
+        {/* Modal Konfirmasi */}
+         <AlertDialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+            <AlertDialogContent className="rounded-xl">
+                <AlertDialogHeader>
+                     <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <HelpCircle className="h-6 w-6 text-yellow-600" aria-hidden="true" />
+                    </div>
+                    <AlertDialogTitle className="text-xl font-semibold">Konfirmasi Lanjutan</AlertDialogTitle>
+                </AlertDialogHeader>
+                <AlertDialogDescription className="whitespace-pre-line text-base text-gray-600 py-4">
+                  {confirmMessage}
+                </AlertDialogDescription>
+                <AlertDialogFooter className="sm:justify-end gap-2">
+                    <AlertDialogCancel asChild>
+                        <Button variant="outline">Kembali & Perbaiki</Button>
+                    </AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                         <Button onClick={lanjutKePembayaran} className="bg-blue-600 hover:bg-blue-700 text-white">
+                            <Check className="mr-2 h-4 w-4"/> Ya, Lanjutkan Saja
+                        </Button>
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Navigasi Tombol */}
+        <div className="flex flex-col-reverse sm:flex-row justify-between items-center mt-10 p-5 bg-white rounded-xl shadow-lg border-t-2 border-gray-100 gap-4">
+          <MotionButton
+            variant="outline"
+            size="lg"
+            disabled={currentStep === 0 || isSubmitting}
+            onClick={prev}
+            whileHover={{ scale: 1.05, x: -2 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-full sm:w-auto"
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Kembali
+          </MotionButton>
+
+          {currentStep < steps.length - 1 ? (
+            <MotionButton
+              size="lg"
+              onClick={next}
+              whileHover={{ scale: 1.05, x: 2 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white w-full sm:w-auto"
+            >
+              Selanjutnya
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </MotionButton>
+          ) : (
+            <MotionButton
+              size="lg"
+              onClick={submit}
+              disabled={isSubmitting || totalBayar === 0} // Disable jika tidak ada lomba dipilih
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto disabled:opacity-50"
+            >
+                {isSubmitting ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Memproses...
+                    </>
+                ) : (
+                    <>
+                        Lanjut ke Pembayaran
+                        <CheckCircle2 className="ml-2 h-4 w-4" />
+                    </>
+                )}
+            </MotionButton>
+          )}
+        </div>
       </div>
     </div>
   );
