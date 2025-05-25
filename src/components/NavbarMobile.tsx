@@ -2,10 +2,46 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { X, Home, FileText, UserPlus, Trophy, Info } from 'lucide-react';
+import { X, Home, FileText, UserPlus, Trophy, Info, Menu, ArrowRight, ExternalLink } from 'lucide-react'; // Impor ikon baru
+
+// Varian animasi untuk menu (slide-in/out)
+const menuVariants = {
+  open: { 
+    x: 0, 
+    transition: { type: 'spring', stiffness: 300, damping: 30, mass: 0.8 } 
+  },
+  closed: { 
+    x: '100%', 
+    transition: { type: 'spring', stiffness: 400, damping: 35 } 
+  },
+};
+
+// Varian animasi untuk container list (stagger)
+const listVariants = {
+  open: {
+    transition: { staggerChildren: 0.07, delayChildren: 0.2 }
+  },
+  closed: {
+    transition: { staggerChildren: 0.05, staggerDirection: -1 }
+  }
+};
+
+// Varian animasi untuk item list (fade/slide up)
+const itemVariants = {
+  open: {
+    y: 0,
+    opacity: 1,
+    transition: { y: { stiffness: 1000, velocity: -100 } }
+  },
+  closed: {
+    y: 50,
+    opacity: 0,
+    transition: { y: { stiffness: 1000 } }
+  }
+};
 
 export default function NavbarMobile() {
   const pathname = usePathname();
@@ -13,76 +49,65 @@ export default function NavbarMobile() {
 
   // Daftar path admin yang harus menyembunyikan navbar
   const adminPaths = [
-    '/admin/dashboard',
     '/admin/input-juara',
     '/admin/participants'
   ];
 
-  // Cek apakah path saat ini termasuk dalam daftar adminPaths
   const isAdminPage = pathname && adminPaths.some(adminPath => 
     pathname.startsWith(adminPath)
   );
 
+  // Menutup menu saat path berubah
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  // Mencegah scroll saat menu terbuka
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : 'auto';
+    return () => {
+        document.body.style.overflow = 'auto'; // Cleanup
+    };
+  }, [open]);
+
   if (isAdminPage) return null;
 
   const navItems = [
-    { 
-      href: '/', 
-      label: 'Beranda',
-      icon: <Home className="w-5 h-5" /> 
-    },  
-    {
-      href: '/admin/leaderboard',
-      label: 'Hasil Akhir Lomba',
-      icon: <Trophy className="w-5 h-5" />
-    },
-    {
-      href: '/informasi',
-      label: 'Informasi Lomba',
-      icon: <Info className="w-5 h-5" />
-    },
+    { href: '/', label: 'Beranda', icon: Home },
+    { href: '/informasi', label: 'Informasi Lomba', icon: Info },
+    { href: '/admin/leaderboard', label: 'Hasil Akhir Lomba', icon: Trophy },
     {
       href: 'https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing',
       label: 'Surat Edaran',
       external: true,
-      icon: <FileText className="w-5 h-5" />
+      icon: FileText
     },
-    
   ];
 
   return (
-    <nav className="md:hidden fixed top-0 left-0 w-full z-50">
+    <nav className="md:hidden fixed top-0 left-0 w-full z-[100]"> {/* Z-index tinggi */}
       {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between bg-white/80 backdrop-blur-lg px-4 py-3 shadow-sm border-b border-gray-100">
-        <Link href="/" className="flex items-center gap-2">
+      <div className="flex items-center justify-between bg-white/85 backdrop-blur-md px-4 h-20 shadow-sm border-b border-gray-100/50">
+        <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
           <Image 
             src="/desain-p3k.png" 
             alt="Logo P3K" 
-            width={100} 
-            height={40} 
+            width={120} // Sedikit lebih besar
+            height={45} 
             className="object-contain"
+            priority
           />
         </Link>
         
-        <button 
-          onClick={() => setOpen(true)}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          aria-label="Buka menu navigasi"
+        <motion.button 
+          onClick={() => setOpen(!open)}
+          className="p-2 rounded-full text-amber-600 hover:bg-amber-50 transition-colors z-50" // Z-index agar di atas overlay
+          aria-label="Toggle menu"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
         >
-          <svg 
-            className="w-6 h-6 text-orange-600" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="1.5"
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" 
-            />
-          </svg>
-        </button>
+            <Menu className="w-6 h-6" />
+        </motion.button>
       </div>
 
       {/* Overlay Menu */}
@@ -94,65 +119,94 @@ export default function NavbarMobile() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
               onClick={() => setOpen(false)}
             />
 
             {/* Slide-in Menu */}
             <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'tween', ease: [0.4, 0, 0.2, 1] }}
-              className="fixed top-0 right-0 h-full w-80 max-w-full bg-white/95 backdrop-blur-xl z-50 shadow-xl"
+              variants={menuVariants}
+              initial="closed"
+              animate="open"
+              exit="closed"
+              className="fixed top-0 right-0 h-screen w-[85%] max-w-sm bg-white z-50 shadow-2xl flex flex-col"
             >
-              <div className="flex flex-col h-full p-6">
+              <div className="flex flex-col h-full p-6 pt-8">
                 {/* Header Section */}
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex justify-between items-center mb-10 pb-4 border-b border-gray-100">
                   <Image 
                     src="/desain-p3k.png" 
                     alt="Logo P3K" 
-                    width={120} 
+                    width={130} 
                     height={50} 
-                    className="object-contain opacity-90"
+                    className="object-contain"
                   />
-                  <button
+                  <motion.button
                     onClick={() => setOpen(false)}
-                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    className="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
                     aria-label="Tutup menu"
+                    whileHover={{ rotate: 90, scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                   >
-                    <X className="w-6 h-6 text-gray-600" />
-                  </button>
+                    <X className="w-6 h-6" />
+                  </motion.button>
                 </div>
 
                 {/* Navigation Items */}
-                <nav className="flex-1 flex flex-col gap-2">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      target={item.external ? '_blank' : undefined}
-                      rel={item.external ? 'noopener noreferrer' : undefined}
-                      onClick={() => setOpen(false)}
-                      className="flex items-center gap-4 p-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      {item.icon}
-                      <span className="text-lg font-medium">{item.label}</span>
-                    </Link>
-                  ))}
-                </nav>
+                <motion.nav 
+                  className="flex-1 flex flex-col gap-3"
+                  variants={listVariants}
+                >
+                  {navItems.map((item) => {
+                    const isActive = pathname === item.href;
+                    const Icon = item.icon;
+                    return (
+                      <motion.div key={item.href} variants={itemVariants}>
+                          <Link
+                            href={item.href}
+                            target={item.external ? '_blank' : undefined}
+                            rel={item.external ? 'noopener noreferrer' : undefined}
+                            onClick={() => setOpen(false)}
+                            className={`flex items-center gap-4 p-4 rounded-xl text-base font-medium transition-all duration-200 group
+                            ${
+                              isActive 
+                                ? 'bg-amber-50 text-amber-700 shadow-sm border border-amber-100' // Styling aktif lebih jelas
+                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                            }`}
+                          >
+                            <div className={`p-1.5 rounded-md ${isActive ? 'bg-amber-100' : 'bg-gray-100 group-hover:bg-white'}`}>
+                               <Icon className={`w-5 h-5 ${isActive ? 'text-amber-600' : 'text-gray-500 group-hover:text-amber-600'}`} />
+                            </div>
+                            <span>{item.label}</span>
+                            {item.external && <ExternalLink className="w-4 h-4 ml-auto text-gray-400" />}
+                          </Link>
+                      </motion.div>
+                    );
+                  })}
+                </motion.nav>
 
                 {/* CTA Section */}
-                <div className="border-t border-gray-100 pt-6 mt-6">
+                <motion.div 
+                    className="border-t border-gray-100 pt-6 mt-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0, transition: { delay: 0.5, duration: 0.4 } }}
+                    exit={{ opacity: 0 }}
+                >
                   <Link
                     href="/daftar"
                     onClick={() => setOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-4 px-6 rounded-xl font-semibold hover:shadow-lg transition-all"
+                    className="group flex items-center justify-center gap-3 w-full 
+                               bg-gradient-to-r from-amber-500 to-orange-500 
+                               text-white py-3.5 px-6 rounded-full font-bold 
+                               hover:shadow-xl hover:shadow-amber-500/30 
+                               transition-all duration-300 transform hover:scale-[1.02]"
                   >
                     <UserPlus className="w-5 h-5" />
-                    <span>Daftar Sekarang</span>
+                    <span>DAFTAR SEKARANG</span>
+                    <ArrowRight className="w-5 h-5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                   </Link>
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           </>

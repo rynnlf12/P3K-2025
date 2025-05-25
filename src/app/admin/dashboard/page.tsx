@@ -65,26 +65,47 @@ export default function AdminDashboard() {
     }
   };
 
-  const handlePrint = () => {
+ const handlePrint = () => {
     const originalTable = document.querySelector("table");
     if (!originalTable) return;
 
     const printTable = originalTable.cloneNode(true) as HTMLTableElement;
     
-    const actionHeaderIndex = Array.from(originalTable.querySelectorAll("th")).findIndex(th => th.textContent === "Aksi");
-    const buktiHeaderIndex = Array.from(originalTable.querySelectorAll("th")).findIndex(th => th.textContent === "Bukti");
-    const kwitansiHeaderIndex = Array.from(originalTable.querySelectorAll("th")).findIndex(th => th.textContent === "Kwitansi");
+    // Dapatkan semua teks header
+    const headers = Array.from(originalTable.querySelectorAll("th")).map(th => th.textContent);
+
+    // Cari indeks kolom yang ingin dihapus
+    const waHeaderIndex = headers.indexOf("WA");
+    const totalHeaderIndex = headers.indexOf("Total");
+    const actionHeaderIndex = headers.indexOf("Aksi");
+    const buktiHeaderIndex = headers.indexOf("Bukti");
+    const kwitansiHeaderIndex = headers.indexOf("Kwitansi");
+    const kategoriHeaderIndex = headers.indexOf("Kategori");
+
+    // Kumpulkan semua indeks yang valid (lebih besar dari -1)
+    const indicesToRemove = [
+        waHeaderIndex,
+        totalHeaderIndex,
+        actionHeaderIndex,
+        buktiHeaderIndex,
+        kwitansiHeaderIndex,
+        kategoriHeaderIndex
+    ].filter(index => index > -1);
+
+    // Urutkan indeks secara menurun (dari terbesar ke terkecil)
+    indicesToRemove.sort((a, b) => b - a);
 
     const removeColumn = (table: HTMLTableElement, index: number) => {
-        if (index > -1) {
-            table.querySelector("thead tr")?.children[index]?.remove();
-            table.querySelectorAll("tbody tr").forEach(row => row.children[index]?.remove());
-        }
+        // Hapus header
+        table.querySelector("thead tr")?.children[index]?.remove();
+        // Hapus sel di setiap baris body
+        table.querySelectorAll("tbody tr").forEach(row => row.children[index]?.remove());
     };
 
-    removeColumn(printTable, actionHeaderIndex);
-    removeColumn(printTable, kwitansiHeaderIndex);
-    removeColumn(printTable, buktiHeaderIndex);
+    // Hapus kolom berdasarkan indeks yang sudah diurutkan
+    indicesToRemove.forEach(index => {
+        removeColumn(printTable, index);
+    });
 
     const style = `
       <style>
@@ -95,6 +116,8 @@ export default function AdminDashboard() {
         tr:nth-child(even) { background-color: #f9f9f9; }
         @media print {
           @page { size: landscape; margin: 10mm; }
+          /* Sembunyikan elemen yang tidak ingin dicetak */
+          .no-print { display: none; } 
         }
       </style>
     `;
@@ -104,7 +127,7 @@ export default function AdminDashboard() {
       printWindow.document.write("<html><head><title>Data Pendaftar P3K 2025</title>");
       printWindow.document.write(style);
       printWindow.document.write("</head><body>");
-      printWindow.document.write("<h2 style='text-align:center; margin-bottom:20px;'>Laporan Pendaftaran P3K 2025</h2>");
+      printWindow.document.write("<h2 style='text-align:center; margin-bottom:20px;'>Data Pendaftaran P3K 2025</h2>");
       printWindow.document.write(printTable.outerHTML);
       printWindow.document.write("</body></html>");
       printWindow.document.close();
