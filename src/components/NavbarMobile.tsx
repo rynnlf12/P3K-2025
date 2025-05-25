@@ -49,6 +49,7 @@ export default function NavbarMobile() {
 
   // Daftar path admin yang harus menyembunyikan navbar
   const adminPaths = [
+    '/admin/dashboard',
     '/admin/input-juara',
     '/admin/participants'
   ];
