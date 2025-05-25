@@ -300,7 +300,7 @@ export default function DaftarPage() {
                   <div className="space-y-2">
                     <Label htmlFor="whatsapp" className="font-semibold flex items-center gap-1"><Phone size={16}/> Nomor WhatsApp</Label>
                     <motion.div variants={inputFocusVariants} initial="rest" whileHover="focus" whileFocus="focus">
-                    <Input id="whatsapp" type="tel" placeholder="81234567890" value={formSekolah.whatsapp}
+                    <Input id="whatsapp" type="tel" placeholder="081234567890" value={formSekolah.whatsapp}
                       onChange={(e) => setFormSekolah({ ...formSekolah, whatsapp: e.target.value.replace(/\D/g, ' '), })}
                       className="py-6 text-base" />
                     </motion.div>
