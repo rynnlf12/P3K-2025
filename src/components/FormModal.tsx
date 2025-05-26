@@ -57,7 +57,7 @@ interface FormModalProps {
 const initialFormData = {
   nama_sekolah: '',
   pembina: '',
-  whatsapp: '+62',
+  whatsapp: ' ',
   kategori: '',
   tandu_putra: 0,
   tandu_putri: 0,
@@ -80,7 +80,7 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
       setFormData({
         nama_sekolah: data.nama_sekolah || '',
         pembina: data.pembina || '',
-        whatsapp: data.whatsapp || '+62',
+        whatsapp: data.whatsapp || ' ',
         kategori: data.kategori || '',
         tandu_putra: data.tandu_putra || 0,
         tandu_putri: data.tandu_putri || 0,
@@ -336,7 +336,7 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="whatsapp">No. WhatsApp Pembina (Aktif)</Label>
-                      <Input id="whatsapp" name="whatsapp" type="tel" value={formData.whatsapp} onChange={handleChange} placeholder="+628123456789" required />
+                      <Input id="whatsapp" name="whatsapp"  type="tel" value={formData.whatsapp} onChange={handleChange} placeholder="08123456789" required />
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="kategori">Kategori Sekolah</Label>
