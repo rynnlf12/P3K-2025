@@ -51,7 +51,8 @@ export default function NavbarMobile() {
   const adminPaths = [
     '/admin/dashboard',
     '/admin/input-juara',
-    '/admin/participants'
+    '/admin/participants',
+    '/admin/daftar-ulang'
   ];
 
   const isAdminPage = pathname && adminPaths.some(adminPath => 

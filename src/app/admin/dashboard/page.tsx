@@ -162,6 +162,7 @@ export default function AdminDashboard() {
   // Data untuk Link Navigasi
    const navigationLinks = [
       { href: "/admin/participants", label: "Data Peserta", icon: <Users className="h-5 w-5" /> },
+      { href: "/admin/daftar-ulang", label: "Daftar Ulang", icon: <Users className="h-5 w-5" /> },
       { href: "/admin/statistik", label: "Statistik Pendaftaran", icon: <BarChart3 className="h-5 w-5" /> },
       { href: "/admin/input-juara", label: "Input Daftar Juara", icon: <Trophy className="h-5 w-5" /> },
       { href: "/admin/hasil-upload", label: "Upload Form Penilaian", icon: <UploadCloud className="h-5 w-5" /> },

@@ -14,6 +14,7 @@ export default function NavbarDesktop() {
     '/admin/dashboard',
     '/admin/input-juara',
     '/admin/participants',
+    '/admin/daftar-ulang',
     // Tambahkan path admin lain jika ada
   ];
 
