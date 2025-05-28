@@ -8,7 +8,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardFooter,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -157,7 +156,7 @@ export default function HalamanKeuangan() {
       const randomSuffix = Math.random().toString(36).substring(2, 10);
       const fileName = `public/transaksi/${Date.now()}_${randomSuffix}.${fileExt}`;
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from(BUCKET_NAME)
         .upload(fileName, proofFile, { cacheControl: '3600', upsert: false });
 
