@@ -161,7 +161,7 @@ export default function AdminDashboard() {
 
   // Data untuk Link Navigasi
    const navigationLinks = [
-    { href: "/admin/Keuangan", label: "Data Keuangan", icon: <Users className="h-5 w-5" /> },
+    { href: "/admin/keuangan", label: "Data Keuangan", icon: <Users className="h-5 w-5" /> },
       { href: "/admin/participants", label: "Data Peserta", icon: <Users className="h-5 w-5" /> },
       { href: "/admin/daftar-ulang", label: "Daftar Ulang", icon: <Users className="h-5 w-5" /> },
       { href: "/admin/statistik", label: "Statistik Pendaftaran", icon: <BarChart3 className="h-5 w-5" /> },

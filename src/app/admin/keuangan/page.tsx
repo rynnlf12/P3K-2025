@@ -28,27 +28,26 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-// Popover dan Calendar Dihapus
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   ArrowDownCircle,
   ArrowUpCircle,
   Banknote,
-  // CalendarIcon Dihapus
   PlusCircle,
   Trash2,
   Loader2,
   Search,
   BookMarked,
-  FileDown, // Impor FileDown (jika belum ada dari task sebelumnya)
+  FileDown,
+  Paperclip,
+  Link as LinkIcon,
 } from 'lucide-react';
-import { format, parseISO } from 'date-fns'; // parseISO ditambahkan
+import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import * as XLSX from 'xlsx'; // Impor untuk export Excel
-import { saveAs } from 'file-saver'; // Impor untuk export Excel
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
-// Fungsi format Rupiah
 const formatRupiah = (number: number) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -57,29 +56,31 @@ const formatRupiah = (number: number) => {
   }).format(number);
 };
 
-// Interface untuk transaksi
 interface Transaction {
   id: number;
   created_at: string;
-  tanggal: string; // Tetap string, karena DB menyimpan sebagai date
+  tanggal: string;
   keterangan: string;
   jenis: 'Masuk' | 'Keluar';
   jumlah: number;
   kategori?: string;
+  bukti_url?: string | null;
 }
 
-// State awal, tanggal bisa string format yyyy-MM-dd
 const initialFormState = {
-  tanggal: format(new Date(), 'yyyy-MM-dd'), // Simpan sebagai string yyyy-MM-dd
+  tanggal: format(new Date(), 'yyyy-MM-dd'),
   keterangan: '',
   jenis: 'Masuk' as 'Masuk' | 'Keluar',
   jumlah: '',
   kategori: '',
 };
 
+const BUCKET_NAME = 'bukti-keuangan';
+
 export default function HalamanKeuangan() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [formData, setFormData] = useState(initialFormState);
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -122,9 +123,17 @@ export default function HalamanKeuangan() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // handleDateChange sekarang menerima event dari input type="date"
   const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, tanggal: e.target.value }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setError(null);
+      setProofFile(e.target.files[0]);
+    } else {
+      setProofFile(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -135,133 +144,147 @@ export default function HalamanKeuangan() {
       setError('Tanggal, Keterangan, Jumlah, dan Jenis wajib diisi.');
       return;
     }
+    if (isNaN(Number(formData.jumlah)) || Number(formData.jumlah) <= 0) {
+        setError('Jumlah harus berupa angka positif yang valid.');
+        return;
+    }
 
     setSubmitting(true);
-    const { error: insertError } = await supabase.from('keuangan').insert([
-      {
-        tanggal: formData.tanggal, // Langsung gunakan string dari state
+    let buktiUrlToSave: string | null = null;
+
+    if (proofFile) {
+      const fileExt = proofFile.name.split('.').pop()?.toLowerCase();
+      const randomSuffix = Math.random().toString(36).substring(2, 10);
+      const fileName = `public/transaksi/${Date.now()}_${randomSuffix}.${fileExt}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(fileName, proofFile, { cacheControl: '3600', upsert: false });
+
+      if (uploadError) {
+        setError(`Gagal mengupload bukti: ${uploadError.message}`);
+        setSubmitting(false);
+        return;
+      }
+      const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(fileName);
+      if (!urlData?.publicUrl) {
+         setError('Gagal mendapatkan URL bukti setelah upload.');
+         setSubmitting(false);
+         return;
+      }
+      buktiUrlToSave = urlData.publicUrl;
+    }
+
+    const { error: insertError } = await supabase.from('keuangan').insert([{
+        tanggal: formData.tanggal,
         keterangan: formData.keterangan,
         jenis: formData.jenis,
         jumlah: Number(formData.jumlah),
         kategori: formData.kategori || null,
-      },
-    ]);
+        bukti_url: buktiUrlToSave,
+    }]);
 
     if (insertError) {
-      console.error('Error saving transaction:', insertError);
-      setError('Gagal menyimpan transaksi.');
+      setError(`Gagal menyimpan transaksi: ${insertError.message}`);
     } else {
       setFormData(initialFormState);
+      setProofFile(null);
+      if (document.getElementById('bukti_file')) {
+        (document.getElementById('bukti_file') as HTMLInputElement).value = '';
+      }
       await fetchTransactions();
     }
     setSubmitting(false);
   };
 
-  const handleDelete = async (id: number) => {
-    // ... (fungsi handleDelete sama seperti sebelumnya) ...
-    if (!window.confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
-        return;
-    }
-    setLoading(true); // Sebaiknya submitting atau state lain untuk delete
-    const { error: deleteError } = await supabase
-        .from('keuangan')
-        .delete()
-        .eq('id', id);
+  const handleDelete = async (id: number, buktiUrl?: string | null) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) return;
+    setSubmitting(true);
 
-    if (deleteError) {
-        console.error('Error deleting transaction:', deleteError);
-        setError('Gagal menghapus transaksi.');
-    } else {
-        await fetchTransactions();
+    const { error: deleteRecordError } = await supabase.from('keuangan').delete().eq('id', id);
+    if (deleteRecordError) {
+      setError('Gagal menghapus data transaksi.');
+      setSubmitting(false);
+      return;
     }
-    setLoading(false); // Set kembali loading
+
+    if (buktiUrl) {
+        try {
+            const urlObject = new URL(buktiUrl);
+            const pathParts = urlObject.pathname.split(`/${BUCKET_NAME}/`);
+            if (pathParts.length > 1) {
+                const filePath = pathParts[1];
+                const { error: deleteFileError } = await supabase.storage.from(BUCKET_NAME).remove([filePath]);
+                if (deleteFileError) {
+                    alert(`Data transaksi terhapus, tetapi gagal menghapus file bukti dari storage: ${deleteFileError.message}`);
+                }
+            }
+        } catch (e) { console.error("Error processing bukti_url for deletion:", e); }
+    }
+    await fetchTransactions();
+    setSubmitting(false);
   };
 
-    const summary = useMemo(() => {
-    // ... (fungsi summary sama seperti sebelumnya) ...
-    const totalMasuk = transactions
-      .filter((t) => t.jenis === 'Masuk')
-      .reduce((acc, t) => acc + t.jumlah, 0);
-    const totalKeluar = transactions
-      .filter((t) => t.jenis === 'Keluar')
-      .reduce((acc, t) => acc + t.jumlah, 0);
-    return {
-      totalMasuk,
-      totalKeluar,
-      saldo: totalMasuk - totalKeluar,
-    };
+  const summary = useMemo(() => {
+    const totalMasuk = transactions.filter((t) => t.jenis === 'Masuk').reduce((acc, t) => acc + t.jumlah, 0);
+    const totalKeluar = transactions.filter((t) => t.jenis === 'Keluar').reduce((acc, t) => acc + t.jumlah, 0);
+    return { totalMasuk, totalKeluar, saldo: totalMasuk - totalKeluar };
   }, [transactions]);
 
   const filteredTransactions = useMemo(() => {
-    // ... (fungsi filteredTransactions sama seperti sebelumnya) ...
-      return transactions.filter(t =>
-          t.keterangan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (t.kategori || '').toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    return transactions.filter(t =>
+      t.keterangan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (t.kategori || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }, [transactions, searchTerm]);
 
-const handleExport = () => {
+  const handleExport = () => {
     if (filteredTransactions.length === 0) {
         alert("Tidak ada data untuk diekspor.");
         return;
     }
-
     const dataToExport = filteredTransactions.map(t => ({
         'Tanggal': format(parseISO(t.tanggal), 'dd-MM-yyyy'),
         'Keterangan': t.keterangan,
         'Kategori': t.kategori || '-',
         'Jenis': t.jenis,
-        'Jumlah (Rp)': t.jumlah
+        'Jumlah (Rp)': t.jumlah,
+        'Link Bukti': t.bukti_url || '-'
     }));
-
-    // 2. Tambahkan Ringkasan di bagian bawah
     dataToExport.push(
-        // Baris kosong yang sesuai dengan tipe, isi dengan string kosong
-        {
-            'Tanggal': '',
-            'Keterangan': '', // Anda bisa isi spasi ' ' jika ingin ada sel kosong
-            'Kategori': '',
-            'Jenis': '' as any, // Cast 'as any' agar TS tidak protes jika string kosong bukan bagian dari tipe 'Masuk'|'Keluar'
-            'Jumlah (Rp)': '' as any // Cast 'as any' agar TS tidak protes jika string kosong bukan number
-        },
-        { 'Tanggal': 'TOTAL PEMASUKAN', 'Keterangan': '', 'Kategori': '', 'Jenis': 'Masuk' as any, 'Jumlah (Rp)': summary.totalMasuk },
-        { 'Tanggal': 'TOTAL PENGELUARAN', 'Keterangan': '', 'Kategori': '', 'Jenis': 'Keluar' as any, 'Jumlah (Rp)': summary.totalKeluar },
-        { 'Tanggal': 'SALDO AKHIR', 'Keterangan': '', 'Kategori': '', 'Jenis': '' as any, 'Jumlah (Rp)': summary.saldo }
+        { 'Tanggal': '', 'Keterangan': '', 'Kategori': '', 'Jenis': '' as any, 'Jumlah (Rp)': '' as any, 'Link Bukti': '' },
+        { 'Tanggal': 'TOTAL PEMASUKAN', 'Keterangan': '', 'Kategori': '', 'Jenis': 'Masuk' as any, 'Jumlah (Rp)': summary.totalMasuk, 'Link Bukti': ''},
+        { 'Tanggal': 'TOTAL PENGELUARAN', 'Keterangan': '', 'Kategori': '', 'Jenis': 'Keluar' as any, 'Jumlah (Rp)': summary.totalKeluar, 'Link Bukti': ''},
+        { 'Tanggal': 'SALDO AKHIR', 'Keterangan': '', 'Kategori': '', 'Jenis': '' as any, 'Jumlah (Rp)': summary.saldo, 'Link Bukti': ''}
     );
-
     const ws = XLSX.utils.json_to_sheet(dataToExport);
-    // Atur lebar kolom (No., Tanggal, Keterangan, Kategori, Jenis, Jumlah)
-    // Sesuaikan dengan jumlah kolom yang benar setelah menambahkan 'No.' jika ada
-    ws['!cols'] = [ { wch: 12 }, { wch: 40 }, { wch: 20 }, { wch: 10 }, { wch: 15 } ]; // Pastikan jumlah wch sesuai jumlah kolom header
-    
+    ws['!cols'] = [ { wch: 12 }, { wch: 40 }, { wch: 20 }, { wch: 10 }, { wch: 15 }, { wch: 50 } ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Laporan Keuangan");
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(dataBlob, `laporan_keuangan_${format(new Date(), 'yyyyMMdd')}.xlsx`);
   };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="mx-auto max-w-7xl space-y-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <BookMarked className="h-8 w-8 text-indigo-600" />
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-8">
+      <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
+        <div className="mb-6 md:mb-8 text-center sm:text-left">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center justify-center sm:justify-start gap-2 sm:gap-3">
+            <BookMarked className="h-7 w-7 sm:h-8 sm:w-8 text-indigo-600" />
             Manajemen Keuangan
           </h1>
-          <p className="text-gray-600 mt-1">Keuangan P3K2025</p>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Keuangan P3K2025</p>
         </div>
 
-        {/* Ringkasan Keuangan */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* ... (Card Ringkasan sama) ... */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <Card className="shadow-lg border-l-4 border-green-500">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Pemasukan</CardTitle>
                     <ArrowUpCircle className="h-5 w-5 text-green-500"/>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold text-green-600">{formatRupiah(summary.totalMasuk)}</div>
+                    <div className="text-xl sm:text-2xl font-bold text-green-600">{formatRupiah(summary.totalMasuk)}</div>
                 </CardContent>
             </Card>
             <Card className="shadow-lg border-l-4 border-red-500">
@@ -270,7 +293,7 @@ const handleExport = () => {
                     <ArrowDownCircle className="h-5 w-5 text-red-500"/>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold text-red-600">{formatRupiah(summary.totalKeluar)}</div>
+                    <div className="text-xl sm:text-2xl font-bold text-red-600">{formatRupiah(summary.totalKeluar)}</div>
                 </CardContent>
             </Card>
             <Card className="shadow-lg border-l-4 border-blue-500">
@@ -279,191 +302,143 @@ const handleExport = () => {
                     <Banknote className="h-5 w-5 text-blue-500"/>
                 </CardHeader>
                 <CardContent>
-                    <div className={`text-2xl font-bold ${summary.saldo >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                    <div className={`text-xl sm:text-2xl font-bold ${summary.saldo >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
                         {formatRupiah(summary.saldo)}
                     </div>
                 </CardContent>
             </Card>
         </div>
 
-        {/* Form Input Transaksi */}
         <Card className="shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">
               <PlusCircle className="h-5 w-5 text-gray-700" /> Tambah Transaksi Baru
             </CardTitle>
-            <CardDescription>
-              Masukkan detail transaksi pemasukan atau pengeluaran.
-            </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
+            <CardContent className="p-4 sm:p-6 space-y-4 md:space-y-6">
               {error && (
                 <Alert variant="destructive">
                   <AlertTitle>Error!</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Kolom Kiri */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="tanggal">Tanggal Transaksi</Label>
-                    {/* --- INPUT TANGGAL HTML5 --- */}
-                    <Input
-                      type="date"
-                      id="tanggal"
-                      name="tanggal"
-                      value={formData.tanggal} // Harus format yyyy-MM-dd
-                      onChange={handleDateInputChange}
-                      required
-                      className="mt-1 w-full"
-                    />
-                    {/* --- AKHIR INPUT TANGGAL HTML5 --- */}
+                    <Input type="date" id="tanggal" name="tanggal" value={formData.tanggal} onChange={handleDateInputChange} required className="mt-1 w-full" />
                   </div>
                   <div>
                     <Label htmlFor="keterangan">Keterangan</Label>
-                    <Input
-                      id="keterangan"
-                      name="keterangan"
-                      value={formData.keterangan}
-                      onChange={handleChange}
-                      placeholder="Contoh: Pembelian ATK Lomba"
-                      required
-                      className="mt-1"
-                    />
+                    <Input id="keterangan" name="keterangan" value={formData.keterangan} onChange={handleChange} placeholder="Contoh: Pembelian ATK Lomba" required className="mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="kategori">Kategori (Opsional)</Label>
+                    <Input id="kategori" name="kategori" value={formData.kategori} onChange={handleChange} placeholder="Contoh: Konsumsi" className="mt-1" />
                   </div>
                 </div>
-                {/* Kolom Kanan */}
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="jumlah">Jumlah (Rp)</Label>
-                    <Input
-                      id="jumlah"
-                      name="jumlah"
-                      type="text"
-                      value={formData.jumlah}
-                      onChange={handleChange}
-                      placeholder="Contoh: 50000"
-                      required
-                      className="mt-1"
-                    />
+                    <Input id="jumlah" name="jumlah" type="text" pattern="[0-9]*" value={formData.jumlah} onChange={handleChange} placeholder="Contoh: 50000" required className="mt-1" />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
+                  <div>
                       <Label htmlFor="jenis">Jenis Transaksi</Label>
-                      <Select
-                        value={formData.jenis}
-                        onValueChange={(value) => handleSelectChange('jenis', value)}
-                        required
-                      >
-                        <SelectTrigger id="jenis" className="mt-1">
-                          <SelectValue placeholder="Pilih Jenis" />
-                        </SelectTrigger>
+                      <Select value={formData.jenis} onValueChange={(value) => handleSelectChange('jenis', value as 'Masuk' | 'Keluar')} required >
+                        <SelectTrigger id="jenis" className="mt-1"><SelectValue placeholder="Pilih Jenis" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Masuk">Uang Masuk</SelectItem>
                           <SelectItem value="Keluar">Uang Keluar</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="kategori">Kategori (Opsional)</Label>
-                      <Input
-                        id="kategori"
-                        name="kategori"
-                        value={formData.kategori}
-                        onChange={handleChange}
-                        placeholder="Contoh: Konsumsi"
-                        className="mt-1"
-                      />
-                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="bukti_file">
+                        <div className="flex items-center gap-2">
+                            <Paperclip className="h-4 w-4 text-gray-600"/> Bukti Transaksi (Opsional)
+                        </div>
+                    </Label>
+                    <Input id="bukti_file" name="bukti_file" type="file" accept="image/*,application/pdf" capture="environment" onChange={handleFileChange}
+                      className="mt-1 text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                    {proofFile && <p className="text-xs text-gray-500 mt-1">File: {proofFile.name} ({(proofFile.size / 1024).toFixed(1)} KB)</p>}
                   </div>
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="border-t pt-6">
-              <Button type="submit" disabled={submitting} className="w-full md:w-auto">
-                {submitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Menyimpan...
-                  </>
-                ) : (
-                  'Simpan Transaksi'
-                )}
+            <CardFooter className="border-t p-4 sm:p-6">
+              <Button type="submit" disabled={submitting || loading} className="w-full sm:w-auto"> {/* Tambah disabled saat loading juga */}
+                {submitting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Menyimpan...</>) : ('Simpan Transaksi')}
               </Button>
             </CardFooter>
           </form>
         </Card>
 
-        {/* Tabel Transaksi */}
         <Card className="shadow-xl">
-          <CardHeader>
-            <div className="flex justify-between items-center flex-wrap gap-4">
-                <CardTitle>Daftar Transaksi</CardTitle>
-                <Button variant="outline" size="sm" onClick={handleExport} disabled={filteredTransactions.length === 0 || loading}>
+          <CardHeader className="p-4 sm:p-6">
+             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <CardTitle className="text-lg sm:text-xl">Daftar Transaksi</CardTitle>
+                <Button variant="outline" size="sm" onClick={handleExport} disabled={filteredTransactions.length === 0 || loading} className="w-full sm:w-auto">
                     <FileDown className="h-4 w-4 mr-2" />
                     Export Excel
                 </Button>
             </div>
              <div className="relative mt-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                    placeholder="Cari keterangan atau kategori..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                />
+                <Input placeholder="Cari keterangan atau kategori..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-4">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
+                  {/* Pastikan tidak ada spasi atau komentar JSX di antara TableRow dan TableHead */}
                   <TableRow>
-                    <TableHead>Tanggal</TableHead>
-                    <TableHead>Keterangan</TableHead>
-                    <TableHead>Kategori</TableHead>
-                    <TableHead className="text-right">Masuk (Rp)</TableHead>
-                    <TableHead className="text-right">Keluar (Rp)</TableHead>
-                    <TableHead className="text-center">Aksi</TableHead>
+                    <TableHead className="px-3 py-3 sm:px-4">Tgl</TableHead>
+                    <TableHead className="px-3 py-3 sm:px-4">Keterangan</TableHead>
+                    <TableHead className="px-3 py-3 sm:px-4 hidden md:table-cell">Kategori</TableHead>
+                    <TableHead className="text-right px-3 py-3 sm:px-4">Masuk</TableHead>
+                    <TableHead className="text-right px-3 py-3 sm:px-4">Keluar</TableHead>
+                    <TableHead className="px-3 py-3 sm:px-4 hidden sm:table-cell">Bukti</TableHead>
+                    <TableHead className="text-center px-3 py-3 sm:px-4">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10">
+                      <TableCell colSpan={7} className="text-center py-10">
                         <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-500" />
-                        <p className="mt-2 text-gray-500">Memuat data...</p>
+                        <p className="mt-2 text-gray-500">Memuat...</p>
                       </TableCell>
                     </TableRow>
                   ) : filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 text-gray-500">
-                        Tidak ada data transaksi ditemukan.
+                      <TableCell colSpan={7} className="text-center py-10 text-gray-500">
+                        Tidak ada transaksi.
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredTransactions.map((t) => (
-                      <TableRow key={t.id}>
-                        {/* Format tanggal dari string yyyy-MM-dd di DB ke dd MMM yyyy */}
-                        <TableCell>{format(parseISO(t.tanggal), 'dd MMM yyyy', { locale: id })}</TableCell>
-                        <TableCell className="font-medium">{t.keterangan}</TableCell>
-                        <TableCell><Badge variant="outline">{t.kategori || '-'}</Badge></TableCell>
-                        <TableCell className="text-right text-green-600">
+                      <TableRow key={t.id} className="text-xs sm:text-sm">
+                        <TableCell className="px-3 py-3 sm:px-4 whitespace-nowrap">{format(parseISO(t.tanggal), 'dd/MM/yy', { locale: id })}</TableCell>
+                        <TableCell className="font-medium max-w-[150px] sm:max-w-xs truncate px-3 sm:px-4" title={t.keterangan}>{t.keterangan}</TableCell>
+                        <TableCell className="px-3 py-3 sm:px-4 hidden md:table-cell"><Badge variant="secondary" className="text-xs">{t.kategori || '-'}</Badge></TableCell>
+                        <TableCell className="text-right px-3 sm:px-4 text-green-600 whitespace-nowrap">
                           {t.jenis === 'Masuk' ? formatRupiah(t.jumlah) : '-'}
                         </TableCell>
-                        <TableCell className="text-right text-red-600">
+                        <TableCell className="text-right px-3 sm:px-4 text-red-600 whitespace-nowrap">
                           {t.jenis === 'Keluar' ? formatRupiah(t.jumlah) : '-'}
                         </TableCell>
-                        <TableCell className="text-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-red-600 hover:text-red-800 hover:bg-red-100"
-                            onClick={() => handleDelete(t.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
+                        <TableCell className="px-3 py-3 sm:px-4 hidden sm:table-cell">
+                          {t.bukti_url ? (
+                            <a href={t.bukti_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800 hover:underline text-xs sm:text-sm flex items-center gap-1 whitespace-nowrap">
+                              <LinkIcon className="h-3.5 w-3.5"/> Lihat
+                            </a>
+                          ) : ( <span className="text-xs text-gray-400">-</span> )}
+                        </TableCell>
+                        <TableCell className="text-center px-3 py-3 sm:px-4">
+                          <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full w-7 h-7 sm:w-8 sm:h-8" onClick={() => handleDelete(t.id, t.bukti_url)} disabled={submitting} >
+                            <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </Button>
                         </TableCell>
                       </TableRow>
