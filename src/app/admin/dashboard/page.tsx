@@ -26,7 +26,8 @@ import {
   Users, // Icon untuk Peserta
   BarChart3, // Icon untuk Statistik
   Trophy, // Icon untuk Juara
-  UploadCloud, // Icon untuk Upload
+  UploadCloud,
+  Landmark, // Icon untuk Upload
 } from 'lucide-react';
 import {
   Tooltip,
@@ -161,7 +162,7 @@ export default function AdminDashboard() {
 
   // Data untuk Link Navigasi
    const navigationLinks = [
-    { href: "/admin/keuangan", label: "Data Keuangan", icon: <Users className="h-5 w-5" /> },
+     { href: "/admin/keuangan", label: "Manajemen Keuangan", icon: <Landmark className="h-5 w-5" /> },
       { href: "/admin/participants", label: "Data Peserta", icon: <Users className="h-5 w-5" /> },
       { href: "/admin/daftar-ulang", label: "Daftar Ulang", icon: <Users className="h-5 w-5" /> },
       { href: "/admin/statistik", label: "Statistik Pendaftaran", icon: <BarChart3 className="h-5 w-5" /> },
