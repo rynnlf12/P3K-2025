@@ -125,7 +125,7 @@ export default function DaftarUlangPage() {
         });
     });
     setTransformedData(newData);
-  }, [pendaftaranData, daftarUlangData, loading, transformedData]); 
+  }, [pendaftaranData, daftarUlangData, loading]); 
 
   // --- Fungsi Handle Input Nomor Urut ---
   const handleNomorUrutChange = (id: string, value: string) => {
