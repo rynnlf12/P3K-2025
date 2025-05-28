@@ -52,6 +52,7 @@ export default function NavbarMobile() {
     '/admin/dashboard',
     '/admin/input-juara',
     '/admin/participants',
+    '/admin/keuangan',
     '/admin/daftar-ulang'
   ];
 
