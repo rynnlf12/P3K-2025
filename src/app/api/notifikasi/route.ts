@@ -23,8 +23,8 @@ export async function POST(req: Request) {
         body = await req.json(); // Simpan body ke variabel
         const { namaSekolah, pembina, whatsapp, buktiUrl, namaPengirim } = body;
 
-        const adminPhone = "6285603105234a";
-        const apiKey = "6705715a";
+        const adminPhone = "6285603105234";
+        const apiKey = "6705715";
 
         // --- Diperbarui: Tambahkan Link Statistik ke Pesan ---
         const pesan = `📢 *Pendaftar Baru!*\n\n` +

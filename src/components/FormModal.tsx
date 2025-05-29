@@ -3,17 +3,17 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
-import { LOMBA_LIST } from '@/data/lomba';
+import { LOMBA_LIST } from '@/data/lomba'; // Pastikan path ini benar
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Lucide React Icons
 import {
-  X, 
+  X,
   Loader2,
   AlertTriangle,
   School,
   Swords,
-  Users,
+  // Users, // Dihapus karena tidak digunakan lagi
   Wallet,
   PlusCircle,
   MinusCircle,
@@ -36,12 +36,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+// Accordion tidak digunakan lagi jika hanya data peserta yang menggunakannya
+// import {
+//   Accordion,
+//   AccordionContent,
+//   AccordionItem,
+//   AccordionTrigger,
+// } from '@/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 
@@ -50,14 +51,14 @@ const MotionButton = motion(Button);
 interface FormModalProps {
   open: boolean;
   onClose: () => void;
-  data?: any; 
+  data?: any;
   onSuccess: () => void;
 }
 
 const initialFormData = {
   nama_sekolah: '',
   pembina: '',
-  whatsapp: ' ',
+  whatsapp: ' ', // Pertimbangkan untuk mengubah default menjadi string kosong '' jika lebih sesuai
   kategori: '',
   tandu_putra: 0,
   tandu_putri: 0,
@@ -71,7 +72,7 @@ const initialFormData = {
 
 export default function FormModal({ open, onClose, data, onSuccess }: FormModalProps) {
   const [formData, setFormData] = useState(initialFormData);
-  const [peserta, setPeserta] = useState<Record<string, string[][]>>({});
+  // const [peserta, setPeserta] = useState<Record<string, string[][]>>({}); // Dihapus
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -91,10 +92,10 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
         pmr_cerdas: data.pmr_cerdas || 0,
         total: data.total || 0,
       });
-      setPeserta(data.peserta || {});
+      // setPeserta(data.peserta || {}); // Dihapus
     } else {
       setFormData(initialFormData);
-      setPeserta({});
+      // setPeserta({}); // Dihapus
     }
     setErrors([]);
   }, [data, open]);
@@ -103,7 +104,7 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
     return LOMBA_LIST.reduce((acc, lomba) => {
       const fieldName = lomba.id.replace(/-/g, '_');
       const jumlah = formData[fieldName as keyof typeof formData] as number;
-      return acc + (lomba.biaya * (jumlah || 0)); 
+      return acc + (lomba.biaya * (jumlah || 0));
     }, 0);
   }, [formData]);
 
@@ -123,26 +124,26 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handlePesertaChange = (lombaId: string, timIndex: number, pesertaIndex: number, value: string) => {
-    setPeserta(prev => {
-      const updated = JSON.parse(JSON.stringify(prev)); 
-      if (!updated[lombaId]) updated[lombaId] = [];
-      if (!updated[lombaId][timIndex]) { 
-        const lomba = LOMBA_LIST.find(l => l.id === lombaId);
-        updated[lombaId][timIndex] = Array(lomba?.maksPesertaPerTim || 0).fill('');
-      }
-      updated[lombaId][timIndex][pesertaIndex] = value;
-      return updated;
-    });
-  };
+  // const handlePesertaChange = (lombaId: string, timIndex: number, pesertaIndex: number, value: string) => { // Dihapus
+  //   setPeserta(prev => {
+  //     const updated = JSON.parse(JSON.stringify(prev));
+  //     if (!updated[lombaId]) updated[lombaId] = [];
+  //     if (!updated[lombaId][timIndex]) {
+  //       const lomba = LOMBA_LIST.find(l => l.id === lombaId);
+  //       updated[lombaId][timIndex] = Array(lomba?.maksPesertaPerTim || 0).fill('');
+  //     }
+  //     updated[lombaId][timIndex][pesertaIndex] = value;
+  //     return updated;
+  //   });
+  // };
 
-  const validateForm = () => { 
+  const validateForm = () => {
     const currentErrors: string[] = [];
     if (!formData.nama_sekolah.trim()) currentErrors.push('Nama sekolah harus diisi');
     if (!formData.pembina.trim()) currentErrors.push('Nama pembina harus diisi');
-    if (!formData.whatsapp.trim() || !/^\+?\d{10,15}$/.test(formData.whatsapp)) currentErrors.push('Nomor WhatsApp tidak valid (contoh: +6281234567890)');
+    if (!formData.whatsapp.trim() || !/^\+?\d{10,15}$/.test(formData.whatsapp)) currentErrors.push('Nomor WhatsApp tidak valid (contoh: +6281234567890 atau 081234567890)');
     if (!formData.kategori) currentErrors.push('Kategori harus dipilih');
-    
+
     let adaLombaDipilih = false;
     LOMBA_LIST.forEach(lomba => {
         const fieldName = lomba.id.replace(/-/g, '_') as keyof typeof formData;
@@ -150,49 +151,57 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
             adaLombaDipilih = true;
         }
     });
-    if (!adaLombaDipilih && !data) { 
+    if (!adaLombaDipilih && !data) { // Hanya validasi jika ini bukan edit dan tidak ada lomba dipilih
         currentErrors.push('Minimal pilih satu lomba untuk diikuti.');
     }
 
-    Object.entries(peserta).forEach(([lombaId, tims]) => {
-      const lomba = LOMBA_LIST.find(l => l.id === lombaId);
-      const fieldName = lombaId.replace(/-/g, '_') as keyof typeof formData;
-      const jumlahTim = Number(formData[fieldName]);
-      if (lomba && jumlahTim > 0) {
-        tims.slice(0, jumlahTim).forEach((tim, timIndex) => { 
-           tim.forEach((nama, pesertaIndex) => {
-             if (!nama.trim()) {
-               currentErrors.push(`Nama anggota ${pesertaIndex + 1} Tim ${timIndex + 1} ${lomba.nama} belum diisi`);
-             }
-           });
-        });
-      }
-    });
+    // Validasi data peserta dihapus
+    // Object.entries(peserta).forEach(([lombaId, tims]) => {
+    //   const lomba = LOMBA_LIST.find(l => l.id === lombaId);
+    //   const fieldName = lombaId.replace(/-/g, '_') as keyof typeof formData;
+    //   const jumlahTim = Number(formData[fieldName]);
+    //   if (lomba && jumlahTim > 0) {
+    //     tims.slice(0, jumlahTim).forEach((tim, timIndex) => {
+    //       tim.forEach((nama, pesertaIndex) => {
+    //         if (!nama.trim()) {
+    //           currentErrors.push(`Nama anggota ${pesertaIndex + 1} Tim ${timIndex + 1} ${lomba.nama} belum diisi`);
+    //         }
+    //       });
+    //     });
+    //   }
+    // });
     setErrors(currentErrors);
     return currentErrors.length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => { 
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
     setLoading(true);
     try {
       const nomor = `P3K${new Date().getFullYear()}-${formData.nama_sekolah.replace(/\s+/g, '').toUpperCase().slice(0, 10)}-${Date.now()}`;
       const pendaftaranPayload: any = {
-        nomor,
+        // nomor: data?.nomor || nomor, // Jika edit, gunakan nomor yang sudah ada, jika baru, generate
         nama_sekolah: formData.nama_sekolah,
         pembina: formData.pembina,
         whatsapp: formData.whatsapp,
         kategori: formData.kategori,
         total: formData.total,
       };
+
+      // Hanya tambahkan nomor jika ini adalah data baru
+      if (!data?.id) {
+        pendaftaranPayload.nomor = nomor;
+      }
+
+
       LOMBA_LIST.forEach(l => {
         const field = l.id.replace(/-/g, '_');
         pendaftaranPayload[field] = formData[field as keyof typeof formData];
       });
 
       let pendaftaranId;
-      if (data?.id) { 
+      if (data?.id) {
         const { data: pendaftaranData, error: pendaftaranError } = await supabase
             .from('pendaftaran')
             .update(pendaftaranPayload)
@@ -201,10 +210,12 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
             .single();
         if (pendaftaranError || !pendaftaranData) throw new Error(pendaftaranError?.message || 'Gagal mengupdate data pendaftaran');
         pendaftaranId = pendaftaranData.id;
-        
-        await supabase.from('peserta').delete().eq('pendaftaran_id', pendaftaranId);
 
-      } else { 
+        // Hapus data peserta yang mungkin ada sebelumnya jika skema DB Anda mengharuskannya saat mengedit
+        // Jika data peserta tidak lagi dikelola di sini, baris ini mungkin tidak diperlukan atau perlu penyesuaian
+        // await supabase.from('peserta').delete().eq('pendaftaran_id', pendaftaranId); // Dihapus atau dikomentari jika tidak relevan lagi
+
+      } else {
         const { data: pendaftaranData, error: pendaftaranError } = await supabase
             .from('pendaftaran')
             .insert(pendaftaranPayload)
@@ -213,31 +224,31 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
         if (pendaftaranError || !pendaftaranData) throw new Error(pendaftaranError?.message || 'Gagal menyimpan data pendaftaran');
         pendaftaranId = pendaftaranData.id;
       }
-      
-      const pesertaToInsert = Object.entries(peserta)
-        .flatMap(([lombaId, tims]) => {
-          const lomba = LOMBA_LIST.find(l => l.id === lombaId);
-          const fieldName = lombaId.replace(/-/g, '_') as keyof typeof formData;
-          const jumlahTimAktif = Number(formData[fieldName]);
 
-          return tims.slice(0, jumlahTimAktif).flatMap((tim) => // timIndex tidak lagi digunakan di sini
-            tim.filter(nama => nama.trim()).map(nama => ({
-              pendaftaran_id: pendaftaranId,
-              nama_sekolah: formData.nama_sekolah, 
-              lomba: lomba?.nama || lombaId,
-              // tim_ke: timIndex + 1, // <--- BARIS INI DIHAPUS
-              data_peserta: nama.trim()
-            }))
-          );
-        });
+      // Logika untuk insert peserta dihapus
+      // const pesertaToInsert = Object.entries(peserta)
+      //   .flatMap(([lombaId, tims]) => {
+      //     const lomba = LOMBA_LIST.find(l => l.id === lombaId);
+      //     const fieldName = lombaId.replace(/-/g, '_') as keyof typeof formData;
+      //     const jumlahTimAktif = Number(formData[fieldName]);
 
-      if (pesertaToInsert.length > 0) {
-        const { error: pesertaError } = await supabase.from('peserta').insert(pesertaToInsert);
-        if (pesertaError) throw new Error(pesertaError.message || 'Gagal menyimpan data peserta');
-      }
+      //     return tims.slice(0, jumlahTimAktif).flatMap((tim) => 
+      //       tim.filter(nama => nama.trim()).map(nama => ({
+      //         pendaftaran_id: pendaftaranId,
+      //         nama_sekolah: formData.nama_sekolah,
+      //         lomba: lomba?.nama || lombaId,
+      //         data_peserta: nama.trim()
+      //       }))
+      //     );
+      //   });
 
-      if(!data?.id && !data?.kwitansi_url){ 
-        const response = await fetch(`/api/generate-kwitansi?nomor=${nomor}`);
+      // if (pesertaToInsert.length > 0) {
+      //   const { error: pesertaError } = await supabase.from('peserta').insert(pesertaToInsert);
+      //   if (pesertaError) throw new Error(pesertaError.message || 'Gagal menyimpan data peserta');
+      // }
+
+      if(!data?.id && !data?.kwitansi_url){
+        const response = await fetch(`/api/generate-kwitansi?nomor=${pendaftaranPayload.nomor || nomor}`); // Gunakan nomor yang pasti ada
         if (!response.ok) { const errorText = await response.text(); throw new Error(`Gagal membuat kwitansi: ${errorText}`); }
         const responseData = await response.json();
         if (!responseData?.success) throw new Error(responseData?.message || 'Gagal mendapatkan URL kwitansi');
@@ -382,7 +393,7 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
                               value={currentValue}
                               onChange={handleChange}
                               min="0"
-                              max="3"
+                              max="3" // Anda bisa mengambil batas maksimal tim dari LOMBA_LIST jika ada
                               className="w-16 h-8 text-center font-semibold"
                             />
                              <Button type="button" variant="outline" size="icon" className="h-8 w-8" onClick={() => handleChange({ target: { name: fieldName, value: String(Math.min(3, currentValue + 1)), type: 'number' } } as any)}>
@@ -394,8 +405,9 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
                     })}
                   </CardContent>
                 </Card>
-                
-                {LOMBA_LIST.some(l => (formData[l.id.replace(/-/g, '_') as keyof typeof formData] as number || 0) > 0) && (
+
+                {/* Bagian Data Peserta Dihapus Seluruhnya */}
+                {/* {LOMBA_LIST.some(l => (formData[l.id.replace(/-/g, '_') as keyof typeof formData] as number || 0) > 0) && (
                   <Card className="shadow-sm">
                     <CardHeader>
                       <CardTitle className="text-xl flex items-center gap-2"><Users className="h-5 w-5 text-purple-600"/>Data Peserta</CardTitle>
@@ -404,52 +416,12 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
                     <CardContent>
                       <Accordion type="multiple" className="w-full space-y-3">
                         {LOMBA_LIST.map((lomba) => {
-                          const fieldName = lomba.id.replace(/-/g, '_');
-                          const jumlahTim = formData[fieldName as keyof typeof formData] as number || 0;
-                          if (jumlahTim <= 0) return null;
-
-                          return (
-                            <AccordionItem value={lomba.id} key={lomba.id} className="border rounded-md">
-                              <AccordionTrigger className="px-4 py-3 text-md font-medium hover:bg-gray-50">
-                                <div className="flex justify-between w-full items-center pr-2">
-                                  {lomba.nama}
-                                  <Badge variant="outline">{jumlahTim} Tim</Badge>
-                                </div>
-                              </AccordionTrigger>
-                              <AccordionContent className="p-4 border-t bg-gray-50/30 space-y-4">
-                                {Array.from({ length: jumlahTim }).map((_, timIndex) => (
-                                  <div key={timIndex} className="p-4 border rounded-md bg-white shadow-sm space-y-3">
-                                    <div className="flex justify-between items-center">
-                                      <h4 className="font-semibold text-gray-800">Tim {timIndex + 1}</h4>
-                                      <Badge variant="secondary" className="text-xs">
-                                        {(peserta[lomba.id]?.[timIndex]?.filter(n => n.trim()).length || 0)} / {lomba.maksPesertaPerTim} Anggota
-                                      </Badge>
-                                    </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                      {Array.from({ length: lomba.maksPesertaPerTim }).map((_, pesertaIndex) => (
-                                        <div key={pesertaIndex} className="space-y-1">
-                                          <Label htmlFor={`peserta-${lomba.id}-${timIndex}-${pesertaIndex}`} className="text-xs">Anggota {pesertaIndex + 1}</Label>
-                                          <Input
-                                            id={`peserta-${lomba.id}-${timIndex}-${pesertaIndex}`}
-                                            type="text"
-                                            placeholder={`Nama Anggota ${pesertaIndex + 1}`}
-                                            value={peserta[lomba.id]?.[timIndex]?.[pesertaIndex] || ''}
-                                            onChange={(e) => handlePesertaChange(lomba.id, timIndex, pesertaIndex, e.target.value)}
-                                            className={!peserta[lomba.id]?.[timIndex]?.[pesertaIndex]?.trim() && errors.some(err => err.includes(`Tim ${timIndex + 1} ${lomba.nama}`) && err.includes(`anggota ${pesertaIndex + 1}`)) ? 'border-red-400' : ''}
-                                          />
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ))}
-                              </AccordionContent>
-                            </AccordionItem>
-                          );
+                          // ... Konten Accordion untuk data peserta ...
                         })}
                       </Accordion>
                     </CardContent>
                   </Card>
-                )}
+                )} */}
 
                 <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 shadow">
                   <div className="flex justify-between items-center">
@@ -468,8 +440,8 @@ export default function FormModal({ open, onClose, data, onSuccess }: FormModalP
                   Batal
                 </Button>
                 <MotionButton
-                  type="submit"
-                  onClick={handleSubmit} 
+                  type="submit" // Ini akan men-trigger onSubmit dari form
+                  onClick={handleSubmit} // Bisa juga langsung panggil handleSubmit jika tidak di dalam form tag
                   disabled={loading}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
