@@ -34,7 +34,7 @@ interface SchoolRanking {
 }
 
 // --- (Konstanta JUARA_ORDER & fungsi normalizeSchoolName tetap sama) ---
-const JUARA_ORDER = ["Juara 1", "Juara 2", "Juara 3", "Harapan 1", "Harapan 2", "Harapan 3"];
+const JUARA_ORDER = ["Juara 1", "Juara 2", "Juara 3", "Harapan 1", "Harapan 2"];
 
 const normalizeSchoolName = (name: string): string => {
   return name
@@ -326,7 +326,7 @@ const Leaderboard = () => {
               className="flex-1 sm:flex-none flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all shadow-lg border border-white/10"
             >
               <School className="w-4 h-4" />
-              <span className="truncate">Form Nilai</span>
+              <span className="truncate">Lihat Format Nilai Peserta</span>
             </Link>
             <motion.button
               onClick={fetchJuara}

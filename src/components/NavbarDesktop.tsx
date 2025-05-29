@@ -11,11 +11,7 @@ export default function NavbarDesktop() {
 
   // Daftar path admin yang harus menyembunyikan navbar
   const adminPaths = [
-    '/admin/dashboard',
-    '/admin/input-juara',
-    '/admin/participants',
-    '/admin/daftar-ulang',
-    '/admin/keuangan',
+    '/admin'
     // Tambahkan path admin lain jika ada
   ];
 

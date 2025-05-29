@@ -25,7 +25,6 @@ export default function InputJuara() {
       "Juara 3",
       "Harapan 1",
       "Harapan 2",
-      "Harapan 3",
     ].map((juaraKe) => ({ namaSekolah: "", juaraKe }))
   );
 
