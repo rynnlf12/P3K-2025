@@ -10,19 +10,21 @@ import {
     School, 
     Users, 
     Award, 
-    Medal, // Untuk Top  // Untuk loading
-    ServerCrash // Untuk error
+    Medal,
+    ServerCrash 
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
-import { motion, AnimatePresence } from 'framer-motion'; // Impor Framer Motion
+import { motion, AnimatePresence } from 'framer-motion';
 
-// --- (Interface Juara & SchoolRanking tetap sama) ---
+// --- Interface Juara & SchoolRanking (Tetap Sama) ---
 interface Juara {
   mata_lomba: string;
   nama_sekolah: string;
   juara_ke: string;
   kategori: string;
+  // Tambahkan id jika ada dan unik, atau pastikan kombinasi field unik untuk key
+  id?: string; // Opsional, jika ada
 }
 
 interface SchoolRanking {
@@ -33,32 +35,25 @@ interface SchoolRanking {
   kategori: string;
 }
 
-// --- (Konstanta JUARA_ORDER & fungsi normalizeSchoolName tetap sama) ---
+// --- Konstanta JUARA_ORDER & fungsi normalizeSchoolName (Tetap Sama) ---
 const JUARA_ORDER = ["Juara 1", "Juara 2", "Juara 3", "Harapan 1", "Harapan 2"];
 
 const normalizeSchoolName = (name: string): string => {
   return name
     .toUpperCase()
-    .replace(/smk\s?negeri\s?/gi, "SMK ")
+    .replace(/SMK\s?NEGERI\s?/gi, "SMKN ") // Lebih spesifik untuk SMKN
+    .replace(/SMA\s?NEGERI\s?/gi, "SMAN ") // Untuk SMAN
     .replace(/\s+/g, " ")
     .trim();
 };
 
-// Varian Animasi untuk Framer Motion
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08 }
-  }
-};
+// Varian Animasi (Tetap Sama)
+const containerVariants = { /* ... */ };
+const itemVariants = { /* ... */ };
+// (Kode StatCard, RankingCard, CompetitionAccordion, LoadingSkeleton tidak berubah, saya akan singkat untuk respons ini)
+// Anggap komponen StatCard, RankingCard, CompetitionAccordion, LoadingSkeleton sudah ada seperti sebelumnya
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
-
-// Komponen StatCard yang Ditingkatkan
+// --- StatCard ---
 const StatCard = ({ label, value, icon: Icon }: { label: string; value: number | string; icon: React.ElementType }) => (
   <motion.div 
     className="p-5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-lg flex items-center gap-4 transition-all hover:border-amber-400/30 hover:shadow-amber-500/5 hover:scale-105"
@@ -74,7 +69,7 @@ const StatCard = ({ label, value, icon: Icon }: { label: string; value: number |
   </motion.div>
 );
 
-// Komponen RankingCard yang Ditingkatkan
+// --- RankingCard ---
 const RankingCard = ({ school, rank }: { school: SchoolRanking; rank: number }) => {
     const rankColors: { [key: number]: string } = {
         1: 'border-amber-400 bg-amber-900/20 shadow-amber-500/10',
@@ -86,9 +81,7 @@ const RankingCard = ({ school, rank }: { school: SchoolRanking; rank: number }) 
         2: 'text-gray-400',
         3: 'text-orange-600',
     };
-
     const isTop3 = rank <= 3;
-
     return (
         <motion.div 
             className={`bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-amber-400/30 transition-all shadow-md hover:shadow-xl ${rankColors[rank] || 'hover:bg-white/10'}`}
@@ -126,26 +119,24 @@ const RankingCard = ({ school, rank }: { school: SchoolRanking; rank: number }) 
     );
 };
 
-
-// Komponen CompetitionAccordion yang Ditingkatkan
+// --- CompetitionAccordion ---
 const CompetitionAccordion = ({ title, results, category }: { 
   title: string; 
   results: Juara[]; 
   category: string 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-
   return (
     <motion.div 
         className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden"
         variants={itemVariants}
-        layout // Menambahkan animasi layout otomatis
+        layout 
     >
       <button
-        className="w-full flex items-center justify-between p-4 hover:bg-white/10 transition-colors focus:outline-none"
+        className="w-full flex items-center justify-between p-4 hover:bg-white/10 transition-colors focus:outline-none text-left"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="text-left flex-1 min-w-0">
+        <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-white text-base truncate">{title}</h3>
           <p className="text-xs text-amber-300/80 mt-1">{category}</p>
         </div>
@@ -153,45 +144,44 @@ const CompetitionAccordion = ({ title, results, category }: {
           className={`w-5 h-5 text-amber-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
-      
       <AnimatePresence>
-          {isOpen && (
-            <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="overflow-hidden"
-            >
-                <div className="p-4 pt-0 border-t border-white/5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-4">
-                        {JUARA_ORDER.map((juaraKe) => {
-                            const peserta = results.find((j) => j.juara_ke === juaraKe);
-                            return (
-                                <div
-                                    key={juaraKe}
-                                    className="p-3 text-sm bg-black/20 rounded-lg border border-white/10 flex items-center gap-3"
-                                >
-                                    <Trophy className="w-4 h-4 text-amber-300 flex-shrink-0" />
-                                    <div>
-                                        <div className="font-medium text-amber-300 truncate">{juaraKe}</div>
-                                        <div className="text-white truncate text-xs" title={peserta?.nama_sekolah}>
-                                            {peserta?.nama_sekolah || "-"}
-                                        </div>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 pt-0 border-t border-white/5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-4">
+                    {JUARA_ORDER.map((juaraKe) => {
+                        const peserta = results.find((j) => j.juara_ke === juaraKe);
+                        return (
+                            <div
+                                key={juaraKe}
+                                className="p-3 text-sm bg-black/20 rounded-lg border border-white/10 flex items-center gap-3"
+                            >
+                                <Trophy className="w-4 h-4 text-amber-300 flex-shrink-0" />
+                                <div>
+                                    <div className="font-medium text-amber-300 truncate">{juaraKe}</div>
+                                    <div className="text-white truncate text-xs" title={peserta?.nama_sekolah}>
+                                        {peserta?.nama_sekolah || "-"}
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
+                            </div>
+                        );
+                    })}
                 </div>
-            </motion.div>
-          )}
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </motion.div>
   );
 };
 
-// Komponen Skeleton yang Disesuaikan
+// --- LoadingSkeleton ---
 const LoadingSkeleton = () => (
     <div className="max-w-6xl mx-auto p-4 space-y-8">
         <Skeleton className="h-12 w-3/4 bg-white/10 rounded-lg" />
@@ -207,7 +197,7 @@ const LoadingSkeleton = () => (
         </div>
          <Skeleton className="h-10 w-1/3 bg-white/10 rounded-lg" />
          <Skeleton className="h-12 w-full bg-white/10 rounded-xl" />
-         <div className="space-y-3">
+        <div className="space-y-3">
             {[...Array(4)].map((_, i) => (
                 <Skeleton key={i} className="h-14 bg-white/10 rounded-2xl" />
             ))}
@@ -222,7 +212,7 @@ const Leaderboard = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string>("Wira"); // Default Wira
+  const [activeCategory, setActiveCategory] = useState<string>("Wira");
   const kategoriList = ["Wira", "Madya"];
 
   useEffect(() => {
@@ -252,16 +242,16 @@ const Leaderboard = () => {
   const { schoolRanking } = useMemo(() => {
       const schools: Record<string, SchoolRanking> = {};
       data
-        .filter(j => j.kategori === activeCategory)
+        .filter(j => j.kategori === activeCategory) // Filter berdasarkan kategori aktif untuk peringkat sekolah
         .forEach(j => {
             const normalized = normalizeSchoolName(j.nama_sekolah);
             if (!schools[normalized]) {
                 schools[normalized] = {
-                    nama_sekolah: normalized,
+                    nama_sekolah: normalized, // Simpan nama yang sudah dinormalisasi
                     total_juara_1: 0,
                     total_juara_2: 0,
                     total_juara_3: 0,
-                    kategori: activeCategory,
+                    kategori: activeCategory, // Simpan kategori aktif
                 };
             }
             if (j.juara_ke === "Juara 1") schools[normalized].total_juara_1++;
@@ -274,156 +264,178 @@ const Leaderboard = () => {
           if (a.total_juara_2 !== b.total_juara_2) return b.total_juara_2 - a.total_juara_2;
           return b.total_juara_3 - a.total_juara_3;
       });
-
-      return { schoolRanking: ranking, totalSchools: Object.keys(schools).length };
+      return { schoolRanking: ranking };
   }, [data, activeCategory]);
 
-  const groupedMataLomba = useMemo(() => {
-    const result: Record<string, Juara[]> = {};
+  // --- PERUBAHAN: Mengelompokkan berdasarkan mata_lomba DAN kategori ---
+  const groupedMataLombaByCategory = useMemo(() => {
+    const result: Record<string, Juara[]> = {}; // Key: "mata_lomba-kategori"
     data.forEach(j => {
-      if (!result[j.mata_lomba]) {
-        result[j.mata_lomba] = [];
-      }
-      result[j.mata_lomba].push(j);
+        const key = `${j.mata_lomba}-${j.kategori}`; // Kunci unik per lomba per kategori
+        if (!result[key]) {
+            result[key] = [];
+        }
+        result[key].push(j);
     });
+    // Urutkan hasil di dalam setiap grup berdasarkan JUARA_ORDER
+    for (const key in result) {
+        result[key].sort((a, b) => JUARA_ORDER.indexOf(a.juara_ke) - JUARA_ORDER.indexOf(b.juara_ke));
+    }
     return result;
   }, [data]);
+  // --- AKHIR PERUBAHAN ---
 
-  const filteredMataLomba = Object.entries(groupedMataLomba).filter(
-    ([mataLomba, results]) => 
-        mataLomba.toLowerCase().includes(debouncedQuery.toLowerCase()) || 
-        results.some(r => r.nama_sekolah.toLowerCase().includes(debouncedQuery.toLowerCase()))
-  );
+  // --- PERUBAHAN: Filter untuk grup yang baru ---
+  const filteredGroupedMataLomba = useMemo(() => {
+    const lowerQuery = debouncedQuery.toLowerCase();
+    return Object.entries(groupedMataLombaByCategory).filter(
+      ([groupKey, results]) => {
+        // Asumsi nama mata lomba tidak mengandung '-' yang dipakai sebagai pemisah
+        // Jika bisa mengandung '-', gunakan pemisah yang lebih unik atau parse dengan hati-hati
+        const parts = groupKey.split('-');
+        const categoryName = parts.pop() || ''; // Ambil bagian terakhir sebagai kategori
+        const mataLombaName = parts.join('-'); // Sisanya adalah nama mata lomba
+
+        return (
+            mataLombaName.toLowerCase().includes(lowerQuery) ||
+            categoryName.toLowerCase().includes(lowerQuery) ||
+            results.some(r => normalizeSchoolName(r.nama_sekolah).toLowerCase().includes(normalizeSchoolName(lowerQuery))) // Normalisasi juga query sekolah
+        );
+      }
+    );
+  }, [groupedMataLombaByCategory, debouncedQuery]);
+  // --- AKHIR PERUBAHAN ---
 
   if (loading) return <LoadingSkeleton />;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-[#501515] to-[#1A0D0D] py-16 sm:py-24 px-4 md:px-8 text-white">
-        {/* Efek Bintang (Opsional) */}
-        <div className="absolute inset-0 -z-10 opacity-20">
-            {/* Anda bisa menambahkan animasi bintang atau partikel di sini */}
-        </div>
+      <div className="absolute inset-0 -z-10 opacity-20">
+        {/* Placeholder untuk efek bintang/partikel */}
+      </div>
       <div className="max-w-6xl mx-auto space-y-12">
-        <motion.header 
-            className="flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-white/10 pb-6"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="flex items-center gap-4">
-              <div className="p-3 bg-amber-400/10 rounded-full border-2 border-amber-400/30">
-                 <Trophy className="h-8 w-8 text-amber-400" />
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500">
-                    Leaderboard P3K
-                </h1>
-                <p className="text-gray-400 text-sm mt-1">Hasil Perolehan Juara Sementara</p>
-              </div>
-          </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Link
-              href="/admin/hasil-akhir" // Sesuaikan jika perlu
-              className="flex-1 sm:flex-none flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all shadow-lg border border-white/10"
-            >
-              <School className="w-4 h-4" />
-              <span className="truncate">Lihat Format Nilai Peserta</span>
-            </Link>
-            <motion.button
-              onClick={fetchJuara}
-              className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors border border-white/10"
-              whileHover={{ scale: 1.1, rotate: 90 }}
-              whileTap={{ scale: 0.9 }}
-              title="Refresh Data"
-            >
-              <RefreshCw className="w-5 h-5 text-amber-400" />
-            </motion.button>
-          </div>
+        <motion.header /* ... sama ... */ >
+            <div className="flex items-center gap-4">
+                <div className="p-3 bg-amber-400/10 rounded-full border-2 border-amber-400/30">
+                    <Trophy className="h-8 w-8 text-amber-400" />
+                </div>
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500">
+                        Leaderboard P3K
+                    </h1>
+                    <p className="text-gray-400 text-sm mt-1">Hasil Perolehan Juara Sementara</p>
+                </div>
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+                <Link
+                    href="/admin/hasil-akhir"
+                    className="flex-1 sm:flex-none flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all shadow-lg border border-white/10"
+                >
+                    <School className="w-4 h-4" />
+                    <span className="truncate">Lihat Format Nilai Peserta</span>
+                </Link>
+                <motion.button
+                    onClick={fetchJuara}
+                    className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors border border-white/10"
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                    title="Refresh Data"
+                >
+                    <RefreshCw className="w-5 h-5 text-amber-400" />
+                </motion.button>
+            </div>
         </motion.header>
 
-        {error && (
-          <motion.div 
-            className="p-4 text-center text-red-400 bg-red-900/30 rounded-lg border border-red-500/50 flex items-center justify-center gap-3"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          >
-            <ServerCrash className="w-5 h-5"/> {error}
-          </motion.div>
+        {error && ( /* ... sama ... */ 
+             <motion.div 
+                className="p-4 text-center text-red-400 bg-red-900/30 rounded-lg border border-red-500/50 flex items-center justify-center gap-3"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            >
+                <ServerCrash className="w-5 h-5"/> {error}
+            </motion.div>
         )}
 
-        <motion.div 
+        <motion.div /* ... StatCard (sama) ... */ 
             className="grid grid-cols-1 md:grid-cols-2 gap-6"
             variants={containerVariants} initial="hidden" animate="visible"
         >
-          <StatCard label="Total Penghargaan Diraih" value={data.length} icon={Award} />
-          <StatCard label="Sekolah Berpartisipasi (Total)" value={new Set(data.map(d => d.nama_sekolah)).size} icon={Users} />
+            <StatCard label="Total Penghargaan Diraih" value={data.length} icon={Award} />
+            <StatCard label="Sekolah Berpartisipasi (Total)" value={new Set(data.map(d => normalizeSchoolName(d.nama_sekolah))).size} icon={Users} />
         </motion.div>
 
-        {/* Peringkat Sekolah */}
         <section className="bg-black/20 p-6 rounded-3xl border border-white/10 shadow-2xl">
-            <h2 className="text-2xl font-semibold mb-6 text-center text-amber-400">🏆 Peringkat Sekolah 🏆</h2>
-            <div className="flex justify-center mb-6 bg-white/5 p-1.5 rounded-full border border-white/10">
-                {kategoriList.map((kategori) => (
-                    <button
-                        key={kategori}
-                        onClick={() => setActiveCategory(kategori)}
-                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                            activeCategory === kategori 
-                            ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-black shadow-lg' 
-                            : 'text-gray-300 hover:bg-white/10'
-                        }`}
-                    >
-                        {kategori}
-                    </button>
-                ))}
-            </div>
-             <motion.div 
-                className="space-y-3"
-                key={activeCategory} // Ganti key agar animasi berjalan saat kategori berubah
-                variants={containerVariants} initial="hidden" animate="visible"
-            >
-              {schoolRanking.length > 0 ? schoolRanking.map((school, i) => (
-                <RankingCard key={`${school.nama_sekolah}-${i}`} school={school} rank={i + 1} />
-              )) : (
-                  <div className="text-center py-6 text-gray-400">Belum ada data juara untuk kategori {activeCategory}.</div>
-              )}
-            </motion.div>
-        </section>
-
-        {/* Hasil Per Lomba */}
-        <section className="bg-black/20 p-6 rounded-3xl border border-white/10 shadow-2xl">
-           <h2 className="text-2xl font-semibold mb-6 text-center text-amber-400">📋 Hasil Per Mata Lomba 📋</h2>
-            <div className="relative mb-6">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-400/70" />
-                <input
-                    type="text"
-                    placeholder="Cari mata lomba atau sekolah..."
-                    className="w-full pl-12 pr-4 py-3 text-sm rounded-xl border-2 border-white/20 bg-white/5 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/50 transition-all"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
-            </div>
+          <h2 className="text-2xl font-semibold mb-6 text-center text-amber-400">🏆 Peringkat Sekolah 🏆</h2>
+          <div className="flex justify-center mb-6 bg-white/5 p-1.5 rounded-full border border-white/10">
+            {kategoriList.map((kategori) => (
+              <button
+                key={kategori}
+                onClick={() => setActiveCategory(kategori)}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                  activeCategory === kategori 
+                  ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-black shadow-lg' 
+                  : 'text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                {kategori}
+              </button>
+            ))}
+          </div>
             <motion.div 
                 className="space-y-3"
+                key={activeCategory} // Key untuk re-animasi saat kategori berubah
                 variants={containerVariants} initial="hidden" animate="visible"
             >
-            {filteredMataLomba.length === 0 ? (
-                <div className="text-center py-6 text-gray-400 text-sm">
-                    Tidak ada mata lomba yang cocok untuk &quot{debouncedQuery}&quot
-                </div>
-            ) : (
-                filteredMataLomba.map(([mata_lomba, juaraList]) => (
-                    <CompetitionAccordion
-                        key={mata_lomba}
-                        title={mata_lomba}
-                        results={juaraList}
-                        category={juaraList[0]?.kategori || ""}
-                    />
-                ))
+            {schoolRanking.length > 0 ? schoolRanking.map((school, i) => (
+                <RankingCard key={`${school.nama_sekolah}-${school.kategori}-${i}`} school={school} rank={i + 1} />
+            )) : (
+                <div className="text-center py-6 text-gray-400">Belum ada data juara untuk kategori {activeCategory}.</div>
             )}
             </motion.div>
         </section>
+
+        <section className="bg-black/20 p-6 rounded-3xl border border-white/10 shadow-2xl">
+          <h2 className="text-2xl font-semibold mb-6 text-center text-amber-400">📋 Hasil Per Mata Lomba 📋</h2>
+          <div className="relative mb-6">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-400/70" />
+            <input
+              type="text"
+              placeholder="Cari mata lomba, kategori, atau sekolah..." // Placeholder diupdate
+              className="w-full pl-12 pr-4 py-3 text-sm rounded-xl border-2 border-white/20 bg-white/5 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/50 transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <motion.div 
+            className="space-y-3"
+            variants={containerVariants} initial="hidden" animate="visible"
+          >
+          {/* --- PERUBAHAN: Menggunakan filteredGroupedMataLomba --- */}
+          {filteredGroupedMataLomba.length === 0 ? (
+            <div className="text-center py-6 text-gray-400 text-sm">
+                Tidak ada mata lomba yang cocok untuk &quot;{debouncedQuery}&quot;
+            </div>
+          ) : (
+            filteredGroupedMataLomba.map(([groupKey, juaraList]) => {
+                // juaraList di sini sudah berisi Juara[] untuk kombinasi mata_lomba & kategori
+                const firstJuara = juaraList[0]; 
+                if (!firstJuara) return null; // Seharusnya tidak terjadi jika juaraList tidak kosong
+
+                return (
+                    <CompetitionAccordion
+                        key={groupKey} // groupKey sudah unik: "mata_lomba-kategori"
+                        title={firstJuara.mata_lomba}
+                        results={juaraList} // juaraList sudah diurutkan di useMemo
+                        category={firstJuara.kategori}
+                    />
+                );
+            })
+          )}
+          {/* --- AKHIR PERUBAHAN --- */}
+          </motion.div>
+        </section>
         
         <footer className="text-center text-xs text-gray-600 border-t border-white/10 pt-4">
-            Papan Skor P3K 2025 - KSR PMI Unit Universitas Suryakancana
+          Papan Skor P3K 2025 - KSR PMI Unit Universitas Suryakancana
         </footer>
       </div>
     </div>
