@@ -26,7 +26,7 @@ export default function NavbarDesktop() {
   const navItems = [
     { label: 'BERANDA', href: '/' },
     { label: 'INFORMASI LOMBA', href: '/informasi' },
-    { label: 'HASIL AKHIR', href: '/admin/leaderboar' },
+    { label: 'HASIL AKHIR', href: '/admin/leaderboard' },
     {
       label: 'SURAT EDARAN',
       href: 'https://drive.google.com/drive/folders/1HAsBXoPitXxJXpGss1smselXrWCHH5Jo?usp=sharing',
