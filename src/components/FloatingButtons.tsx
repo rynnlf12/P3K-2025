@@ -1,29 +1,28 @@
-// components/FloatingButtons.tsx
+
 'use client';
 
 import { usePathname } from 'next/navigation';
 import { FaWhatsapp, FaInstagram } from 'react-icons/fa';
 
 export default function FloatingButtons() {
-    const pathname = usePathname(); // Bisa string atau null
+    const pathname = usePathname(); 
 
-    // Tentukan prefix untuk semua halaman admin
+ 
     const adminPrefix = '/admin';
 
-    // 1. Cek dulu apakah pathname null. Jika ya, jangan render apa-apa.
+   
     if (!pathname) {
         return null;
     }
 
-    // 2. Jika tidak null, baru cek apakah dimulai dengan prefix admin.
+    
     const isAdminPage = pathname.startsWith(adminPrefix);
 
-    // 3. Jika ini adalah halaman admin, jangan render apa pun.
+    
     if (isAdminPage) {
         return null;
     }
 
-    // Jika bukan halaman admin dan pathname tidak null, render floating buttons
     return (
         <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
             <a

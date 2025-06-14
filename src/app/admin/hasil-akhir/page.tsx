@@ -16,7 +16,7 @@ import {
     ZoomIn,
     FileX2,
     ChevronDown,
-    Users, // #NEW: Ikon untuk filter kategori (atau pilih yang lain seperti Award)
+    Users, 
 } from 'lucide-react';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
@@ -42,7 +42,7 @@ interface HasilAkhir {
     file_path: string;
 }
 
-// #NEW: Opsi untuk filter kategori
+
 interface SelectOption {
   value: string;
   label: string;
@@ -53,7 +53,7 @@ const kategoriFilterOptions: SelectOption[] = [
   { value: 'madya', label: 'Madya (SMP/MTs)' },
 ];
 
-// Varian Animasi
+
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -67,7 +67,7 @@ const itemVariants = {
     visible: { opacity: 1, scale: 1, y: 0 }
 };
 
-// Komponen Card yang Ditingkatkan
+
 const ResultCard = ({ item, onImageClick, onDownloadClick }: { item: HasilAkhir; onImageClick: (url: string) => void; onDownloadClick: (url: string, filename: string) => void; }) => {
     const imageUrl = supabase.storage
         .from('hasil-akhir')
@@ -135,7 +135,6 @@ const ResultCard = ({ item, onImageClick, onDownloadClick }: { item: HasilAkhir;
     );
 };
 
-// Komponen Loading Skeleton
 const LoadingGrid = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {[...Array(8)].map((_, i) => (
@@ -152,13 +151,13 @@ const LoadingGrid = () => (
     </div>
 );
 
-// #MODIFIED: CustomSelect component
+
 const CustomSelect = ({
   value,
   onChange,
   options,
   placeholder,
-  icon: IconComponent = Filter, // Default icon adalah Filter
+  icon: IconComponent = Filter, 
 }: {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
@@ -189,11 +188,11 @@ const CustomSelect = ({
     </div>
 );
 
-// Komponen Halaman Utama
+
 const HasilAkhirPage = () => {
     const [selectedLomba, setSelectedLomba] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedKategori, setSelectedKategori] = useState(''); // #NEW: State for category filter
+    const [selectedKategori, setSelectedKategori] = useState(''); 
     const [hasilAkhirData, setHasilAkhirData] = useState<HasilAkhir[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [openLightbox, setOpenLightbox] = useState(false);
@@ -207,9 +206,7 @@ const getKategoriFromNamaSekolah = (namaSekolah: string): 'wira' | 'madya' | '' 
     const lowerNamaSekolah = namaSekolah.toLowerCase().trim();
     console.log(`getKategori: Memproses "${namaSekolah}", Menjadi: "${lowerNamaSekolah}"`);
 
-    // #MODIFIED REGEX: Mencari kata kunci yang mungkin diikuti underscore atau sebagai kata utuh
-    // atau kita bisa juga mencari awalan seperti sman_, smkn_, smpn_, mtsn_
-    if (/^(sma|smk|man|ma)[_\W]?/i.test(lowerNamaSekolah)) { // \W cocok dengan non-word character (termasuk spasi, akhir string), ? artinya opsional
+    if (/^(sma|smk|man|ma)[_\W]?/i.test(lowerNamaSekolah)) { 
         console.log(`getKategori: Cocok WIRA untuk "${lowerNamaSekolah}"`);
         return 'wira';
     }
@@ -217,17 +214,6 @@ const getKategoriFromNamaSekolah = (namaSekolah: string): 'wira' | 'madya' | '' 
         console.log(`getKategori: Cocok MADYA untuk "${lowerNamaSekolah}"`);
         return 'madya';
     }
-    
-    // Coba pencocokan yang lebih umum jika formatnya bervariasi (ini lebih longgar)
-    // if (lowerNamaSekolah.includes('sma') || lowerNamaSekolah.includes('smk') || lowerNamaSekolah.includes('man') || lowerNamaSekolah.includes('ma')) {
-    //     console.log(`getKategori (includes): Cocok WIRA untuk "${lowerNamaSekolah}"`);
-    //     return 'wira';
-    // }
-    // if (lowerNamaSekolah.includes('smp') || lowerNamaSekolah.includes('mts')) {
-    //     console.log(`getKategori (includes): Cocok MADYA untuk "${lowerNamaSekolah}"`);
-    //     return 'madya';
-    // }
-
 
     console.log(`getKategori: Tidak ada kecocokan untuk "${lowerNamaSekolah}"`);
     return '';
@@ -254,14 +240,8 @@ const getKategoriFromNamaSekolah = (namaSekolah: string): 'wira' | 'madya' | '' 
         fetchData();
     }, []);
 
-    // #MODIFIED: Filter data (termasuk kategori)
-    // ... (di dalam komponen HasilAkhirPage)
-
-// ... (kode lainnya tetap sama)
-
-// Filter data
 const filteredData = useMemo(() => {
-  // Logika filter awal Anda
+  
   const initiallyFiltered = hasilAkhirData.filter((item) => {
     const itemMataLomba = item.mata_lomba.replace(/_/g, ' ');
     const itemNamaSekolah = item.nama_sekolah.toLowerCase();
@@ -274,28 +254,22 @@ const filteredData = useMemo(() => {
     return matchesLomba && matchesSekolah && matchesKategori;
   });
 
-  // #NEW: Sortir filteredData berdasarkan mata_lomba lalu nomor_urut secara numerik
   return initiallyFiltered.sort((a, b) => {
-    // 1. Urutkan berdasarkan mata_lomba (string comparison)
-    // Menggunakan nilai asli dari item, bukan yang sudah di-replace, untuk konsistensi
     if (a.mata_lomba < b.mata_lomba) return -1;
     if (a.mata_lomba > b.mata_lomba) return 1;
 
-    // 2. Jika mata_lomba sama, urutkan berdasarkan nomor_urut (numeric comparison)
     const numA = parseInt(a.nomor_urut, 10);
     const numB = parseInt(b.nomor_urut, 10);
 
-    // Penanganan jika parsing gagal (nomor_urut bukan angka valid atau string kosong)
-    // Pindahkan item dengan nomor_urut yang tidak valid/kosong ke akhir.
-    if (isNaN(numA) && !isNaN(numB)) return 1;  // numA NaN, numB valid -> numA setelah numB
-    if (!isNaN(numA) && isNaN(numB)) return -1; // numA valid, numB NaN -> numA sebelum numB
-    if (isNaN(numA) && isNaN(numB)) return 0;  // Keduanya NaN, anggap sama
+    if (isNaN(numA) && !isNaN(numB)) return 1;  
+    if (!isNaN(numA) && isNaN(numB)) return -1; 
+    if (isNaN(numA) && isNaN(numB)) return 0;  
 
-    return numA - numB; // Urutan ascending
+    return numA - numB; 
   });
-}, [hasilAkhirData, selectedLomba, searchQuery, selectedKategori]); // Dependencies tetap sama
+}, [hasilAkhirData, selectedLomba, searchQuery, selectedKategori]); 
 
-// ... (sisa kode HasilAkhirPage)
+
     useEffect(() => {
         const newSlides = filteredData.map(item => {
             const imageUrl = supabase.storage
@@ -378,19 +352,19 @@ const filteredData = useMemo(() => {
                             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedLomba(e.target.value)}
                             options={lombaList}
                             placeholder="Filter Berdasarkan Lomba"
-                            icon={Trophy} // #MODIFIED: Icon spesifik untuk Lomba
+                            icon={Trophy} 
                         />
-                        {/* #NEW: CustomSelect untuk Kategori */}
+                        
                         <CustomSelect
                             value={selectedKategori}
                             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedKategori(e.target.value)}
                             options={kategoriFilterOptions}
                             placeholder="Filter Semua Kategori"
-                            icon={Users} // #NEW: Icon untuk Kategori
+                            icon={Users} 
                         />
                     </div>
 
-                    {/* #MODIFIED: Kondisi untuk menampilkan filter aktif */}
+                    
                     {(selectedLomba || searchQuery || selectedKategori) && (
                         <div className="px-1 pt-5 flex flex-wrap gap-3 items-center border-t border-white/10 mt-5">
                             <span className='text-sm text-gray-400'>Filter Aktif:</span>
@@ -420,7 +394,7 @@ const filteredData = useMemo(() => {
                                     > <X className="h-3 w-3" /> </button>
                                 </motion.div>
                             )}
-                            {/* #NEW: Menampilkan filter kategori aktif */}
+                           
                             {selectedKategori && (
                                 <motion.div
                                     className="bg-teal-400/10 px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center gap-2 border border-teal-400/20 text-teal-300"
@@ -439,7 +413,6 @@ const filteredData = useMemo(() => {
                 </motion.div>
 
                 <motion.div
-                    // #MODIFIED: Ganti key agar animasi berjalan saat filter kategori juga berubah
                     key={selectedLomba + searchQuery + selectedKategori}
                     variants={containerVariants}
                     initial="hidden"
